@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Research OS V3 - Dashboard</title>
+  <title>Research OS V3 - Research Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #09090b;
@@ -40,606 +40,501 @@
     body {
       font-family: var(--font-body);
       background-color: var(--bg);
-      background-image: radial-gradient(circle at top right, rgba(6, 182, 212, 0.05), transparent 40%);
+      background-image: radial-gradient(circle at top right, rgba(6, 182, 212, 0.03), transparent 40%);
       color: var(--text);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      height: 100vh;
     }
 
-    .app {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      min-height: 100vh;
-    }
-
-    /* Sidebar Styling */
-    .sidebar {
-      padding: 24px;
-      background: rgba(9, 9, 11, 0.7);
-      backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    .app-container {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      position: sticky;
-      top: 0;
       height: 100vh;
-      overflow-y: auto;
+      width: 100vw;
     }
 
-    .brand {
+    /* Fixed Top Bar */
+    .top-bar {
+      height: 60px;
+      background: rgba(9, 9, 11, 0.85);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      flex-shrink: 0;
+    }
+
+    .brand-logo {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
+      gap: 10px;
     }
 
-    .mark {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       background: linear-gradient(135deg, var(--primary), var(--blue));
       display: grid;
       place-items: center;
       color: #fff;
-      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+      font-weight: 700;
     }
 
-    .brand h1 {
-      font-size: 1.15rem;
+    .brand-logo h1 {
+      font-size: 1.05rem;
       font-weight: 700;
       letter-spacing: -0.02em;
     }
 
-    .brand-sub {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-weight: 500;
+    .top-bar-metrics {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 0.8rem;
     }
 
-    .panel {
-      padding: 16px;
-      border-radius: 16px;
-      background-color: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
+    .top-metric-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+
+    .top-metric-item strong {
+      color: var(--text);
+      font-family: var(--font-mono);
+    }
+
+    /* App Body */
+    .app-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      width: 100vw;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: rgba(18, 18, 20, 0.6);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 16px;
+      padding: 20px;
+      overflow-y: auto;
+      flex-shrink: 0;
     }
 
-    .panel h3 {
-      font-size: 0.8rem;
+    .sidebar-block {
+      background: rgba(255, 255, 255, 0.015);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .sidebar-block h3 {
+      font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--muted);
-      font-weight: 600;
-    }
-
-    .panel-val {
-      font-size: 0.88rem;
-      color: var(--text);
-    }
-
-    /* Broker Wallet Card */
-    .wallet-card {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
-      border: 1px solid var(--primary);
-      box-shadow: 0 4px 20px var(--primary-glow);
-    }
-
-    .wallet-header {
+      margin-bottom: 10px;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      color: var(--primary);
-      font-weight: 700;
+      gap: 6px;
     }
 
-    .wallet-balance {
-      font-size: 1.4rem;
+    .wallet-val {
+      font-size: 1.35rem;
       font-weight: 700;
-      color: #fff;
       font-family: var(--font-mono);
-      margin: 4px 0;
+      color: #fff;
+      margin-bottom: 4px;
     }
 
-    .wallet-equity {
-      font-size: 0.8rem;
+    .wallet-sub {
+      font-size: 0.78rem;
       color: var(--muted);
     }
 
-    .wallet-equity span {
-      color: var(--success);
+    .wallet-sub span {
+      font-family: var(--font-mono);
       font-weight: 600;
     }
 
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--success);
-      box-shadow: 0 0 0 4px var(--success-glow);
-      animation: pulse 2s infinite;
-      display: inline-block;
-    }
-
-    @keyframes pulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
-      }
-      70% {
-        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-      }
-    }
-
-    /* Main Section Styling */
-    .main {
-      padding: 32px;
+    /* Main Area */
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 24px;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
+      background: #09090b;
     }
 
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 20px;
-    }
-
-    .header-intro h2 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-    }
-
-    .header-intro p {
-      color: var(--muted);
-      margin-top: 4px;
-      font-size: 0.95rem;
-    }
-
-    /* Cards & Grids */
-    .grid4 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-
-    .grid3 {
+    /* Grid Layouts */
+    .cards-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
     }
 
-    .metric-card {
-      padding: 20px;
-      border-radius: 16px;
-      background: var(--surface-glass);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      box-shadow: var(--shadow);
-      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
-    }
-
-    .metric-card:hover {
-      border-color: rgba(6, 182, 212, 0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba(6, 182, 212, 0.1);
-    }
-
-    .metric-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .metric-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-    }
-
-    .metric-desc {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    /* Symbol Cards */
-    .sym-card {
-      background: var(--surface-glass);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-    }
-
-    .sym-card:hover {
-      transform: translateY(-2px);
-      border-color: rgba(6, 182, 212, 0.4);
-      box-shadow: 0 12px 30px rgba(6, 182, 212, 0.1);
-    }
-
-    .sym-header {
-      padding: 20px 20px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    }
-
-    .sym-title h3 {
-      font-size: 1.25rem;
-      font-weight: 700;
-    }
-
-    .sym-time {
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .sym-body {
-      padding: 20px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .sym-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .sym-label {
-      font-size: 0.72rem;
-      color: var(--muted);
-      font-weight: 500;
-    }
-
-    .sym-val {
-      font-size: 0.95rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-    }
-
-    .badge {
-      display: inline-flex;
-      padding: 4px 10px;
-      border-radius: 99px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .badge-primary { background-color: var(--primary-glow); color: var(--primary); }
-    .badge-success { background-color: var(--success-glow); color: var(--success); }
-    .badge-warn { background-color: var(--warn-glow); color: var(--warn); }
-    .badge-error { background-color: var(--error-glow); color: var(--error); }
-    .badge-blue { background-color: rgba(59, 130, 246, 0.15); color: var(--blue); }
-
-    /* Kanban Board Styling */
-    .section-card {
-      background: var(--surface-glass);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 20px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      transition: border-color 0.25s;
-    }
-    .section-card:hover {
-      border-color: rgba(255, 255, 255, 0.12);
-    }
-
-    .section-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .section-header h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .section-body {
-      padding: 24px;
-    }
-
-    .board-container {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 8px;
-    }
-
-    .board {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      min-width: 1000px;
-    }
-
-    .lane {
-      padding: 16px;
-      border-radius: 16px;
-      background-color: rgba(255, 255, 255, 0.01);
+    /* Cards */
+    .dashboard-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      min-height: 220px;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s;
+    }
+
+    .dashboard-card:hover {
+      border-color: var(--border-focus);
+    }
+
+    .card-header {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
       gap: 10px;
     }
 
-    .lane-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--muted);
-      margin-bottom: 4px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-      padding-bottom: 6px;
-    }
-
-    .ticket {
-      padding: 12px;
-      border-radius: 12px;
-      background-color: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
+    .card-price-row {
+      margin-bottom: 16px;
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      transition: background-color 0.2s;
+      align-items: baseline;
+      gap: 8px;
     }
 
-    .ticket:hover {
-      background-color: rgba(255, 255, 255, 0.04);
-    }
-
-    .ticket-sym {
-      font-size: 0.9rem;
-      font-weight: 700;
+    .card-price-main {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
       color: #fff;
     }
 
-    .ticket-desc {
-      font-size: 0.75rem;
+    .card-price-sub {
+      font-size: 0.82rem;
       color: var(--muted);
+      font-family: var(--font-mono);
     }
 
-    /* Workspace Tabs Section */
-    .tabs-bar {
-      display: flex;
-      gap: 8px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1px;
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      padding: 12px 18px;
-      font-size: 0.88rem;
-      color: var(--muted);
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      position: relative;
-      transition: color 0.2s;
-      white-space: nowrap;
-    }
-
-    .tab-btn:hover {
-      color: var(--text);
-    }
-
-    .tab-btn.active {
-      color: var(--primary);
-    }
-
-    .tab-btn.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background-color: var(--primary);
-      box-shadow: 0 0 8px var(--primary);
-    }
-
-    .tab-panel {
-      display: none;
-      padding-top: 20px;
-    }
-
-    .tab-panel.active {
-      display: block;
-    }
-
-    /* Table Styling */
+    /* Table styles */
     .table-container {
-      overflow-x: auto;
-      border-radius: 12px;
+      background: var(--surface);
       border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      width: 100%;
     }
 
     .ui-table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.88rem;
       text-align: left;
     }
 
     .ui-table th {
-      background-color: rgba(255, 255, 255, 0.02);
-      padding: 14px 16px;
-      font-weight: 600;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px 16px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.03em;
       color: var(--muted);
       border-bottom: 1px solid var(--border);
     }
 
     .ui-table td {
       padding: 14px 16px;
+      font-size: 0.85rem;
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
     }
 
-    .ui-table tr:last-child td {
-      border-bottom: none;
+    .ui-table tbody tr {
+      cursor: pointer;
+      transition: background 0.15s;
     }
 
     .ui-table tbody tr:hover {
-      background-color: rgba(255, 255, 255, 0.01);
+      background: rgba(255, 255, 255, 0.02);
     }
 
-    /* JSON Previews */
-    .json-code {
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: #34d399;
-      background-color: rgba(0, 0, 0, 0.3);
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      overflow-x: auto;
-      max-height: 480px;
+    /* Badge styles */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
 
-    .select-dropdown {
-      padding: 8px 12px;
-      border-radius: 8px;
-      background-color: var(--surface-hover);
+    .badge-primary { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+    .badge-success { background: var(--success-glow); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge-warn { background: var(--warn-glow); color: var(--warn); border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge-error { background: var(--error-glow); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.2); }
+    .badge-blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); border: 1px solid rgba(59, 130, 246, 0.2); }
+
+    /* Filters block */
+    .filters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .filter-select {
+      background: #18181b;
       border: 1px solid var(--border);
       color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.88rem;
-      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
       outline: none;
+      cursor: pointer;
     }
 
-    .select-dropdown:focus {
+    .filter-select:focus {
       border-color: var(--primary);
     }
 
-    .empty-state {
-      padding: 40px;
-      text-align: center;
-      color: var(--muted);
-      border: 1.5px dashed var(--border);
-      border-radius: 16px;
-      font-size: 0.9rem;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .step {
-      padding: 16px;
-      border-radius: 16px;
-      background-color: var(--surface);
+    .search-box {
+      background: #18181b;
       border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      position: relative;
-      box-shadow: var(--shadow);
-      transition: border-color 0.2s, background-color 0.2s;
+      color: var(--text);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      border-radius: 6px;
+      outline: none;
+      flex-grow: 1;
+      max-width: 300px;
     }
 
-    .step:hover {
+    .search-box:focus {
       border-color: var(--primary);
-      background-color: rgba(255, 255, 255, 0.01);
     }
 
-    .step-num {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--primary);
+    /* Expandable row */
+    .expanded-panel {
+      background: rgba(255, 255, 255, 0.01);
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .expanded-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .expanded-section {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .expanded-section h4 {
+      font-size: 0.78rem;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
     }
 
-    .step-title {
-      font-size: 0.95rem;
-      font-weight: 600;
+    .expanded-section p {
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      outline: none;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-error {
+      background: var(--error);
       color: #fff;
     }
 
-    .step-desc {
+    .btn-error:hover {
+      background: #dc2626;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Collapsible card */
+    .collapsible-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    .collapsible-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .collapsible-header h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .collapsible-content {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .collapsible-content.open {
+      display: block;
+    }
+
+    /* Factor categories grid */
+    .factor-groups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .factor-group-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .factor-group-box h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .factor-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
       font-size: 0.78rem;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.03);
+    }
+
+    .factor-row:last-child {
+      border-bottom: none;
+    }
+
+    .factor-key {
+      font-family: var(--font-mono);
       color: var(--muted);
     }
 
-    .search-input {
-      padding: 6px 12px;
-      border-radius: 8px;
-      background-color: var(--surface-hover);
-      border: 1px solid var(--border);
+    .factor-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
       color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.82rem;
-      outline: none;
-      width: 180px;
-      transition: border-color 0.2s;
-    }
-    .search-input:focus {
-      border-color: var(--primary);
     }
 
+    /* Helpers */
+    .mono { font-family: var(--font-mono); }
+    .text-success { color: var(--success); }
+    .text-error { color: var(--error); }
+    .text-muted { color: var(--muted); }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .pulse-green {
+      background-color: var(--success);
+      box-shadow: 0 0 0 4px var(--success-glow);
+      animation: pulseGreen 2s infinite;
+    }
+    @keyframes pulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Drilldown cockpit */
     .cockpit-drilldown {
       position: fixed;
       top: 0;
-      right: -480px;
-      width: 480px;
+      right: -550px;
+      width: 500px;
       height: 100vh;
-      background-color: var(--surface);
+      background: #18181b;
       border-left: 1px solid var(--border);
-      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-      z-index: 250;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+      z-index: 200;
+      transition: right 0.3s ease;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
     .cockpit-drilldown.open {
-      transform: translateX(-480px);
+      right: 0;
     }
     .drilldown-header {
-      padding: 24px;
+      padding: 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .drilldown-body {
-      padding: 24px;
+      padding: 20px;
       overflow-y: auto;
       flex: 1;
       display: flex;
@@ -651,289 +546,507 @@
       border: none;
       color: var(--muted);
       cursor: pointer;
-      padding: 6px;
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      transition: background-color 0.2s, color 0.2s;
     }
-    .drilldown-close:hover {
-      background-color: var(--surface-hover);
-      color: var(--text);
-    }
+    .drilldown-close:hover { color: var(--text); }
     .drilldown-overlay {
-      display: none;
       position: fixed;
       top: 0;
       left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
       backdrop-filter: blur(4px);
-      z-index: 240;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      pointer-events: none;
-    }
-    .drilldown-overlay.active {
-      display: block;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .trace-title {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      font-weight: 700;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      padding-bottom: 6px;
-    }
-
-    .trace-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .trace-card {
-      padding: 12px;
-      border-radius: 12px;
-      background-color: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .ui-table tbody tr {
-      cursor: pointer;
-    }
-    .sym-card {
-      cursor: pointer;
-    }
-
-    /* Mobile Top Bar - hidden on desktop */
-    .mobile-top-bar {
+      z-index: 199;
       display: none;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-      background-color: var(--surface);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
     }
-    
-    .menu-btn {
-      background: none;
-      border: none;
-      color: var(--text);
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      padding: 8px;
-      border-radius: 8px;
-      transition: background-color 0.2s;
-    }
-    
-    .menu-btn:hover {
-      background-color: var(--surface-hover);
-    }
+    .drilldown-overlay.active { display: block; }
 
-    .sidebar-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      z-index: 150;
-      opacity: 0;
-      transition: opacity 0.25s ease;
-      pointer-events: none;
-    }
-    
-    .sidebar-overlay.active {
-      display: block;
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .tour-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(4px);
-      z-index: 9998;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-    .tour-overlay.active {
-      display: block;
-      opacity: 1;
-      pointer-events: auto;
-    }
+    /* Tour Modal */
     .guided-tour-modal {
-      display: none;
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 480px;
-      background-color: var(--surface);
+      background: #18181b;
       border: 1px solid var(--border);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
       border-radius: 16px;
       padding: 24px;
-      z-index: 9999;
+      width: 450px;
+      max-width: 90vw;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      z-index: 300;
+      display: none;
       flex-direction: column;
       gap: 16px;
     }
-    .guided-tour-modal.active {
-      display: flex;
+    .guided-tour-modal.open { display: flex; }
+    .tour-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      z-index: 299;
+      display: none;
     }
-    .preset-card {
-      padding: 16px;
-      border-radius: 16px;
-      background-color: var(--surface);
+    .tour-overlay.active { display: block; }
+
+    /* Tabs Bar inside advanced tools */
+    .tabs-bar {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      outline: none;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    .json-code {
+      background: rgba(0,0,0,0.3);
       border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: var(--shadow);
-      transition: border-color 0.2s, background-color 0.2s;
-    }
-    .preset-card:hover {
-      border-color: var(--primary);
-      background-color: rgba(255, 255, 255, 0.01);
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 1024px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-      .mobile-top-bar {
-        display: flex;
-      }
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: -280px; /* Hidden offscreen left */
-        width: 280px;
-        height: 100vh;
-        z-index: 200;
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-right: 1px solid var(--border);
-      }
-      .sidebar.open {
-        transform: translateX(280px);
-      }
-      .main {
-        padding: 20px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .board {
-        display: flex;
-        overflow-x: auto;
-        gap: 12px;
-        padding-bottom: 8px;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-      }
-      .lane {
-        flex: 0 0 280px;
-        scroll-snap-align: start;
-      }
-      .steps {
-        display: flex;
-        overflow-x: auto;
-        gap: 12px;
-        padding-bottom: 8px;
-        -webkit-overflow-scrolling: touch;
-      }
-      .step {
-        flex: 0 0 140px;
-      }
-      .header-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-      .metric-value {
-        font-size: 1.5rem;
-      }
+      border-radius: 8px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      overflow: auto;
+      max-height: 400px;
+      color: #38bdf8;
     }
   </style>
 </head>
 <body>
-<header class="mobile-top-bar">
-  <button class="menu-btn" id="menuToggle">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-  </button>
-  <div style="display:flex; align-items:center; gap:8px;">
-    <span style="font-weight:700; font-size:1rem; letter-spacing:-0.01em;">Research OS</span>
-    <span class="badge badge-primary" style="font-size:0.6rem; padding:2px 6px;">V3 Live</span>
-  </div>
-  <div id="mobileWalletSum" style="font-family:var(--font-mono); font-size:0.9rem; font-weight:700; color:var(--primary);">$10,000.00</div>
-</header>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<div class="tour-overlay" id="tourOverlay"></div>
-<div class="tour-overlay" id="playbookOverlay"></div>
-<div class="guided-tour-modal" id="tourModal">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h3 style="color:var(--primary); font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:8px;">
-      <span>🚀 Guided Tour:</span>
-      <span id="tourStepTitle" style="color:#fff; font-size:0.95rem;">Step 1</span>
-    </h3>
-    <button class="drilldown-close" onclick="closeGuidedTour()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-    </button>
-  </div>
-  <div style="font-size:0.85rem; line-height:1.5; color:var(--text-muted);" id="tourStepContent">
-    Content goes here...
-  </div>
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-    <span style="font-size:0.75rem; color:var(--muted);" id="tourStepIndicator">1 / 5</span>
-    <div style="display:flex; gap:8px;">
-      <button class="tab-btn" id="tourPrevBtn" style="padding:4px 8px; font-size:0.75rem; border-radius:4px;" onclick="prevTourStep()">Back</button>
-      <button class="tab-btn active" id="tourNextBtn" style="padding:4px 12px; font-size:0.75rem; border-radius:4px;" onclick="nextTourStep()">Next</button>
+
+<div class="app-container">
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="brand-logo">
+      <div class="logo-icon">🚀</div>
+      <div>
+        <h1>Research Console</h1>
+        <span style="font-size:0.65rem; color:var(--muted); font-weight:600;">Research OS V3</span>
+      </div>
     </div>
+
+    <!-- Active Telemetry & Controls -->
+    <div class="top-bar-metrics">
+      <div class="top-metric-item">
+        <span>Mode:</span>
+        <span id="topModeBadge" class="badge">PAPER</span>
+      </div>
+      <div class="top-metric-item">
+        <span>Latency:</span>
+        <strong id="topLatencyVal">—</strong>
+      </div>
+      <div class="top-metric-item">
+        <span>Error Rate:</span>
+        <strong id="topErrorRate">—</strong>
+      </div>
+      <div class="top-metric-item">
+        <span>Uptime:</span>
+        <strong id="topUptime">—</strong>
+      </div>
+      <div class="top-metric-item">
+        <span class="pulse-dot pulse-green" id="topRefreshPulse"></span>
+        <span id="topRefreshLabel">Auto-refreshing</span>
+      </div>
+      
+      <!-- Prominent Kill Switch -->
+      <button class="btn btn-error" id="topKillSwitch" onclick="triggerKillSwitch()">
+        🚨 KILL SWITCH
+      </button>
+      <button class="btn btn-secondary" id="topResetKillSwitch" style="display:none;" onclick="triggerResetKillSwitch()">
+        🟢 Reset Kill Switch
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <!-- Paper Portfolio Block -->
+      <div class="sidebar-block">
+        <h3>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><circle cx="18" cy="15" r="1"/></svg>
+          Paper Broker
+        </h3>
+        <div class="wallet-val" id="sbBalance">$10,000.00</div>
+        <div class="wallet-sub">Equity: <span id="sbEquity" class="text-success">$10,000.00</span></div>
+        <div class="wallet-sub" style="margin-top:4px;">Open Positions: <span id="sbOpenCount" style="color:#fff; font-weight:700;">0</span></div>
+        <div class="wallet-sub">Total Unrealized: <span id="sbTotalPnl" style="font-weight:700;">$0.00</span></div>
+      </div>
+
+      <!-- Feed Status Block -->
+      <div class="sidebar-block">
+        <h3>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Feed Status
+        </h3>
+        <div class="wallet-sub">Network: <strong class="mono" style="color:#fff;">mainnet</strong></div>
+        <div class="wallet-sub">Assets: <strong class="mono" id="sbAssets" style="color:#fff;">—</strong></div>
+        <div class="wallet-sub">Interval: <strong class="mono" id="sbInterval" style="color:#fff;">1m</strong></div>
+        <div class="wallet-sub" style="margin-top:6px; display:flex; align-items:center; gap:6px;">
+          <span>Feed:</span>
+          <span class="badge badge-success" id="sbConnectionBadge">Connected</span>
+        </div>
+      </div>
+
+      <!-- Telemetry Block -->
+      <div class="sidebar-block">
+        <h3>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Telemetry
+        </h3>
+        <div class="wallet-sub">Msg Throughput: <strong class="mono" id="sbThroughput">—</strong></div>
+        <div class="wallet-sub">Telemetry Latency: <strong class="mono" id="sbLatency">—</strong></div>
+        <div class="wallet-sub">Error Rate: <strong class="mono" id="sbErrors">—</strong></div>
+        <div class="wallet-sub">Active Specs: <strong class="mono text-success" id="sbActiveSpecs">—</strong></div>
+      </div>
+      
+      <!-- Utility controls -->
+      <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-secondary" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="toggleTradingMode()">
+          🔄 Toggle Live/Paper Mode
+        </button>
+        <button class="btn btn-secondary" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="startGuidedTour()">
+          🚀 Getting Started Guide
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      
+      <!-- SECTION A: Symbol Overview Cards -->
+      <section class="cards-grid" id="sectionA-symbols"></section>
+
+      <!-- SECTION B: Signal Explorer Table -->
+      <section class="dashboard-card">
+        <div class="card-header" style="flex-wrap: wrap; gap: 12px; margin-bottom:20px;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">Signal Explorer</h3>
+            <p style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">Danh sách toàn bộ các tín hiệu được tính toán và theo dõi thời gian thực.</p>
+          </div>
+          <span class="badge badge-blue">Interactive Catalog</span>
+        </div>
+
+        <!-- Filter panel -->
+        <div class="filters-bar">
+          <select id="filterSymbol" class="filter-select" onchange="onExplorerFilterChange()">
+            <option value="ALL">All Symbols</option>
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="SOL">SOL</option>
+          </select>
+          <select id="filterFamily" class="filter-select" onchange="onExplorerFilterChange()">
+            <option value="ALL">All Families</option>
+            <option value="breakout">Breakout</option>
+            <option value="mean_reversion">Mean Reversion</option>
+            <option value="continuation">Continuation</option>
+            <option value="volatility">Volatility</option>
+            <option value="order_flow">Order Flow</option>
+            <option value="cross_asset">Cross Asset</option>
+            <option value="divergence">Divergence</option>
+            <option value="pattern">Pattern</option>
+          </select>
+          <select id="filterStatus" class="filter-select" onchange="onExplorerFilterChange()">
+            <option value="ALL">All Status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="TRIGGERED">Triggered</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="STANDBY">Standby</option>
+            <option value="INVALIDATED">Invalidated</option>
+          </select>
+          <select id="filterQuality" class="filter-select" onchange="onExplorerFilterChange()">
+            <option value="ALL">All Quality (A/B/C)</option>
+            <option value="A">Tier A</option>
+            <option value="B">Tier B</option>
+            <option value="C">Tier C</option>
+          </select>
+          <select id="filterExecReady" class="filter-select" onchange="onExplorerFilterChange()">
+            <option value="ALL">All Execution Gating</option>
+            <option value="YES">Execution Ready (Yes)</option>
+          </select>
+          <input type="text" id="searchSignalName" class="search-box" placeholder="Search signal ID..." oninput="onExplorerFilterChange()" />
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+          <table class="ui-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Signal ID</th>
+                <th>Family</th>
+                <th>Direction</th>
+                <th>Triggered</th>
+                <th>Confirmed</th>
+                <th>Invalidated</th>
+                <th>Status</th>
+                <th>Quality</th>
+                <th>Regime Fit</th>
+                <th>Entry Side</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="sectionB-signalTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION C: Paper Verification Panel -->
+      <section class="dashboard-card">
+        <div class="card-header" style="margin-bottom:20px;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">Paper Trading — Thesis Verification</h3>
+            <p style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">Các vị thế đang mở và lịch sử để kiểm chứng tính thực tế của các luận điểm.</p>
+          </div>
+          <span class="badge badge-success">Verify Gate</span>
+        </div>
+
+        <!-- Positions Table -->
+        <h4 style="font-size:0.82rem; text-transform:uppercase; color:var(--muted); margin-bottom:10px; font-weight:700; letter-spacing:0.02em;">Active Positions</h4>
+        <div class="table-container" style="margin-bottom:20px;">
+          <table class="ui-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Signal Source</th>
+                <th>Direction</th>
+                <th>Qty</th>
+                <th>Entry</th>
+                <th>Current</th>
+                <th>PnL</th>
+                <th>SL</th>
+                <th>TP</th>
+                <th>Opened</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="sectionC-activePositionsTable"></tbody>
+          </table>
+        </div>
+
+        <!-- Closed Trades Table -->
+        <h4 style="font-size:0.82rem; text-transform:uppercase; color:var(--muted); margin-bottom:10px; font-weight:700; letter-spacing:0.02em;">Closed Trade History</h4>
+        <div class="table-container">
+          <table class="ui-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Signal Source</th>
+                <th>Direction</th>
+                <th>Qty</th>
+                <th>Entry</th>
+                <th>Exit</th>
+                <th>Net PnL</th>
+                <th>Exit Time</th>
+                <th>Reason</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="sectionC-closedHistoryTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SECTION D: Collapsible Factor Inspector -->
+      <section class="collapsible-card">
+        <div class="collapsible-header" onclick="toggleFactorInspector()">
+          <h3 style="display:flex; align-items:center; gap:8px;">
+            <span>🔍 Factor & Indicator Inspector</span>
+            <span style="font-size:0.75rem; color:var(--muted); font-weight:normal;">(Click to expand / collapse)</span>
+          </h3>
+          <div style="display:flex; align-items:center; gap:12px;" onclick="event.stopPropagation()">
+            <label for="inspectSelectSymbol" style="font-size:0.8rem; color:var(--muted); font-weight:600;">Target Asset:</label>
+            <select id="inspectSelectSymbol" class="filter-select" style="padding:4px 10px;" onchange="renderInspectors()"></select>
+          </div>
+        </div>
+        <div class="collapsible-content" id="factorInspectorContent">
+          <div class="factor-groups-grid">
+            <!-- Group 1: Trend -->
+            <div class="factor-group-box">
+              <h4>Trend Factors</h4>
+              <div id="group-trend"></div>
+            </div>
+            <!-- Group 2: Mean Reversion -->
+            <div class="factor-group-box">
+              <h4>Mean Reversion</h4>
+              <div id="group-mean-reversion"></div>
+            </div>
+            <!-- Group 3: Volume / Flow -->
+            <div class="factor-group-box">
+              <h4>Volume & Flow</h4>
+              <div id="group-volume-flow"></div>
+            </div>
+            <!-- Group 4: Volatility / Microstructure -->
+            <div class="factor-group-box">
+              <h4>Volatility & Microstructure</h4>
+              <div id="group-volatility-micro"></div>
+            </div>
+            <!-- Group 5: Cross-Asset -->
+            <div class="factor-group-box">
+              <h4>Cross-Asset</h4>
+              <div id="group-cross-asset"></div>
+            </div>
+            <!-- Group 6: Pattern / Structure -->
+            <div class="factor-group-box">
+              <h4>Pattern & Structure</h4>
+              <div id="group-pattern-structure"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLLAPSIBLE ADVANCED TOOLS (Preserving all legacy tabs & inputs) -->
+      <section class="collapsible-card">
+        <div class="collapsible-header" onclick="toggleAdvancedTools()">
+          <h3 style="display:flex; align-items:center; gap:8px;">
+            <span>🛠️ Advanced Research Tools & Configs</span>
+            <span style="font-size:0.75rem; color:var(--muted); font-weight:normal;">(Kanban board, Presets, Validator, Settings)</span>
+          </h3>
+          <span class="badge badge-primary" style="font-size:0.6rem; padding:2px 6px;">V3 Settings</span>
+        </div>
+        <div class="collapsible-content" id="advancedToolsContent">
+          <!-- Pipeline Settings form -->
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom:24px;">
+            <div class="sidebar-block">
+              <h3 style="color:var(--primary); font-size:0.85rem; border-bottom:1px solid var(--border); padding-bottom:6px;">Pipeline Config</h3>
+              <div style="margin-top:12px; display:flex; flex-direction:column; gap:12px;">
+                <div>
+                  <label style="display:block; margin-bottom: 4px; font-size:0.75rem; color:var(--muted); font-weight: 600;">Active Symbols (comma-separated)</label>
+                  <input type="text" id="cfgSymbols" class="search-box" style="width:100%; max-width:none;">
+                </div>
+                <div>
+                  <label style="display:block; margin-bottom: 4px; font-size:0.75rem; color:var(--muted); font-weight: 600;">Timeframe Interval</label>
+                  <select id="cfgInterval" class="filter-select" style="width:100%;">
+                    <option value="1m">1m (1 Minute)</option>
+                    <option value="5m">5m (5 Minutes)</option>
+                    <option value="15m">15m (15 Minutes)</option>
+                    <option value="1h">1h (1 Hour)</option>
+                    <option value="4h">4h (4 Hours)</option>
+                    <option value="1d">1d (1 Day)</option>
+                  </select>
+                </div>
+                <button class="btn btn-secondary" style="width:100%; justify-content:center; background:var(--primary); color:#000; border-color:var(--primary);" onclick="savePipelineConfig()">
+                  Save & Hot-Reload Pipeline
+                </button>
+                <div id="cfgFeedback" style="font-size:0.75rem; display:none; padding:6px; border-radius:4px; font-family:var(--font-mono);"></div>
+              </div>
+            </div>
+
+            <!-- Kanban lane block -->
+            <div class="sidebar-block" style="display:flex; flex-direction:column;">
+              <h3 style="color:var(--primary); font-size:0.85rem; border-bottom:1px solid var(--border); padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span>Alpha Lifecycle Kanban</span>
+                <input type="text" id="lifecycleSearch" class="search-box" placeholder="Filter lane symbols..." oninput="onFilterChange()" style="padding:4px 8px; font-size:0.7rem; width:150px;" />
+              </h3>
+              <div style="flex:1; overflow:auto; margin-top:12px;">
+                <div class="board-container" style="display:flex; gap:10px; width:100%; min-width:400px; height:200px;">
+                  <div id="lifecycleBoard" style="display:contents;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabs HUD -->
+          <div class="tabs-bar">
+            <button class="tab-btn active" data-tab="validation">Validation Details</button>
+            <button class="tab-btn" data-tab="backtests">Backtests (High-Fidelity)</button>
+            <button class="tab-btn" data-tab="ranking">Ranking & Promotion</button>
+            <button class="tab-btn" data-tab="presets">Research Presets</button>
+            <button class="tab-btn" data-tab="validator">Code Validator</button>
+            <button class="tab-btn" data-tab="raw-state">Raw JSON Snapshot</button>
+          </div>
+
+          <!-- Tab Contents -->
+          <div class="tab-panel active" id="panel-validation">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+              <label for="symbolSelect" style="font-weight:600; font-size:0.8rem; color:var(--muted);">Select Symbol:</label>
+              <select id="symbolSelect" class="filter-select" style="padding:4px 8px;"></select>
+            </div>
+            <pre id="validationView" class="json-code"></pre>
+          </div>
+
+          <div class="tab-panel" id="panel-backtests">
+            <pre id="backtestsView" class="json-code"></pre>
+          </div>
+
+          <div class="tab-panel" id="panel-ranking">
+            <div style="margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div style="font-size:0.75rem; color:var(--muted);">
+                Weights: Performance (35%) | Robustness (25%) | Decay (20%) | Complexity (20%)
+              </div>
+              <div>
+                <span class="badge badge-success">Promote: &gt;= 0.75</span>
+                <span class="badge badge-warn">Revise: &lt; 0.50</span>
+              </div>
+            </div>
+            <div class="table-container">
+              <table class="ui-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Symbol</th>
+                    <th>Strategy</th>
+                    <th>Composite Score</th>
+                    <th>Performance</th>
+                    <th>Robustness</th>
+                    <th>Decay</th>
+                    <th>Complexity</th>
+                    <th>Auto Action</th>
+                  </tr>
+                </thead>
+                <tbody id="rankingTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="panel-presets">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;" id="presetsContainer"></div>
+          </div>
+
+          <div class="tab-panel" id="panel-validator">
+            <pre id="validatorView" class="json-code"></pre>
+          </div>
+
+          <div class="tab-panel" id="panel-raw-state">
+            <pre id="stateView" class="json-code" style="max-height: 400px;"></pre>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
 </div>
-<div class="guided-tour-modal" id="playbookExportModal" style="width: 600px; max-width: 90vw;">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h3 style="color:var(--primary); font-size:1.15rem; font-weight:700;">📦 Exported Playbook Code</h3>
-    <button class="drilldown-close" onclick="closePlaybookExport()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-    </button>
-  </div>
-  <div style="font-size:0.75rem; color:var(--muted); margin-bottom: 4px;">
-    Save the code below to <code>data/playbooks/</code> to execute this candidate:
-  </div>
-  <pre id="playbookCodeViewer" class="json-code" style="max-height: 350px; overflow-y: auto; text-align: left; font-family: var(--font-mono);"></pre>
-  <div style="display:flex; justify-content:flex-end; gap:8px;">
-    <button class="tab-btn" onclick="closePlaybookExport()">Close</button>
-    <button class="tab-btn active" id="playbookCopyBtn">Copy Code</button>
-  </div>
-</div>
+
+<!-- Drilldown cockpit (from tour.js/presets.js/playbook.js) -->
 <div class="drilldown-overlay" id="drilldownOverlay"></div>
 <div class="cockpit-drilldown" id="drilldownPanel">
   <div class="drilldown-header">
     <div style="display:flex; flex-direction:column; gap:4px;">
-      <h2 id="drilldownTitle" style="font-size:1.35rem; font-weight:700; color:#fff;">Alpha Drill-down</h2>
+      <h2 id="drilldownTitle" style="font-size:1.15rem; font-weight:700; color:#fff;">Alpha Drill-down</h2>
       <div style="display:flex; align-items:center; gap:8px;">
         <span class="badge badge-primary" id="drilldownSymbol">BTC</span>
         <span class="badge badge-success" id="drilldownRegime">Uptrend</span>
@@ -947,395 +1060,67 @@
     <!-- Dynamic Content -->
   </div>
 </div>
-<div class="app">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="mark">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17 10 6l4 7 2-4 4 8"/><path d="M4 17h16"/></svg>
-      </div>
-      <div>
-        <h1>Research OS</h1>
-        <div class="brand-sub">V3 Hyperliquid Realtime</div>
-      </div>
+
+<!-- Tour Overlay and Modals -->
+<div class="tour-overlay" id="tourOverlay"></div>
+<div class="tour-overlay" id="playbookOverlay"></div>
+<div class="guided-tour-modal" id="tourModal">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="color:var(--primary); font-size:1.05rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+      <span>🚀 Guided Tour:</span>
+      <span id="tourStepTitle" style="color:#fff; font-size:0.85rem;">Step 1</span>
+    </h3>
+    <button class="drilldown-close" onclick="closeGuidedTour()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+    </button>
+  </div>
+  <div style="font-size:0.8rem; line-height:1.45; color:var(--muted);" id="tourStepContent"></div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+    <span style="font-size:0.75rem; color:var(--muted);" id="tourStepIndicator">1 / 5</span>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" id="tourPrevBtn" style="padding:4px 8px; font-size:0.72rem; border-radius:4px;" onclick="prevTourStep()">Back</button>
+      <button class="btn btn-secondary active" id="tourNextBtn" style="padding:4px 12px; font-size:0.72rem; border-radius:4px; background:var(--primary); color:#000;" onclick="nextTourStep()">Next</button>
     </div>
-
-    <!-- Active Simulated Wallet Info -->
-    <div class="panel wallet-card" id="brokerWallet">
-      <div class="wallet-header">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><circle cx="18" cy="15" r="1"/></svg>
-        <span>PAPER BROKER</span>
-      </div>
-      <div class="wallet-balance" id="brokerBalance">$10,000.00</div>
-      <div class="wallet-equity" id="brokerEquity">Equity: <span>$10,000.00</span></div>
-    </div>
-
-    <!-- Live Risk Controls & Emergency Kill Switch -->
-    <div class="panel" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03); border-radius: 12px; padding: 12px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <h3 style="color:var(--error); margin:0;">Live Risk Control</h3>
-        <span class="badge badge-primary" id="riskModeBadge" style="font-size:0.6rem; padding:2px 6px;">PAPER</span>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <button class="tab-btn active" id="killSwitchBtn" style="background-color:var(--error); border-color:var(--error); color:#fff; font-weight:700; width:100%; border-radius:6px; padding:6px; font-size:0.75rem;" onclick="triggerKillSwitch()">
-          🚨 EMERGENCY STOP (KILL)
-        </button>
-        <button class="tab-btn" style="width:100%; border-radius:6px; padding:4px; font-size:0.72rem;" onclick="toggleTradingMode()">
-          Toggle Live Mode
-        </button>
-        <button class="tab-btn" id="resetKillSwitchBtn" style="width:100%; border-radius:6px; padding:4px; font-size:0.72rem; display:none; background-color:var(--success); border-color:var(--success); color:#fff; font-weight:700;" onclick="triggerResetKillSwitch()">
-          🟢 Reset Emergency Stop
-        </button>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>Feed Status</h3>
-      <div class="panel-val" id="feedMeta">Loading...</div>
-    </div>
-
-    <div class="panel">
-      <h3>System Telemetry</h3>
-      <div class="panel-val" style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:var(--muted);">Latency:</span>
-          <span class="mono" id="telemetryLatency" style="font-weight:700; display:flex; align-items:center; gap:6px;">
-            <span class="pulse-dot" id="telemetryPulse"></span>
-            <span id="telemetryLatencyVal">—</span>
-          </span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span style="color:var(--muted);">Throughput:</span>
-          <span class="mono" id="telemetryThroughput">—</span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span style="color:var(--muted);">Error Rate:</span>
-          <span class="mono" id="telemetryError">—</span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span style="color:var(--muted);">Active Specs:</span>
-          <span class="mono" id="telemetryCandidates" style="color:var(--success); font-weight:700;">—</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:4px; padding-top:4px; border-top:1px dashed var(--border);">
-          <span style="color:var(--muted);">Uptime:</span>
-          <span class="mono" id="telemetryUptime">—</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h3>Principle</h3>
-      <div class="brand-sub">Inputs: websocket tick feeds. Outputs: spec-locked strategy candidates.</div>
-    </div>
-
-    <div style="padding: 10px 14px; margin-top: auto;">
-      <button class="tab-btn active" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px;" onclick="startGuidedTour()">
-        🚀 Getting Started Guide
-      </button>
-    </div>
-  </aside>
-
-  <!-- Main Area -->
-  <main class="main">
-    <!-- Header -->
-    <div class="header-bar">
-      <div class="header-intro">
-        <h2>Dashboard</h2>
-        <p>Warmup bootstrap, live execution gating, and real-time paper portfolio tracking.</p>
-      </div>
-      <span class="badge badge-primary">V3 Live Pipeline</span>
-    </div>
-
-    <!-- Pipeline Steps -->
-    <section class="steps">
-      <div class="step">
-        <span class="step-num">1</span>
-        <span class="step-title">OHLCV</span>
-        <span class="step-desc">Warmup + live bars</span>
-      </div>
-      <div class="step">
-        <span class="step-num">2</span>
-        <span class="step-title">Factors</span>
-        <span class="step-desc">Incremental features</span>
-      </div>
-      <div class="step">
-        <span class="step-num">3</span>
-        <span class="step-title">Indicators</span>
-        <span class="step-desc">Interpreted state</span>
-      </div>
-      <div class="step">
-        <span class="step-num">4</span>
-        <span class="step-title">Signals</span>
-        <span class="step-desc">Template activation</span>
-      </div>
-      <div class="step">
-        <span class="step-num">5</span>
-        <span class="step-title">Strategy Spec</span>
-        <span class="step-desc">Spec candidate</span>
-      </div>
-      <div class="step">
-        <span class="step-num">6</span>
-        <span class="step-title">Playbook</span>
-        <span class="step-desc">Lifecycle packet</span>
-      </div>
-    </section>
-
-    <!-- Metrics Cards Grid -->
-    <section class="grid4" id="topMetrics"></section>
-
-    <!-- Symbol/Regime Cards Grid -->
-    <section class="grid3" id="symbolCards"></section>
-
-    <!-- Kanban Board -->
-    <section class="section-card">
-      <div class="section-header" style="flex-wrap: wrap; gap: 12px;">
-        <h3>Lifecycle Board</h3>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <input type="text" id="lifecycleSearch" class="search-input" placeholder="Search symbol..." oninput="onFilterChange()" />
-          <span class="badge badge-success">Review Lanes</span>
-        </div>
-      </div>
-      <div class="section-body">
-        <div class="board-container">
-          <div class="board" id="lifecycleBoard"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Workspace Tabs -->
-    <section class="section-card">
-      <div class="section-header" style="flex-direction:column; align-items:stretch; gap:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap: wrap; gap: 12px;">
-          <h3>Workspace Board</h3>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <input type="text" id="workspaceSearch" class="search-input" placeholder="Filter workspace..." oninput="onFilterChange()" />
-            <span class="badge badge-blue">Interactive HUD</span>
-          </div>
-        </div>
-        <div class="tabs-bar">
-          <button class="tab-btn active" data-tab="signals">Live Signals</button>
-          <button class="tab-btn" data-tab="strategies">Strategy Status</button>
-          <button class="tab-btn" data-tab="broker">Active Positions</button>
-          <button class="tab-btn" data-tab="trades">Closed Trades</button>
-          <button class="tab-btn" data-tab="validation">Validation Details</button>
-          <button class="tab-btn" data-tab="backtests">Backtests (High-Fidelity)</button>
-          <button class="tab-btn" data-tab="ranking">Ranking & Promotion</button>
-          <button class="tab-btn" data-tab="presets">Research Presets</button>
-          <button class="tab-btn" data-tab="validator">Code Validator</button>
-          <button class="tab-btn" data-tab="raw-state">Raw State</button>
-        </div>
-      </div>
-
-      <div class="section-body">
-        <!-- Live Signals Panel -->
-        <div class="tab-panel active" id="panel-signals">
-          <div class="table-container">
-            <table class="ui-table">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Signal Template</th>
-                  <th>Activation</th>
-                  <th>Diagnostic Reasons</th>
-                </tr>
-              </thead>
-              <tbody id="signalTable"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Strategy Status Panel -->
-        <div class="tab-panel" id="panel-strategies">
-          <div class="table-container">
-            <table class="ui-table">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Strategy Candidate</th>
-                  <th>Gating Status</th>
-                  <th>Execution Ready</th>
-                </tr>
-              </thead>
-              <tbody id="strategyTable"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Active Positions Panel -->
-        <div class="tab-panel" id="panel-broker">
-          <div class="table-container">
-            <table class="ui-table">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Direction</th>
-                  <th>Quantity</th>
-                  <th>Entry Price</th>
-                  <th>Current Price</th>
-                  <th>Unrealized PnL</th>
-                  <th>Stop Loss</th>
-                  <th>Take Profit</th>
-                </tr>
-              </thead>
-              <tbody id="activePositionsTable"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Closed Trades Panel -->
-        <div class="tab-panel" id="panel-trades">
-          <div class="table-container">
-            <table class="ui-table">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Direction</th>
-                  <th>Quantity</th>
-                  <th>Entry Price</th>
-                  <th>Exit Price</th>
-                  <th>Time Elapsed</th>
-                  <th>Net PnL</th>
-                  <th>Fees</th>
-                  <th>Exit Trigger</th>
-                </tr>
-              </thead>
-              <tbody id="closedTradesTable"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Validation Details Panel -->
-        <div class="tab-panel" id="panel-validation">
-          <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
-            <label for="symbolSelect" style="font-weight:600; font-size:0.9rem;">Symbol Target:</label>
-            <select id="symbolSelect" class="select-dropdown"></select>
-          </div>
-          <pre id="validationView" class="json-code"></pre>
-        </div>
-
-        <!-- Backtests Panel -->
-        <div class="tab-panel" id="panel-backtests">
-          <pre id="backtestsView" class="json-code"></pre>
-        </div>
-
-        <!-- Ranking & Promotion Panel -->
-        <div class="tab-panel" id="panel-ranking">
-          <div style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
-            <div style="font-size:0.85rem; color:var(--muted);">
-              Weights: Performance (35%) | Robustness (25%) | Decay (20%) | Complexity (20%)
-            </div>
-            <div>
-              <span class="badge badge-success">Promote: &gt;= 0.75</span>
-              <span class="badge badge-warn">Revise: &lt; 0.50</span>
-            </div>
-          </div>
-          <div class="table-container">
-            <table class="ui-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Symbol</th>
-                  <th>Strategy</th>
-                  <th>Composite Score</th>
-                  <th>Performance</th>
-                  <th>Robustness</th>
-                  <th>Decay</th>
-                  <th>Complexity</th>
-                  <th>Auto Action</th>
-                </tr>
-              </thead>
-              <tbody id="rankingTable"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Research Presets Panel -->
-        <div class="tab-panel" id="panel-presets">
-          <div style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
-            Copy or clone these preconfigured quantitative strategies directly into your workflow:
-          </div>
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;" id="presetsContainer">
-            <!-- Dynamic presets rendered here -->
-          </div>
-        </div>
-
-        <!-- Code Validator Panel -->
-        <div class="tab-panel" id="panel-validator">
-          <pre id="validatorView" class="json-code"></pre>
-        </div>
-
-        <!-- Raw State & Inspector Panel -->
-        <div class="tab-panel" id="panel-raw-state">
-          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-            <!-- Left Column: Config Panel -->
-            <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
-              <h3 style="margin-top:0; color: var(--accent-glow); font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Pipeline Settings</h3>
-              <div style="margin-bottom: 15px;">
-                <label style="display:block; margin-bottom: 5px; font-size:0.8rem; opacity:0.8; font-weight: 600;">Active Symbols (comma-separated)</label>
-                <input type="text" id="cfgSymbols" style="width:100%; padding:8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color:#fff; border-radius:4px; font-family: monospace; font-size: 0.85rem;">
-              </div>
-              <div style="margin-bottom: 15px;">
-                <label style="display:block; margin-bottom: 5px; font-size:0.8rem; opacity:0.8; font-weight: 600;">Candle Interval (Timeframe)</label>
-                <select id="cfgInterval" style="width:100%; padding:8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color:#fff; border-radius:4px; font-size: 0.85rem;">
-                  <option value="1m">1m (1 Minute)</option>
-                  <option value="5m">5m (5 Minutes)</option>
-                  <option value="15m">15m (15 Minutes)</option>
-                  <option value="1h">1h (1 Hour)</option>
-                  <option value="4h">4h (4 Hours)</option>
-                  <option value="1d">1d (1 Day)</option>
-                </select>
-              </div>
-              <button class="tab-btn active" style="width:100%; padding:10px; border-radius:6px; font-weight:700; background: var(--accent); border: 1px solid var(--accent); color: #fff; cursor: pointer; transition: all 0.2s;" onclick="savePipelineConfig()">Save & Restart Pipeline</button>
-              <div id="cfgFeedback" style="margin-top:10px; font-size:0.75rem; display:none; padding: 6px; border-radius: 4px; font-family: monospace;"></div>
-            </div>
-            
-            <!-- Right Column: Metrics Inspector -->
-            <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; flex-direction: column;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                <h3 style="margin:0; color: var(--accent-glow); font-size: 1.1rem;">Asset Metrics & Indicators Inspector</h3>
-                <select id="inspectSymbol" style="padding:6px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color:#fff; border-radius:4px; font-size: 0.85rem;" onchange="updateInspectionView()"></select>
-              </div>
-              
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1; overflow-y: auto; max-height: 400px;">
-                <!-- Factors -->
-                <div>
-                  <h4 style="margin-top:0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px; color: var(--text-dim); font-size: 0.9rem;">Factors (Live State)</h4>
-                  <div id="inspectFactors" style="display: flex; flex-direction: column; gap: 6px;"></div>
-                </div>
-                <!-- Indicators -->
-                <div>
-                  <h4 style="margin-top:0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px; color: var(--text-dim); font-size: 0.9rem;">Indicators (Interpretation)</h4>
-                  <div id="inspectIndicators" style="display: flex; flex-direction: column; gap: 6px;"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <h4 style="margin-top: 25px; margin-bottom: 10px; color: var(--text-dim); font-size: 0.9rem;">Raw System State Snapshot (JSON)</h4>
-          <pre id="stateView" class="json-code" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);"></pre>
-        </div>
-      </div>
-    </section>
-  </main>
+  </div>
 </div>
 
+<div class="guided-tour-modal" id="playbookExportModal" style="width: 550px; max-width: 90vw;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="color:var(--primary); font-size:1.05rem; font-weight:700;">📦 Exported Playbook Code</h3>
+    <button class="drilldown-close" onclick="closePlaybookExport()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+    </button>
+  </div>
+  <pre id="playbookCodeViewer" class="json-code" style="max-height: 300px; text-align: left;"></pre>
+  <div style="display:flex; justify-content:flex-end; gap:8px;">
+    <button class="btn btn-secondary" onclick="closePlaybookExport()">Close</button>
+    <button class="btn btn-secondary active" id="playbookCopyBtn" style="background:var(--primary); color:#000;">Copy Code</button>
+  </div>
+</div>
+
+<!-- SCRIPTS & INTERACTION LOGIC -->
 <script>
-  let lastSnapshotCache = null;
+  let lastDashboardCache = null;
+  let lastSnapshotCache = null; 
   let activeFilters = {
     lifecycleSearch: '',
-    workspaceSearch: ''
+    workspaceSearch: '',
+    // explorer filters
+    explorerSymbol: 'ALL',
+    explorerFamily: 'ALL',
+    explorerStatus: 'ALL',
+    explorerQuality: 'ALL',
+    explorerExecReady: 'ALL',
+    explorerSearchName: ''
   };
 
-  window.onFilterChange = function() {
-    activeFilters.lifecycleSearch = document.getElementById('lifecycleSearch').value.toLowerCase().trim();
-    activeFilters.workspaceSearch = document.getElementById('workspaceSearch').value.toLowerCase().trim();
-    if (lastSnapshotCache) {
-      const c = lastSnapshotCache;
-      render(c.config, c.snap, c.validation, c.specs, c.replay, c.validator, c.backtests, c.broker, c.telemetry, c.ranking);
-    }
-  };
+  let expandedSignals = new Set(); // Stores expanded row ID keys (e.g. "BTC_macd_trend_continuation")
 
-  // API requests
+  function fmt(v) { return typeof v === 'number' ? v.toFixed(4) : String(v ?? '—'); }
+  function fmtCurrency(v) { return typeof v === 'number' ? '$' + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(v ?? '—'); }
+
+  // API Requests
+  async function loadDashboard() { const r = await fetch('/api/dashboard'); return await r.json(); }
   async function loadConfig() { const r = await fetch('/api/config'); return await r.json(); }
   async function loadSnapshot() { const r = await fetch('/api/snapshot'); return await r.json(); }
   async function loadValidation() { const r = await fetch('/api/validation'); return await r.json(); }
@@ -1347,8 +1132,47 @@
   async function loadTelemetry() { const r = await fetch('/api/telemetry'); return await r.json(); }
   async function loadRanking() { const r = await fetch('/api/ranking'); return await r.json(); }
 
-  function fmt(v) { return typeof v === 'number' ? v.toFixed(4) : String(v ?? '—'); }
-  function fmtCurrency(v) { return typeof v === 'number' ? '$' + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(v ?? '—'); }
+  // Collapse controllers
+  function toggleFactorInspector() {
+    const el = document.getElementById('factorInspectorContent');
+    el.classList.toggle('open');
+  }
+  function toggleAdvancedTools() {
+    const el = document.getElementById('advancedToolsContent');
+    el.classList.toggle('open');
+  }
+
+  // Filter updates
+  window.onFilterChange = function() {
+    activeFilters.lifecycleSearch = document.getElementById('lifecycleSearch').value.toLowerCase().trim();
+    if (lastSnapshotCache && lastSnapshotCache.specs) {
+      renderBoard(lastSnapshotCache.specs, lastSnapshotCache.validator, lastSnapshotCache.backtests);
+    }
+  };
+
+  window.onExplorerFilterChange = function() {
+    activeFilters.explorerSymbol = document.getElementById('filterSymbol').value;
+    activeFilters.explorerFamily = document.getElementById('filterFamily').value;
+    activeFilters.explorerStatus = document.getElementById('filterStatus').value;
+    activeFilters.explorerQuality = document.getElementById('filterQuality').value;
+    activeFilters.explorerExecReady = document.getElementById('filterExecReady').value;
+    activeFilters.explorerSearchName = document.getElementById('searchSignalName').value.toLowerCase().trim();
+    if (lastDashboardCache) {
+      renderSignalsExplorer(lastDashboardCache.signals);
+    }
+  };
+
+  // Toggle signal row expansion
+  window.toggleSignalExpansion = function(key) {
+    if (expandedSignals.has(key)) {
+      expandedSignals.delete(key);
+    } else {
+      expandedSignals.add(key);
+    }
+    if (lastDashboardCache) {
+      renderSignalsExplorer(lastDashboardCache.signals);
+    }
+  };
 
   function bindTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1366,38 +1190,361 @@
     });
   }
 
-  function renderMetrics(snap, specs, replay, validator, broker) {
-    const symbols = Object.keys(snap);
-    let activeSignals = 0, readyStrategies = 0;
-    symbols.forEach(sym => {
-      Object.values(snap[sym].signals || {}).forEach(v => { if (v.active) activeSignals++; });
-      Object.values(snap[sym].strategies || {}).forEach(v => { if (v.execution_ready) readyStrategies++; });
-    });
+  // RENDER SECTIONS
 
-    document.getElementById('topMetrics').innerHTML = `
-      <div class="metric-card">
-        <span class="metric-title">Instruments</span>
-        <strong class="metric-value">${symbols.length}</strong>
-        <span class="metric-desc">Tracked symbols</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-title">Active Signals</span>
-        <strong class="metric-value" style="color:var(--primary);">${activeSignals}</strong>
-        <span class="metric-desc">Signals matching triggers</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-title">Ready Strategist</span>
-        <strong class="metric-value" style="color:var(--success);">${readyStrategies}</strong>
-        <span class="metric-desc">Passed risk gating</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-title">Paper Portfolio</span>
-        <strong class="metric-value" style="color:var(--blue);">${broker.active_positions_count || 0}</strong>
-        <span class="metric-desc">Active positions on feed</span>
-      </div>
-    `;
+  // SECTION A: Symbol Overview Cards
+  function renderSymbolOverview(symbols) {
+    const section = document.getElementById('sectionA-symbols');
+    if (!section) return;
+
+    section.innerHTML = symbols.map(sym => {
+      let badgeClass = 'badge-primary';
+      const reg = sym.regime || 'unknown';
+      if (reg === 'uptrend') badgeClass = 'badge-success';
+      else if (reg === 'downtrend') badgeClass = 'badge-error';
+      else if (reg === 'range_chop') badgeClass = 'badge-warn';
+      else if (reg === 'high_volatility') badgeClass = 'badge-warn';
+
+      const tradeCheck = sym.tradable ? '<span class="text-success" style="font-weight:700;">✓</span>' : '<span class="text-error" style="font-weight:700;">✗</span>';
+      
+      const sigSum = sym.signal_summary;
+      const totalActive = sigSum.active;
+
+      let activeSummaryText = '<span class="text-muted" style="font-size:0.75rem;">Không có setup khả thi lúc này</span>';
+      if (totalActive > 0) {
+        activeSummaryText = sym.top_signals.map(s => `<span class="text-success" style="font-weight:600; font-size:0.78rem;">${s} ✓</span>`).join(', ');
+      }
+
+      const confVal = sym.regime_confidence || 0.0;
+      const confPercent = Math.min(100, confVal * 100);
+
+      return `
+        <div class="dashboard-card" onclick="openDrilldown('${sym.symbol}', '')">
+          <div class="card-header">
+            <div class="card-title">
+              <span>${sym.symbol}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge ${badgeClass}">${reg}</span>
+              <span class="badge badge-primary">Trade: ${tradeCheck}</span>
+            </div>
+          </div>
+          <div class="card-price-row">
+            <span class="card-price-main">${fmt(sym.last_trade)}</span>
+            <span class="card-price-sub">Mid: ${fmt(sym.mid)}</span>
+          </div>
+          <div style="margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted); margin-bottom:4px;">
+              <span>Regime Confidence:</span>
+              <strong class="mono" style="color:#fff;">${confVal.toFixed(2)}</strong>
+            </div>
+            <div style="height:4px; width:100%; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+              <div style="height:100%; width:${confPercent}%; background:var(--primary); border-radius:2px;"></div>
+            </div>
+          </div>
+          <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top:10px; font-size:0.8rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px; color:var(--muted);">
+              <span>Signals:</span>
+              <span><strong>${sigSum.triggered}</strong> trig | <strong>${sigSum.confirmed}</strong> conf | <strong>${sigSum.active}</strong> active</span>
+            </div>
+            <div style="margin-top:6px;">
+              ${activeSummaryText}
+            </div>
+          </div>
+          <div style="margin-top:8px; font-size:0.7rem; color:var(--muted); font-family:var(--font-mono); text-align:right;">
+            Bars: ${sym.bars_loaded} | Updated: ${sym.updated_at ? sym.updated_at.split('T')[1].substring(0,8) : '—'}
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
+  // SECTION B: Signal Explorer Table
+  function renderSignalsExplorer(signals) {
+    const tableBody = document.getElementById('sectionB-signalTable');
+    if (!tableBody) return;
+
+    // Apply Client filters
+    let filtered = signals.slice();
+
+    if (activeFilters.explorerSymbol !== 'ALL') {
+      filtered = filtered.filter(x => x.symbol === activeFilters.explorerSymbol);
+    }
+    if (activeFilters.explorerFamily !== 'ALL') {
+      filtered = filtered.filter(x => x.family === activeFilters.explorerFamily);
+    }
+    if (activeFilters.explorerStatus !== 'ALL') {
+      const st = activeFilters.explorerStatus;
+      if (st === 'ACTIVE') filtered = filtered.filter(x => x.active);
+      else if (st === 'TRIGGERED') filtered = filtered.filter(x => x.triggered);
+      else if (st === 'CONFIRMED') filtered = filtered.filter(x => x.confirmed);
+      else if (st === 'STANDBY') filtered = filtered.filter(x => !x.active && !x.invalidated);
+      else if (st === 'INVALIDATED') filtered = filtered.filter(x => x.invalidated);
+    }
+    if (activeFilters.explorerQuality !== 'ALL') {
+      filtered = filtered.filter(x => x.quality_tier === activeFilters.explorerQuality);
+    }
+    if (activeFilters.explorerExecReady !== 'ALL') {
+      // Find matching candidates in strategies
+      filtered = filtered.filter(x => {
+        const symbolState = lastSnapshotCache && lastSnapshotCache.snap[x.symbol];
+        const strategyState = symbolState && symbolState.strategies[x.signal_id];
+        return strategyState && strategyState.execution_ready;
+      });
+    }
+    if (activeFilters.explorerSearchName) {
+      filtered = filtered.filter(x => x.signal_id.toLowerCase().includes(activeFilters.explorerSearchName));
+    }
+
+    // Default Sorting: Active first, then Triggered+Confirmed, then Triggered, then Standby.
+    filtered.sort((a, b) => {
+      if (a.active !== b.active) return a.active ? -1 : 1;
+      const aTC = a.triggered && a.confirmed;
+      const bTC = b.triggered && b.confirmed;
+      if (aTC !== bTC) return aTC ? -1 : 1;
+      if (a.triggered !== b.triggered) return a.triggered ? -1 : 1;
+      return a.signal_id.localeCompare(b.signal_id);
+    });
+
+    const rows = [];
+    filtered.forEach(sig => {
+      const key = `${sig.symbol}_${sig.signal_id}`;
+      const isExpanded = expandedSignals.has(key);
+
+      const trigBadge = sig.triggered ? '<span class="text-success" style="font-weight:700;">✓</span>' : '<span class="text-muted">—</span>';
+      const confBadge = sig.triggered ? (sig.confirmed ? '<span class="text-success" style="font-weight:700;">✓</span>' : '<span class="text-muted">✗</span>') : '<span class="text-muted">N/A</span>';
+      const invBadge = sig.invalidated ? '<span class="text-error" style="font-weight:700;">✗ INVALID</span>' : '<span class="text-muted">—</span>';
+      
+      let statusBadge = '<span class="badge badge-primary">Standby</span>';
+      if (sig.active) statusBadge = '<span class="badge badge-success">Active</span>';
+      else if (sig.invalidated) statusBadge = '<span class="badge badge-error">Invalidated</span>';
+
+      let qBadge = 'badge-primary';
+      if (sig.quality_tier === 'A') qBadge = 'badge-success';
+      else if (sig.quality_tier === 'B') qBadge = 'badge-blue';
+      else if (sig.quality_tier === 'C') qBadge = 'badge-warn';
+
+      const regimeFit = sig.regime_fit ? '<span class="text-success" style="font-weight:700;">✓</span>' : '<span class="text-error" style="font-weight:700;">✗</span>';
+      const entrySide = sig.entry_side ? `<span class="badge ${sig.entry_side === 'long' ? 'badge-success' : 'badge-error'}">${sig.entry_side}</span>` : '<span class="text-muted">—</span>';
+      const timeStr = sig.updated_at ? sig.updated_at.split('T')[1].substring(0, 8) : '—';
+
+      rows.push(`
+        <tr onclick="toggleSignalExpansion('${key}')">
+          <td style="font-weight:700;">${sig.symbol}</td>
+          <td class="mono" style="font-weight:600; color:var(--primary);">${sig.signal_id}</td>
+          <td><span class="badge badge-primary" style="font-size:0.65rem;">${sig.family}</span></td>
+          <td class="mono text-muted" style="font-size:0.75rem;">${sig.direction}</td>
+          <td style="text-align:center;">${trigBadge}</td>
+          <td style="text-align:center;">${confBadge}</td>
+          <td>${invBadge}</td>
+          <td>${statusBadge}</td>
+          <td><span class="badge ${qBadge}" style="padding:1px 6px; font-size:0.65rem;">Tier ${sig.quality_tier}</span></td>
+          <td style="text-align:center;">${regimeFit}</td>
+          <td>${entrySide}</td>
+          <td class="mono text-muted" style="font-size:0.7rem;">${timeStr}</td>
+        </tr>
+      `);
+
+      if (isExpanded) {
+        // Detailed reasons and rules checks
+        let whyNot = '';
+        if (!sig.active) {
+          whyNot = `
+            <div class="expanded-section" style="grid-column: span 2; border-color:var(--error-glow);">
+              <h4 style="color:var(--error);">Why Not Active Details</h4>
+              <p style="font-family:var(--font-mono); font-size:0.8rem; line-height:1.5;">
+                • Triggered: ${sig.triggered ? '<span class="text-success">Passed</span>' : '<span class="text-error">Failed</span>'} (Logic: <code>${sig.why.trigger_expression}</code>)<br>
+                • Confirmed: ${sig.confirmed ? '<span class="text-success">Passed</span>' : '<span class="text-error">Failed</span>'} (Logic: <code>${sig.why.confirmation_expression}</code>)<br>
+                • Invalidated: ${sig.invalidated ? '<span class="text-error">True (Signal Dead)</span>' : '<span class="text-success">False</span>'} (Logic: <code>${sig.why.invalidation_expression}</code>)<br>
+                • Regime Fit: ${sig.regime_fit ? '<span class="text-success">Match</span>' : '<span class="text-error">Mismatch</span>'} (Current: <code>${sig.why.current_regime}</code> | Preferred: <code>${JSON.stringify(sig.why.preferred_regimes)}</code>)
+              </p>
+            </div>
+          `;
+        }
+
+        rows.push(`
+          <tr style="background:rgba(255,255,255,0.005);">
+            <td colspan="12" style="padding:0;">
+              <div class="expanded-panel">
+                <div class="expanded-grid">
+                  <div class="expanded-section">
+                    <h4>Thesis Summary</h4>
+                    <p>${sig.thesis || '—'}</p>
+                    <div style="margin-top:8px; font-size:0.72rem; color:var(--muted);">
+                      Preferred Regimes: <code>${JSON.stringify(sig.why.preferred_regimes || [])}</code><br>
+                      Avoid Regimes: <code>${JSON.stringify(sig.why.avoid_regimes || [])}</code>
+                    </div>
+                  </div>
+                  <div class="expanded-section">
+                    <h4>Entry Logic Summary</h4>
+                    <p>${sig.entry_logic_summary || '—'}</p>
+                    <div style="margin-top:4px; font-family:var(--font-mono); font-size:0.75rem; color:var(--muted);">
+                      Trigger Expr: <code>${sig.why.trigger_expression || ''}</code>
+                    </div>
+                  </div>
+                  <div class="expanded-section">
+                    <h4>Confirmation Details</h4>
+                    <p>${sig.confirmation_summary || '—'}</p>
+                    <div style="margin-top:4px; display:flex; justify-content:space-between; font-size:0.75rem;">
+                      <span>Score: <strong style="color:var(--success);">${(sig.confirmation_score || 0).toFixed(2)}</strong></span>
+                      <span>Expr: <code>${sig.why.confirmation_expression || ''}</code></span>
+                    </div>
+                  </div>
+                  <div class="expanded-section">
+                    <h4>Invalidation Details</h4>
+                    <p>${sig.invalidation_summary || '—'}</p>
+                    <div style="margin-top:4px; display:flex; justify-content:space-between; font-size:0.75rem;">
+                      <span>Score: <strong style="color:var(--error);">${(sig.invalidation_score || 0).toFixed(2)}</strong></span>
+                      <span>Expr: <code>${sig.why.invalidation_expression || ''}</code></span>
+                    </div>
+                  </div>
+                  ${whyNot}
+                  <div style="grid-column: span 2; display:flex; justify-content:flex-end; gap:8px;">
+                    <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.7rem;" onclick="event.stopPropagation(); openDrilldown('${sig.symbol}', '${sig.signal_id}')">
+                      📝 Review & Submit Decision
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `);
+      }
+    });
+
+    tableBody.innerHTML = rows.join('') || '<tr><td colspan="12"><div class="empty-state" style="padding:20px; font-size:0.8rem;">No signals match the specified filters.</div></td></tr>';
+  }
+
+  // SECTION C: Paper Verification Panel
+  function renderPaperBroker(paper) {
+    // Top Overview Info
+    document.getElementById('sbBalance').textContent = fmtCurrency(paper.balance);
+    document.getElementById('sbEquity').innerHTML = `Equity: <span class="${paper.equity >= paper.balance ? 'text-success' : 'text-error'}">${fmtCurrency(paper.equity)}</span>`;
+    document.getElementById('sbOpenCount').textContent = paper.positions.length;
+    
+    // Calculate total PnL
+    const totalPnl = paper.positions.reduce((acc, pos) => acc + (pos.unrealized_pnl || 0), 0.0);
+    const pnlEl = document.getElementById('sbTotalPnl');
+    pnlEl.textContent = (totalPnl >= 0 ? '+' : '') + fmtCurrency(totalPnl);
+    pnlEl.className = totalPnl >= 0 ? 'text-success' : 'text-error';
+
+    // Active Positions Table
+    const posTable = document.getElementById('sectionC-activePositionsTable');
+    if (posTable) {
+      if (paper.positions.length === 0) {
+        posTable.innerHTML = `
+          <tr>
+            <td colspan="11">
+              <div class="empty-state" style="padding:24px; text-align:center; font-size:0.82rem; color:var(--muted);">
+                Chưa có position nào đang verify. Hệ thống đang chờ signal active + execution ready.
+              </div>
+            </td>
+          </tr>
+        `;
+      } else {
+        posTable.innerHTML = paper.positions.map(pos => {
+          const isLong = pos.direction === 'long';
+          const pnlClass = pos.unrealized_pnl >= 0 ? 'text-success' : 'text-error';
+          const openedTime = pos.entry_time ? pos.entry_time.split('T')[1].substring(0,8) : '—';
+          return `
+            <tr onclick="openDrilldown('${pos.symbol}', '')">
+              <td style="font-weight:700;">${pos.symbol}</td>
+              <td class="mono" style="color:var(--primary);">${pos.signal_source}</td>
+              <td><span class="badge ${isLong ? 'badge-success' : 'badge-error'}">${pos.direction}</span></td>
+              <td class="mono">${pos.quantity.toFixed(4)}</td>
+              <td class="mono">${fmt(pos.entry_price)}</td>
+              <td class="mono">${fmt(pos.current_price)}</td>
+              <td class="mono ${pnlClass}" style="font-weight:700;">
+                ${pos.unrealized_pnl >= 0 ? '+' : ''}${fmtCurrency(pos.unrealized_pnl)}
+              </td>
+              <td class="mono" style="color:var(--error);">${pos.stop_loss ? fmt(pos.stop_loss) : '—'}</td>
+              <td class="mono" style="color:var(--success);">${pos.take_profit ? fmt(pos.take_profit) : '—'}</td>
+              <td class="mono text-muted" style="font-size:0.75rem;">${openedTime}</td>
+              <td><span class="badge badge-success">${pos.status}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // Trade History Table
+    const histTable = document.getElementById('sectionC-closedHistoryTable');
+    if (histTable) {
+      if (paper.history.length === 0) {
+        histTable.innerHTML = `<tr><td colspan="10"><div class="empty-state" style="padding:16px; font-size:0.8rem;">Chưa thực hiện giao dịch nào.</div></td></tr>`;
+      } else {
+        histTable.innerHTML = paper.history.slice().reverse().map(trade => {
+          const isLong = trade.direction === 'long';
+          const pnlClass = trade.pnl >= 0 ? 'text-success' : 'text-error';
+          const closedTime = trade.exit_time ? trade.exit_time.split('T')[1].substring(0, 8) : '—';
+          return `
+            <tr onclick="openDrilldown('${trade.symbol}', '')">
+              <td style="font-weight:700;">${trade.symbol}</td>
+              <td class="mono" style="color:var(--primary);">${trade.signal_source}</td>
+              <td><span class="badge ${isLong ? 'badge-success' : 'badge-error'}">${trade.direction}</span></td>
+              <td class="mono">${trade.quantity.toFixed(4)}</td>
+              <td class="mono">${fmt(trade.entry_price)}</td>
+              <td class="mono">${fmt(trade.exit_price)}</td>
+              <td class="mono ${pnlClass}" style="font-weight:700;">
+                ${trade.pnl >= 0 ? '+' : ''}${fmtCurrency(trade.pnl)}
+              </td>
+              <td class="mono text-muted" style="font-size:0.75rem;">${closedTime}</td>
+              <td style="font-size:0.8rem; color:var(--muted);">${trade.reason}</td>
+              <td><span class="badge badge-primary">${trade.status}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  // SECTION D: collapsible Factor Inspector
+  function renderInspectors() {
+    if (!lastSnapshotCache) return;
+    
+    const select = document.getElementById('inspectSelectSymbol');
+    const selectedSym = select.value || Object.keys(lastSnapshotCache.snap)[0] || 'BTC';
+    
+    const assetState = lastSnapshotCache.snap[selectedSym] || {};
+    const factors = assetState.factors || {};
+    const indicators = assetState.indicators || {};
+
+    const fullDict = { ...factors, ...indicators };
+
+    // Group items
+    const groups = {
+      trend: ['ret_5', 'ret_20', 'ema_spread_8_21', 'ema_spread_21_55', 'macd_hist', 'macd_hist_slope', 'MACD', 'MACD_signal', 'MACD_hist'],
+      meanReversion: ['zscore_close_50', 'zscore_close_20', 'bb_pct_b', 'price_vs_sma20', 'RSI_14', 'RSI_7', 'rsi_14', 'rsi_7', 'BBANDS_upper', 'BBANDS_mid', 'BBANDS_lower', 'BollingerWidth'],
+      volumeFlow: ['rel_volume_20', 'RelativeVolume', 'trade_flow_imbalance_20', 'trade_flow_imbalance_50', 'large_trade_ratio', 'volume_zscore_20', 'TradeFlowImbalance'],
+      volatilityMicro: ['volatility_20', 'atr_pct_14', 'volatility_ratio_5_20', 'micro_volatility_20', 'MicroVolatility', 'spread_bps', 'SpreadBps', 'tick_ret_1'],
+      crossAsset: ['btc_ret_1', 'market_correlation_20', 'eth_btc_spread', 'sol_dominance'],
+      patternStructure: ['inside_bar', 'pin_bar_ratio', 'higher_high', 'lower_low', 'consecutive_up_bars', 'consecutive_down_bars']
+    };
+
+    const renderGroupHtml = (keys) => {
+      const rows = [];
+      keys.forEach(k => {
+        if (k in fullDict) {
+          rows.push(`
+            <div class="factor-row">
+              <span class="factor-key">${k}</span>
+              <span class="factor-val">${fmt(fullDict[k])}</span>
+            </div>
+          `);
+        }
+      });
+      return rows.join('') || '<div class="empty-state" style="padding:6px; font-size:0.72rem;">—</div>';
+    };
+
+    document.getElementById('group-trend').innerHTML = renderGroupHtml(groups.trend);
+    document.getElementById('group-mean-reversion').innerHTML = renderGroupHtml(groups.meanReversion);
+    document.getElementById('group-volume-flow').innerHTML = renderGroupHtml(groups.volumeFlow);
+    document.getElementById('group-volatility-micro').innerHTML = renderGroupHtml(groups.volatilityMicro);
+    document.getElementById('group-cross-asset').innerHTML = renderGroupHtml(groups.crossAsset);
+    document.getElementById('group-pattern-structure').innerHTML = renderGroupHtml(groups.patternStructure);
+  }
+
+  // RENDER BOARD (Lifecycle lanes)
   function renderBoard(specs, validator, backtests) {
     const lanes = ['pending_review', 'qualify', 'revise', 'reject', 'promote'];
     let packets = (specs.playbook_packets || []).slice();
@@ -1420,7 +1567,6 @@
       packets.push({ symbol: 'BACKTEST', signal_name: r.strategy_family, current_stage: 'backtest_runner', research_status: r.decision_gate.decision });
     });
 
-    // Apply Search Filter
     const search = activeFilters.lifecycleSearch;
     if (search) {
       packets = packets.filter(x => 
@@ -1439,282 +1585,180 @@
       if (lane === 'reject') badgeClass = 'badge-error';
 
       return `
-        <div class="lane">
-          <div class="lane-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="lane" style="background:rgba(255,255,255,0.01); border:1px solid var(--border); border-radius:8px; padding:10px; flex:1; display:flex; flex-direction:column; gap:8px; min-width:120px;">
+          <div class="lane-title" style="display:flex; justify-content:space-between; align-items:center; font-size:0.72rem; text-transform:uppercase; font-weight:700; color:var(--muted);">
             <span>${lane.replace('_', ' ')}</span>
-            <span class="badge ${badgeClass}" style="padding: 2px 6px; font-size: 0.6rem;">${items.length}</span>
+            <span class="badge ${badgeClass}" style="padding: 1px 5px; font-size: 0.6rem;">${items.length}</span>
           </div>
-          ${items.length ? items.map(item => `
-            <div class="ticket" onclick="openDrilldown('${item.symbol}', '${item.signal_name}')">
-              <span class="ticket-sym">${item.symbol}</span>
-              <span class="ticket-desc">${item.signal_name}</span>
-              <span class="badge badge-primary" style="align-self:flex-start; margin-top:4px; font-size:0.6rem; padding:1px 6px;">${item.current_stage}</span>
-            </div>
-          `).join('') : '<div class="empty-state" style="padding:16px; font-size:0.75rem;">Empty</div>'}
+          <div style="display:flex; flex-direction:column; gap:6px; overflow-y:auto; flex:1;">
+            ${items.length ? items.map(item => `
+              <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); padding:6px; border-radius:6px; cursor:pointer;" onclick="openDrilldown('${item.symbol}', '${item.signal_name}')">
+                <span style="font-weight:700; font-size:0.75rem; color:#fff; display:block;">${item.symbol}</span>
+                <span style="font-size:0.7rem; color:var(--muted); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.signal_name}</span>
+                <span class="badge badge-primary" style="margin-top:4px; font-size:0.58rem; padding:0px 4px;">${item.current_stage}</span>
+              </div>
+            `).join('') : '<div style="text-align:center; padding:10px; font-size:0.68rem; color:var(--muted);">Empty</div>'}
+          </div>
         </div>
       `;
     }).join('');
   }
 
-  function render(config, snap, validation, specs, replay, validator, backtests, broker, telemetryData, ranking) {
-    activeConfigCache = config;
-    activeSnapshotCacheGlobal = snap;
-    
-    const cfgSymsEl = document.getElementById('cfgSymbols');
-    if (cfgSymsEl && document.activeElement !== cfgSymsEl) {
-      cfgSymsEl.value = config.symbols.join(', ');
-    }
-    const cfgIntEl = document.getElementById('cfgInterval');
-    if (cfgIntEl) {
-      cfgIntEl.value = config.candle_interval;
-    }
-    
-    const inspectSelect = document.getElementById('inspectSymbol');
-    if (inspectSelect) {
-      const prevVal = inspectSelect.value;
-      inspectSelect.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
-      if (config.symbols.includes(prevVal)) {
-        inspectSelect.value = prevVal;
+  // TICK & POLL LOOP
+  async function tick() {
+    try {
+      const [dashboard, config, validation, specs, replay, validator, backtests, ranking] = await Promise.all([
+        loadDashboard(),
+        loadConfig(),
+        loadValidation(),
+        loadSpecs(),
+        loadReplay(),
+        loadResearchValidator(),
+        loadBacktests(),
+        loadRanking()
+      ]);
+
+      lastDashboardCache = dashboard;
+      lastSnapshotCache = { 
+        config, 
+        snap: dashboard.symbols.reduce((acc, curr) => {
+          // Re-create snapshot structure to keep compatibility with other scripts
+          const rawSym = dashboard.signals.filter(x => x.symbol === curr.symbol);
+          const rawStrat = {};
+          rawSym.forEach(s => {
+            rawStrat[s.signal_id] = { status: s.active ? "candidate" : "standby", execution_ready: false };
+          });
+          
+          acc[curr.symbol] = {
+            last_trade: curr.last_trade,
+            mid: curr.mid,
+            updated_at: curr.updated_at,
+            regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
+            bars: Array(curr.bars_loaded).fill({}),
+            factors: dashboard.telemetry.active_candidates ? {} : {}, // Placeholder for fallback compatibility
+            indicators: {},
+            signals: rawSym.reduce((sigAcc, s) => {
+              sigAcc[s.signal_id] = { active: s.active, triggered: s.triggered, confirmed: s.confirmed, invalidated: s.invalidated, quality_tier: s.quality_tier, template_family: s.family, why: s.why };
+              return sigAcc;
+            }, {}),
+            strategies: rawSym.reduce((stratAcc, s) => {
+              const matchesSpec = specs.strategy_specs && specs.strategy_specs.find(spec => spec.symbol === curr.symbol && spec.signal_name === s.signal_id);
+              stratAcc[s.signal_id] = { status: s.active ? "candidate" : "standby", execution_ready: !!matchesSpec };
+              return stratAcc;
+            }, {})
+          };
+          return acc;
+        }, {}), 
+        validation, 
+        specs, 
+        replay, 
+        validator, 
+        backtests, 
+        broker: {
+          balance: dashboard.paper_positions.balance,
+          equity: dashboard.paper_positions.equity,
+          active_positions_count: dashboard.overview.open_positions_count,
+          positions: dashboard.paper_positions.positions,
+          trade_history: dashboard.paper_positions.history
+        }, 
+        telemetry: dashboard.telemetry, 
+        ranking 
+      };
+
+      // 1. RENDER TOP BAR & TELEMETRY
+      const ov = dashboard.overview;
+      const topMode = document.getElementById('topModeBadge');
+      topMode.textContent = ov.mode.toUpperCase();
+      topMode.className = 'badge ' + (ov.mode === 'live' ? 'badge-error' : 'badge-success');
+
+      document.getElementById('topLatencyVal').textContent = ov.latency_ms.toFixed(2) + ' ms';
+      document.getElementById('topLatencyVal').style.color = ov.latency_ms < 10.0 ? 'var(--success)' : (ov.latency_ms < 50.0 ? 'var(--warn)' : 'var(--error)');
+      
+      document.getElementById('topErrorRate').textContent = ov.error_rate.toFixed(2) + '%';
+      document.getElementById('topErrorRate').style.color = ov.error_rate > 0.0 ? 'var(--error)' : 'var(--muted)';
+
+      const uptimeSec = ov.uptime_seconds;
+      const h = Math.floor(uptimeSec / 3600).toString().padStart(2, '0');
+      const m = Math.floor((uptimeSec % 3600) / 60).toString().padStart(2, '0');
+      document.getElementById('topUptime').textContent = `${h}h ${m}m`;
+
+      const killBtn = document.getElementById('topKillSwitch');
+      const resetBtn = document.getElementById('topResetKillSwitch');
+      if (ov.kill_switch_active) {
+        killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
+        killBtn.style.background = '#991b1b';
+        if (resetBtn) resetBtn.style.display = 'inline-flex';
+      } else {
+        killBtn.textContent = '🚨 KILL SWITCH';
+        killBtn.style.background = 'var(--error)';
+        if (resetBtn) resetBtn.style.display = 'none';
       }
-    }
-    
-    updateInspectionView();
 
-    const mobSum = document.getElementById('mobileWalletSum');
-    if (mobSum) {
-      mobSum.textContent = fmtCurrency(broker.balance);
-    }
+      // 2. RENDER FEED DETAILS (Sidebar)
+      const feedMeta = document.getElementById('sbAssets');
+      if (feedMeta) feedMeta.textContent = config.symbols.join(', ');
+      document.getElementById('sbInterval').textContent = config.candle_interval;
 
-    // Render System Telemetry
-    if (telemetryData) {
-      const lat = telemetryData.avg_latency_ms;
-      const latEl = document.getElementById('telemetryLatencyVal');
-      const pulseEl = document.getElementById('telemetryPulse');
-      if (latEl && pulseEl) {
-        latEl.textContent = lat.toFixed(2) + ' ms';
-        if (lat < 5.0) {
-          latEl.style.color = 'var(--success)';
-          pulseEl.style.backgroundColor = 'var(--success)';
-          pulseEl.style.boxShadow = '0 0 0 4px var(--success-glow)';
-        } else if (lat < 50.0) {
-          latEl.style.color = 'var(--warn)';
-          pulseEl.style.backgroundColor = 'var(--warn)';
-          pulseEl.style.boxShadow = '0 0 0 4px var(--warn-glow)';
-        } else {
-          latEl.style.color = 'var(--error)';
-          pulseEl.style.backgroundColor = 'var(--error)';
-          pulseEl.style.boxShadow = '0 0 0 4px var(--error-glow)';
+      // 3. RENDER TELEMETRY Details (Sidebar)
+      document.getElementById('sbThroughput').textContent = dashboard.telemetry.msg_rate_fps.toFixed(1) + ' msg/s';
+      document.getElementById('sbLatency').textContent = dashboard.telemetry.avg_latency_ms.toFixed(2) + ' ms';
+      document.getElementById('sbErrors').textContent = dashboard.telemetry.error_rate_pct.toFixed(2) + '%';
+      document.getElementById('sbActiveSpecs').textContent = ov.execution_ready_count + ' ready';
+
+      // 4. RENDER REDESIGNED SECTION A
+      renderSymbolOverview(dashboard.symbols);
+
+      // 5. RENDER REDESIGNED SECTION B
+      renderSignalsExplorer(dashboard.signals);
+
+      // 6. RENDER REDESIGNED SECTION C
+      renderPaperBroker(dashboard.paper_positions);
+
+      // 7. SYMBOL SELECTOR & FACTOR CATEGORIES (SECTION D)
+      const inspectSelect = document.getElementById('inspectSelectSymbol');
+      if (inspectSelect) {
+        const prev = inspectSelect.value;
+        inspectSelect.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
+        if (config.symbols.includes(prev)) {
+          inspectSelect.value = prev;
         }
       }
-      
-      const rateEl = document.getElementById('telemetryThroughput');
-      if (rateEl) {
-        rateEl.textContent = telemetryData.msg_rate_fps.toFixed(1) + ' msg/s';
+      renderInspectors();
+
+      // 8. RENDER ADVANCED COLLAPSIBLE FOR COMPATIBILITY
+      renderBoard(specs, validator, backtests);
+
+      // Configuration Form Setup
+      const cfgSymsEl = document.getElementById('cfgSymbols');
+      if (cfgSymsEl && document.activeElement !== cfgSymsEl) {
+        cfgSymsEl.value = config.symbols.join(', ');
       }
-      
-      const errEl = document.getElementById('telemetryError');
-      if (errEl) {
-        errEl.textContent = telemetryData.error_rate_pct.toFixed(2) + '%';
-        errEl.style.color = telemetryData.error_rate_pct > 0 ? 'var(--error)' : 'var(--muted)';
+      const cfgIntEl = document.getElementById('cfgInterval');
+      if (cfgIntEl) {
+        cfgIntEl.value = config.candle_interval;
       }
-      
-      const candEl = document.getElementById('telemetryCandidates');
-      if (candEl) {
-        candEl.textContent = telemetryData.active_candidates + ' ready';
-      }
-      
-      const uptimeEl = document.getElementById('telemetryUptime');
-      if (uptimeEl) {
-        const sec = telemetryData.uptime_seconds;
-        const h = Math.floor(sec / 3600).toString().padStart(2, '0');
-        const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
-        const s = (sec % 60).toString().padStart(2, '0');
-        uptimeEl.textContent = `${h}h ${m}m ${s}s`;
-      }
-      
-      const modeBadge = document.getElementById('riskModeBadge');
-      if (modeBadge) {
-        const mode = telemetryData.trading_mode || 'paper';
-        modeBadge.textContent = mode.toUpperCase().replace('_', ' ');
-        if (mode === 'paper') {
-          modeBadge.className = 'badge badge-primary';
-        } else {
-          modeBadge.className = 'badge badge-warn';
-        }
-      }
-      
-      const killBtn = document.getElementById('killSwitchBtn');
-      const resetBtn = document.getElementById('resetKillSwitchBtn');
-      if (killBtn) {
-        if (telemetryData.kill_switch_active) {
-          killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
-          killBtn.style.backgroundColor = '#991b1b'; // darker red
-          if (resetBtn) resetBtn.style.display = 'block';
-        } else {
-          killBtn.textContent = '🚨 EMERGENCY STOP (KILL)';
-          killBtn.style.backgroundColor = 'var(--error)';
-          if (resetBtn) resetBtn.style.display = 'none';
-        }
-      }
-    }
 
-    // 1. Sidebar details
-    document.getElementById('feedMeta').innerHTML = `
-      Network: <span class="mono">${config.network}</span><br>
-      Symbols: <span class="mono">${config.symbols.join(', ')}</span><br>
-      Interval: <span class="mono">${config.candle_interval}</span><br>
-      Warmup: <span class="mono">${config.runtime.warmup_bars} bars</span>
-    `;
+      // Advanced Tabs setup
+      const selectVal = document.getElementById('symbolSelect');
+      const current = selectVal.value;
+      selectVal.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
+      if (config.symbols.includes(current)) selectVal.value = current;
 
-    // 2. Broker Wallet Card
-    document.getElementById('brokerBalance').textContent = fmtCurrency(broker.balance);
-    document.getElementById('brokerEquity').innerHTML = `Equity: <span>${fmtCurrency(broker.equity)}</span>`;
+      const renderSelectedTabCode = () => {
+        const sym = selectVal.value || config.symbols[0];
+        const s = lastSnapshotCache.snap[sym] || {};
+        document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
+        document.getElementById('validationView').textContent = JSON.stringify(validation[sym] || {}, null, 2);
+        document.getElementById('validatorView').textContent = JSON.stringify(validator, null, 2);
+        document.getElementById('backtestsView').textContent = JSON.stringify(backtests, null, 2);
+      };
+      selectVal.onchange = renderSelectedTabCode;
+      renderSelectedTabCode();
 
-    // 3. Render Metric Cards
-    renderMetrics(snap, specs, replay, validator, broker);
-
-    // 4. Render Board
-    renderBoard(specs, validator, backtests);
-
-    // 5. Render Symbols Grid
-    const symbols = Object.keys(snap);
-    const workspaceSearch = activeFilters.workspaceSearch;
-    const matchesSearch = (symbol, ...extra) => {
-      if (!workspaceSearch) return true;
-      const term = symbol.toLowerCase() + " " + extra.map(e => String(e).toLowerCase()).join(" ");
-      return term.includes(workspaceSearch);
-    };
-
-    document.getElementById('symbolCards').innerHTML = symbols.map(sym => {
-      const s = snap[sym] || {};
-      const r = s.regime_state || {};
-      const bars = (s.bars || []).length;
-      let badgeClass = 'badge-primary';
-      if (r.regime === 'uptrend') badgeClass = 'badge-success';
-      if (r.regime === 'downtrend') badgeClass = 'badge-error';
-      if (r.regime === 'high_volatility') badgeClass = 'badge-warn';
-
-      return `
-        <div class="sym-card" onclick="openDrilldown('${sym}', '')">
-          <div class="sym-header">
-            <div class="sym-title">
-              <h3>${sym}</h3>
-              <div class="sym-time">Updated: ${s.updated_at ? s.updated_at.split('T')[1].substring(0, 8) : '—'}</div>
-            </div>
-            <span class="badge ${badgeClass}">${r.regime || 'unknown'}</span>
-          </div>
-          <div class="sym-body">
-            <div class="sym-item">
-              <span class="sym-label">Mid Price</span>
-              <span class="sym-val">${fmt(s.mid)}</span>
-            </div>
-            <div class="sym-item">
-              <span class="sym-label">Last Trade</span>
-              <span class="sym-val">${fmt(s.last_trade)}</span>
-            </div>
-            <div class="sym-item">
-              <span class="sym-label">Regime Conf.</span>
-              <span class="sym-val" style="color:var(--primary);">${(r.confidence || 0).toFixed(2)}</span>
-            </div>
-            <div class="sym-item">
-              <span class="sym-label">Bars Loaded</span>
-              <span class="sym-val">${bars}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    // 6. Live Signals Table
-    const signalRows = [];
-    symbols.forEach(sym => {
-      const s = snap[sym] || {};
-      Object.entries(s.signals || {}).forEach(([name, val]) => {
-        if (matchesSearch(sym, name, val.active ? 'active' : 'inactive')) {
-          signalRows.push(`
-            <tr onclick="openDrilldown('${sym}', '${name}')">
-              <td style="font-weight:700;">${sym}</td>
-              <td class="mono">${name}</td>
-              <td><span class="badge ${val.active ? 'badge-success' : 'badge-primary'}">${val.active ? 'active' : 'inactive'}</span></td>
-              <td class="mono" style="font-size:0.78rem; color:var(--muted);">${JSON.stringify(val.why)}</td>
-            </tr>
-          `);
-        }
-      });
-    });
-    document.getElementById('signalTable').innerHTML = signalRows.join('') || '<tr><td colspan="4"><div class="empty-state">No signal states matching search.</div></td></tr>';
-
-    // 7. Strategy Status Table
-    const strategyRows = [];
-    symbols.forEach(sym => {
-      const s = snap[sym] || {};
-      Object.entries(s.strategies || {}).forEach(([name, val]) => {
-        if (matchesSearch(sym, name, val.status, val.execution_ready ? 'ready' : 'waiting')) {
-          strategyRows.push(`
-            <tr onclick="openDrilldown('${sym}', '${name}')">
-              <td style="font-weight:700;">${sym}</td>
-              <td class="mono">${name}</td>
-              <td><span class="badge badge-blue">${val.status}</span></td>
-              <td><span class="badge ${val.execution_ready ? 'badge-success' : 'badge-primary'}">${val.execution_ready ? 'READY' : 'WAITING'}</span></td>
-            </tr>
-          `);
-        }
-      });
-    });
-    document.getElementById('strategyTable').innerHTML = strategyRows.join('') || '<tr><td colspan="4"><div class="empty-state">No strategy candidates matching search.</div></td></tr>';
-
-    // 8. Active Positions Table
-    const activePositionsRows = [];
-    broker.positions.forEach(pos => {
-      if (matchesSearch(pos.symbol, pos.direction)) {
-        const isLong = pos.direction === 'long';
-        activePositionsRows.push(`
-          <tr onclick="openDrilldown('${pos.symbol}', '')">
-            <td style="font-weight:700;">${pos.symbol}</td>
-            <td><span class="badge ${isLong ? 'badge-success' : 'badge-error'}">${pos.direction}</span></td>
-            <td class="mono">${pos.quantity.toFixed(4)}</td>
-            <td class="mono">${fmt(pos.entry_price)}</td>
-            <td class="mono">${fmt(pos.current_price)}</td>
-            <td class="mono" style="font-weight:700; color:${pos.unrealized_pnl >= 0 ? 'var(--success)' : 'var(--error)'};">
-              ${pos.unrealized_pnl >= 0 ? '+' : ''}${fmtCurrency(pos.unrealized_pnl)}
-            </td>
-            <td class="mono" style="color:var(--error);">${pos.stop_loss ? fmt(pos.stop_loss) : '—'}</td>
-            <td class="mono" style="color:var(--success);">${pos.take_profit ? fmt(pos.take_profit) : '—'}</td>
-          </tr>
-        `);
-      }
-    });
-    document.getElementById('activePositionsTable').innerHTML = activePositionsRows.join('') || '<tr><td colspan="8"><div class="empty-state">No active positions matching search.</div></td></tr>';
-
-    // 9. Closed Trades Table
-    const closedTradesRows = [];
-    broker.trade_history.slice().reverse().forEach(trade => {
-      if (matchesSearch(trade.symbol, trade.direction, trade.reason)) {
-        const isLong = trade.direction === 'long';
-        closedTradesRows.push(`
-          <tr onclick="openDrilldown('${trade.symbol}', '')">
-            <td style="font-weight:700;">${trade.symbol}</td>
-            <td><span class="badge ${isLong ? 'badge-success' : 'badge-error'}">${trade.direction}</span></td>
-            <td class="mono">${trade.quantity.toFixed(4)}</td>
-            <td class="mono">${fmt(trade.entry_price)}</td>
-            <td class="mono">${fmt(trade.exit_price)}</td>
-            <td style="font-size:0.75rem; color:var(--muted);">${trade.entry_time.split('T')[1].substring(0,8)} ➔ ${trade.exit_time.split('T')[1].substring(0,8)}</td>
-            <td class="mono" style="font-weight:700; color:${trade.pnl >= 0 ? 'var(--success)' : 'var(--error)'};">
-              ${trade.pnl >= 0 ? '+' : ''}${fmtCurrency(trade.pnl)}
-            </td>
-            <td class="mono" style="font-size:0.8rem; color:var(--muted);">${fmtCurrency(trade.fees)}</td>
-            <td><span class="badge badge-primary">${trade.reason}</span></td>
-          </tr>
-        `);
-      }
-    });
-    document.getElementById('closedTradesTable').innerHTML = closedTradesRows.join('') || '<tr><td colspan="9"><div class="empty-state">No trades executed matching search.</div></td></tr>';
-
-    // 9.5 Render Ranking Table
-    if (ranking && ranking.ranked_strategies) {
-      const rankingRows = [];
-      ranking.ranked_strategies.forEach(item => {
-        if (matchesSearch(item.symbol, item.strategy_name, item.decision)) {
+      // Render ranking
+      if (ranking && ranking.ranked_strategies) {
+        const rankingRows = [];
+        ranking.ranked_strategies.forEach(item => {
           let actBadge = 'badge-primary';
           if (item.decision === 'AUTO_PROMOTE') actBadge = 'badge-success';
           if (item.decision === 'AUTO_REVISE') actBadge = 'badge-error';
@@ -1732,50 +1776,20 @@
               <td><span class="badge ${actBadge}">${item.decision}</span></td>
             </tr>
           `);
-        }
-      });
-      document.getElementById('rankingTable').innerHTML = rankingRows.join('') || '<tr><td colspan="9"><div class="empty-state">No strategy specs matching search.</div></td></tr>';
-    }
+        });
+        document.getElementById('rankingTable').innerHTML = rankingRows.join('') || '<tr><td colspan="9"><div class="empty-state">No rankings calculated.</div></td></tr>';
+      }
 
-    // 10. Dropdowns & Selection-based Views
-    const select = document.getElementById('symbolSelect');
-    const current = select.value;
-    select.innerHTML = symbols.map(s => `<option value="${s}">${s}</option>`).join('');
-    if (symbols.includes(current)) select.value = current;
-
-    const renderSelected = () => {
-      const sym = select.value || symbols[0];
-      const s = snap[sym] || {};
-      document.getElementById('stateView').textContent = JSON.stringify({ factors: s.factors, indicators: s.indicators, regime_state: s.regime_state, signals: s.signals, strategies: s.strategies }, null, 2);
-      document.getElementById('validationView').textContent = JSON.stringify(validation[sym] || {}, null, 2);
-      document.getElementById('validatorView').textContent = JSON.stringify(validator, null, 2);
-      document.getElementById('backtestsView').textContent = JSON.stringify(backtests, null, 2);
-    };
-    select.onchange = renderSelected;
-    renderSelected();
-  }
-
-  async function tick() {
-    try {
-      const [config, snap, validation, specs, replay, validator, backtests, broker, telemetry, ranking] = await Promise.all([
-        loadConfig(),
-        loadSnapshot(),
-        loadValidation(),
-        loadSpecs(),
-        loadReplay(),
-        loadResearchValidator(),
-        loadBacktests(),
-        loadPositions(),
-        loadTelemetry(),
-        loadRanking()
-      ]);
-      lastSnapshotCache = { config, snap, validation, specs, replay, validator, backtests, broker, telemetry, ranking };
-      render(config, snap, validation, specs, replay, validator, backtests, broker, telemetry, ranking);
     } catch (e) {
-      console.error("Poller error:", e);
+      console.error("Dashboard presenter poller error:", e);
+      document.getElementById('topRefreshLabel').textContent = 'Disconnected';
+      document.getElementById('topRefreshPulse').className = 'pulse-dot';
+      document.getElementById('topRefreshPulse').style.backgroundColor = 'var(--error)';
+      document.getElementById('topRefreshPulse').style.boxShadow = '0 0 0 4px var(--error-glow)';
     }
   }
 
+  // DRILLDOWN WINDOW CALLS (for feedback/presets/playbooks)
   window.openDrilldown = async function(symbol, strategyName) {
     if (!lastSnapshotCache) return;
     
@@ -1785,14 +1799,8 @@
     }
     
     const targetStrat = strategyName || 'macd_trend_continuation';
-    
-    const snap = lastSnapshotCache.snap;
-    const validation = lastSnapshotCache.validation;
-    const broker = lastSnapshotCache.broker;
-    
-    const s = snap[targetSym] || {};
+    const s = lastSnapshotCache.snap[targetSym] || {};
     const r = s.regime_state || {};
-    const v = validation[targetSym] || {};
     
     document.getElementById('drilldownSymbol').textContent = targetSym;
     let badgeClass = 'badge-primary';
@@ -1810,39 +1818,21 @@
     document.getElementById('drilldownOverlay').classList.add('active');
 
     let html = `
-      <div class="trace-title">Factors & Indicators</div>
-      <div class="trace-grid">
-        <div class="trace-card">
-          <span class="sym-label">Mid Price</span>
-          <span class="sym-val">${fmt(s.mid)}</span>
+      <div style="font-size:0.8rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.02em;">Factors & Indicators</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+        <div class="factor-group-box">
+          <div class="factor-row"><span class="factor-key">Mid Price</span><span class="factor-val">${fmt(s.mid)}</span></div>
+          <div class="factor-row"><span class="factor-key">Last Trade</span><span class="factor-val">${fmt(s.last_trade)}</span></div>
         </div>
-        <div class="trace-card">
-          <span class="sym-label">Last Trade Price</span>
-          <span class="sym-val">${fmt(s.last_trade)}</span>
-        </div>
-        <div class="trace-card">
-          <span class="sym-label">Returns (1-period)</span>
-          <span class="sym-val" style="color:${(s.factors || {}).ret_1 >= 0 ? 'var(--success)' : 'var(--error)'}; font-weight:700;">
-            ${fmt(((s.factors || {}).ret_1 || 0) * 100)}%
-          </span>
-        </div>
-        <div class="trace-card">
-          <span class="sym-label">Volatility (20)</span>
-          <span class="sym-val">${fmt((s.factors || {}).volatility_20)}</span>
-        </div>
-        <div class="trace-card">
-          <span class="sym-label">Z-Score (20)</span>
-          <span class="sym-val">${fmt((s.factors || {}).zscore_close_20)}</span>
-        </div>
-        <div class="trace-card">
-          <span class="sym-label">Relative Volume</span>
-          <span class="sym-val">${fmt((s.factors || {}).rel_volume_20)}</span>
+        <div class="factor-group-box">
+          <div class="factor-row"><span class="factor-key">Regime Fit</span><span class="factor-val">${r.regime}</span></div>
+          <div class="factor-row"><span class="factor-key">Confidence</span><span class="factor-val">${(r.confidence || 0).toFixed(2)}</span></div>
         </div>
       </div>
       
-      <div class="trace-title">Research Brief & Feedback Loop</div>
-      <div class="trace-card" id="briefLoadingSection" style="gap:10px;">
-        <div class="empty-state" style="padding:16px; border:none; font-size:0.8rem;">Loading Research Brief...</div>
+      <div style="font-size:0.8rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.02em; margin-top:16px;">Research Brief & Feedback Override</div>
+      <div id="briefLoadingSection" style="margin-top:8px;">
+        <div class="empty-state" style="padding:16px; font-size:0.8rem;">Loading Research Brief...</div>
       </div>
     `;
     
@@ -1858,25 +1848,29 @@
         const decision = (data.feedback && data.feedback.decision) || 'STANDBY';
         
         briefHtml = `
-          <div style="font-size:0.75rem; background-color:rgba(0,0,0,0.25); padding:10px; border-radius:8px; border:1px solid var(--border); overflow-y:auto; max-height:160px; white-space:pre-wrap; font-family:var(--font-body); color:var(--text); line-height:1.4;">${data.brief_md}</div>
+          <div style="font-size:0.78rem; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; border:1px solid var(--border); overflow-y:auto; max-height:200px; white-space:pre-wrap; font-family:var(--font-body); color:var(--text); line-height:1.4; margin-bottom:12px;">${data.brief_md}</div>
           
-          <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
-            <label style="font-size:0.7rem; font-weight:700; color:var(--muted);">RESEARCHER DECISION OVERRIDE:</label>
-            <select id="feedbackDecision" class="select-dropdown" style="font-size:0.75rem; padding:4px 8px;">
-              <option value="STANDBY" ${decision === 'STANDBY' ? 'selected' : ''}>STANDBY (Qualify)</option>
-              <option value="AUTO_PROMOTE" ${decision === 'AUTO_PROMOTE' ? 'selected' : ''}>AUTO_PROMOTE (Promote)</option>
-              <option value="AUTO_REVISE" ${decision === 'AUTO_REVISE' ? 'selected' : ''}>AUTO_REVISE (Revise)</option>
-            </select>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">RESEARCHER DECISION OVERRIDE:</label>
+              <select id="feedbackDecision" class="filter-select" style="width:100%;">
+                <option value="STANDBY" ${decision === 'STANDBY' ? 'selected' : ''}>STANDBY (Qualify)</option>
+                <option value="AUTO_PROMOTE" ${decision === 'AUTO_PROMOTE' ? 'selected' : ''}>AUTO_PROMOTE (Promote)</option>
+                <option value="AUTO_REVISE" ${decision === 'AUTO_REVISE' ? 'selected' : ''}>AUTO_REVISE (Revise)</option>
+              </select>
+            </div>
             
-            <label style="font-size:0.7rem; font-weight:700; color:var(--muted); margin-top:2px;">RESEARCHER NOTES / COMMENTS:</label>
-            <textarea id="feedbackComments" class="search-input" style="width:100%; height:45px; font-family:var(--font-body); font-size:0.75rem; resize:none; padding:6px;" placeholder="Add hypothesis comments...">${comments}</textarea>
+            <div>
+              <label style="font-size:0.7rem; font-weight:700; color:var(--muted); display:block; margin-bottom:4px;">RESEARCHER NOTES / COMMENTS:</label>
+              <textarea id="feedbackComments" class="search-box" style="width:100%; max-width:none; height:60px; font-family:var(--font-body); font-size:0.78rem; resize:none;" placeholder="Hypothesis notes...">${comments}</textarea>
+            </div>
             
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:2px;">
-              <button class="tab-btn" style="padding:4px 8px; font-size:0.72rem; border-radius:4px;" onclick="exportPlaybook('${targetSym}', '${targetStrat}')">
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button class="btn btn-secondary" style="font-size:0.75rem;" onclick="exportPlaybook('${targetSym}', '${targetStrat}')">
                 📦 Export Playbook
               </button>
-              <button class="tab-btn active" style="padding:4px 8px; font-size:0.72rem; border-radius:4px;" onclick="submitFeedback('${targetSym}', '${targetStrat}')">
-                Submit Decision to OS
+              <button class="btn btn-secondary active" style="font-size:0.75rem; background:var(--primary); color:#000;" onclick="submitFeedback('${targetSym}', '${targetStrat}')">
+                Submit Decision
               </button>
             </div>
           </div>
@@ -1885,16 +1879,9 @@
         briefHtml = `<div class="empty-state" style="padding:16px;">Failed to generate brief.</div>`;
       }
       
-      const targetSec = document.getElementById('briefLoadingSection');
-      if (targetSec) {
-        targetSec.innerHTML = briefHtml;
-      }
+      document.getElementById('briefLoadingSection').innerHTML = briefHtml;
     } catch (err) {
-      console.error("Error loading brief:", err);
-      const targetSec = document.getElementById('briefLoadingSection');
-      if (targetSec) {
-        targetSec.innerHTML = `<div class="empty-state" style="padding:16px; color:var(--error);">Error loading brief: ${err.message}</div>`;
-      }
+      document.getElementById('briefLoadingSection').innerHTML = `<div class="empty-state text-error" style="padding:16px;">Error loading brief: ${err.message}</div>`;
     }
   };
 
@@ -1905,9 +1892,7 @@
     try {
       const response = await fetch(`/api/research-brief/${symbol}/${strategyName}/feedback`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ comments, decision })
       });
       const data = await response.json();
@@ -1922,41 +1907,6 @@
       alert("Error sending feedback: " + err.message);
     }
   };
-
-  // Handle sidebar toggle on mobile
-  const menuToggle = document.getElementById('menuToggle');
-  const sidebar = document.querySelector('.sidebar');
-  const sidebarOverlay = document.getElementById('sidebarOverlay');
-  
-  if (menuToggle && sidebar && sidebarOverlay) {
-    menuToggle.onclick = () => {
-      sidebar.classList.add('open');
-      sidebarOverlay.classList.add('active');
-    };
-    sidebarOverlay.onclick = () => {
-      sidebar.classList.remove('open');
-      sidebarOverlay.classList.remove('active');
-    };
-  }
-
-  // Handle drilldown close events
-  const drilldownClose = document.getElementById('drilldownClose');
-  const drilldownPanel = document.getElementById('drilldownPanel');
-  const drilldownOverlay = document.getElementById('drilldownOverlay');
-  
-  if (drilldownClose && drilldownPanel && drilldownOverlay) {
-    drilldownClose.onclick = () => {
-      drilldownPanel.classList.remove('open');
-      drilldownOverlay.classList.remove('active');
-    };
-    drilldownOverlay.onclick = () => {
-      drilldownPanel.classList.remove('open');
-      drilldownOverlay.classList.remove('active');
-    };
-  }
-
-  let activeConfigCache = null;
-  let activeSnapshotCacheGlobal = null;
 
   window.savePipelineConfig = async function() {
     const symbolsVal = document.getElementById('cfgSymbols').value;
@@ -1993,42 +1943,23 @@
     }
   };
 
-  window.updateInspectionView = function() {
-    if (!activeSnapshotCacheGlobal) return;
-    const select = document.getElementById('inspectSymbol');
-    const selectedSym = select.value || (activeConfigCache ? activeConfigCache.symbols[0] : 'BTC');
-    
-    const assetState = activeSnapshotCacheGlobal[selectedSym] || {};
-    const factors = assetState.factors || {};
-    const indicators = assetState.indicators || {};
-    
-    const factorsContainer = document.getElementById('inspectFactors');
-    const indicatorsContainer = document.getElementById('inspectIndicators');
-    
-    if (factorsContainer) {
-      const factorKeys = Object.keys(factors).sort();
-      factorsContainer.innerHTML = factorKeys.map(k => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.75rem;">
-          <span style="font-family: monospace; color: var(--text-dim);">${k}</span>
-          <span style="font-family: monospace; font-weight: 700; color: #fff;">${typeof factors[k] === 'number' ? factors[k].toFixed(4) : factors[k]}</span>
-        </div>
-      `).join('') || '<div class="empty-state" style="padding:10px; font-size:0.75rem;">No factors computed yet.</div>';
-    }
-    
-    if (indicatorsContainer) {
-      const indicatorKeys = Object.keys(indicators).sort();
-      indicatorsContainer.innerHTML = indicatorKeys.map(k => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.75rem;">
-          <span style="font-family: monospace; color: var(--text-dim);">${k}</span>
-          <span style="font-family: monospace; font-weight: 700; color: var(--accent-glow);">${typeof indicators[k] === 'number' ? indicators[k].toFixed(4) : indicators[k]}</span>
-        </div>
-      `).join('') || '<div class="empty-state" style="padding:10px; font-size:0.75rem;">No indicators computed yet.</div>';
-    }
-  };
+  // Close Drilldown
+  const drilldownClose = document.getElementById('drilldownClose');
+  const drilldownPanel = document.getElementById('drilldownPanel');
+  const drilldownOverlay = document.getElementById('drilldownOverlay');
+  if (drilldownClose && drilldownPanel && drilldownOverlay) {
+    const closeFn = () => {
+      drilldownPanel.classList.remove('open');
+      drilldownOverlay.classList.remove('active');
+    };
+    drilldownClose.onclick = closeFn;
+    drilldownOverlay.onclick = closeFn;
+  }
 
+  // Init
   bindTabs();
   tick();
-  setInterval(tick, 3000);
+  setInterval(tick, 2000);
 </script>
 <script src="/static/js/tour.js"></script>
 <script src="/static/js/presets.js"></script>

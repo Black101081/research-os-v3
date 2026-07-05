@@ -24,6 +24,7 @@ from baseline_backtest_runner import run_backtest_runner_demo
 
 from globals import CONFIG, engine, registry, telemetry, broker, BASE
 from routers import presets, brief, playbook, live_control
+from dashboard_presenter import get_dashboard_payload
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -94,7 +95,8 @@ async def writer_loop() -> None:
                         price=current_price,
                         stop_loss=sl,
                         take_profit=tp,
-                        time_str=current_time
+                        time_str=current_time,
+                        signal_source=strategy_name
                     )
 
         specs, packets = build_specs_and_packets(snapshot)
@@ -219,6 +221,11 @@ async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Failed to hot-reload config: {e}")
         return {'status': 'error', 'message': str(e)}
+
+
+@app.get('/api/dashboard')
+def get_dashboard() -> JSONResponse:
+    return JSONResponse(get_dashboard_payload())
 
 
 @app.get('/snapshot')

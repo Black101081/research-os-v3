@@ -65,7 +65,8 @@ class PaperBroker:
         price: float,
         stop_loss: float | None = None,
         take_profit: float | None = None,
-        time_str: str | None = None
+        time_str: str | None = None,
+        signal_source: str = "unknown"
     ) -> bool:
         if symbol in self.positions:
             return False
@@ -92,9 +93,10 @@ class PaperBroker:
             'take_profit': take_profit,
             'entry_time': time_str or datetime.now(UTC).isoformat(),
             'unrealized_pnl': 0.0,
-            'entry_fee': round(entry_fee, 4)
+            'entry_fee': round(entry_fee, 4),
+            'signal_source': signal_source
         }
-        logger.info(f"Paper Broker: Position opened: {direction} {quantity} {symbol} at {price}")
+        logger.info(f"Paper Broker: Position opened: {direction} {quantity} {symbol} at {price} via {signal_source}")
         return True
 
     def close_position(self, symbol: str, price: float, time_str: str | None = None, reason: str = "Market Close"):
@@ -126,7 +128,8 @@ class PaperBroker:
             'exit_time': time_str or datetime.now(UTC).isoformat(),
             'pnl': round(net_pnl, 4),
             'fees': round(pos['entry_fee'] + exit_fee, 4),
-            'reason': reason
+            'reason': reason,
+            'signal_source': pos.get('signal_source', 'unknown')
         })
         logger.info(f"Paper Broker: Position closed: {symbol} at {price}. Net PnL: {net_pnl} ({reason})")
 
