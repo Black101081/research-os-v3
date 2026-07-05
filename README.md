@@ -1,3 +1,13 @@
+---
+title: Research OS V3
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Research OS V3
 
 Executable realtime research system for Hyperliquid websocket market data.
