@@ -1,31 +1,31 @@
 {
-  "generated_at": "2026-07-05T19:58:09.337580+00:00",
+  "generated_at": "2026-07-05T20:00:27.901544+00:00",
   "alpha_count": 3,
   "validation_scorecard_count": 4,
   "top_ranked_alphas": [
     {
-      "alpha_id": "alpha_2",
+      "alpha_id": "alpha_1",
       "research_rank": 1,
+      "research_score": -4.25,
+      "validation_status": "reject",
+      "sample_window": "bt_breakout_confirmation"
+    },
+    {
+      "alpha_id": "alpha_2",
+      "research_rank": 2,
       "research_score": -4.25,
       "validation_status": "reject",
       "sample_window": "bt_breakout_execution_gated"
     },
     {
       "alpha_id": "alpha_3",
-      "research_rank": 2,
+      "research_rank": 3,
       "research_score": -4.25,
       "validation_status": "reject",
       "sample_window": "bt_equilibrium_recenter"
     },
     {
       "alpha_id": "alpha_1",
-      "research_rank": 3,
-      "research_score": -21.589,
-      "validation_status": "reject",
-      "sample_window": "bt_breakout_confirmation"
-    },
-    {
-      "alpha_id": "alpha_2",
       "research_rank": null,
       "research_score": 0.0,
       "validation_status": null,
@@ -39,8 +39,8 @@
       "previous_state": "validated",
       "new_state": "demoted",
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_0_1783281489",
-      "created_at": "2026-07-05T19:58:09.331025+00:00"
+      "supporting_validation_run_id": "validation_0_1783281627",
+      "created_at": "2026-07-05T20:00:27.900541+00:00"
     },
     "alpha_2": {
       "alpha_id": "alpha_2",
@@ -48,8 +48,8 @@
       "previous_state": "validated",
       "new_state": "demoted",
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_1_1783281489",
-      "created_at": "2026-07-05T19:58:09.331025+00:00"
+      "supporting_validation_run_id": "validation_1_1783281627",
+      "created_at": "2026-07-05T20:00:27.900541+00:00"
     },
     "alpha_3": {
       "alpha_id": "alpha_3",
@@ -57,8 +57,8 @@
       "previous_state": "validated",
       "new_state": "demoted",
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_2_1783281489",
-      "created_at": "2026-07-05T19:58:09.331025+00:00"
+      "supporting_validation_run_id": "validation_2_1783281627",
+      "created_at": "2026-07-05T20:00:27.900541+00:00"
     }
   },
   "promoted_count": 0,
@@ -74,7 +74,7 @@
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:58:09.337580+00:00"
+      "created_at": "2026-07-05T20:00:27.901544+00:00"
     },
     {
       "task_id": "revalidate_alpha_2_demoted",
@@ -83,7 +83,7 @@
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:58:09.337580+00:00"
+      "created_at": "2026-07-05T20:00:27.901544+00:00"
     },
     {
       "task_id": "revalidate_alpha_3_demoted",
@@ -92,7 +92,7 @@
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:58:09.337580+00:00"
+      "created_at": "2026-07-05T20:00:27.901544+00:00"
     }
   ]
 }
