@@ -94,6 +94,9 @@ class SymbolState:
     updated_at: Optional[str] = None
     last_bar_ts: Optional[str] = None
 
+    def __post_init__(self):
+        self._cache = {}
+
     def append_or_replace_bar(self, bar: Bar):
         if self.bars and self.bars[-1].ts == bar.ts:
             self.bars[-1] = bar
@@ -346,21 +349,73 @@ class ResearchEngine:
         if len(closes) < 20:
             return
         if len(closes) >= 35:
-            macd_fast = ema(closes[-80:], 12)
-            macd_slow = ema(closes[-80:], 26)
-            if macd_fast is not None and macd_slow is not None:
-                macd = macd_fast - macd_slow
-                series = []
-                for i in range(26, len(closes)):
-                    sub = closes[max(0, i - 80):i + 1]
-                    f = ema(sub, 12)
-                    s = ema(sub, 26)
-                    if f is not None and s is not None:
-                        series.append(f - s)
-                macd_signal = ema(series, 9) if series else 0.0
-                state.indicators['MACD'] = macd
-                state.indicators['MACD_signal'] = macd_signal or 0.0
-                state.indicators['MACD_hist'] = macd - (macd_signal or 0.0)
+            finalized_closes = [b.close for b in state.bars]
+            n_finalized = len(finalized_closes)
+            
+            if 'macd_history' not in state._cache:
+                state._cache['macd_history'] = []
+                state._cache['ema12_history'] = []
+                state._cache['ema26_history'] = []
+                state._cache['macd_signal_history'] = []
+                
+            cache_len = len(state._cache['macd_history'])
+            if cache_len > n_finalized:
+                state._cache['macd_history'] = []
+                state._cache['ema12_history'] = []
+                state._cache['ema26_history'] = []
+                state._cache['macd_signal_history'] = []
+                cache_len = 0
+                
+            if cache_len < n_finalized:
+                for i in range(cache_len, n_finalized):
+                    price = finalized_closes[i]
+                    if i == 0:
+                        ema12 = price
+                        ema26 = price
+                    else:
+                        ema12 = price * (2 / 13) + state._cache['ema12_history'][-1] * (11 / 13)
+                        ema26 = price * (2 / 27) + state._cache['ema26_history'][-1] * (25 / 27)
+                    macd = ema12 - ema26
+                    state._cache['ema12_history'].append(ema12)
+                    state._cache['ema26_history'].append(ema26)
+                    state._cache['macd_history'].append(macd)
+                    
+                    if len(state._cache['macd_history']) >= 9:
+                        if len(state._cache['macd_signal_history']) == 0 or state._cache['macd_signal_history'][-1] == 0.0:
+                            signal = mean(state._cache['macd_history'][-9:])
+                        else:
+                            signal = macd * (2 / 10) + state._cache['macd_signal_history'][-1] * (8 / 10)
+                        state._cache['macd_signal_history'].append(signal)
+                    else:
+                        state._cache['macd_signal_history'].append(0.0)
+                        
+            if include_current and state.current_bar is not None:
+                temp_price = state.current_bar.close
+                if n_finalized == 0:
+                    temp_ema12 = temp_price
+                    temp_ema26 = temp_price
+                    temp_macd = 0.0
+                    temp_signal = 0.0
+                else:
+                    temp_ema12 = temp_price * (2 / 13) + state._cache['ema12_history'][-1] * (11 / 13)
+                    temp_ema26 = temp_price * (2 / 27) + state._cache['ema26_history'][-1] * (25 / 27)
+                    temp_macd = temp_ema12 - temp_ema26
+                    if len(state._cache['macd_history']) >= 8:
+                        if len(state._cache['macd_signal_history']) == 0 or state._cache['macd_signal_history'][-1] == 0.0:
+                            temp_signal = mean(state._cache['macd_history'][-8:] + [temp_macd])
+                        else:
+                            temp_signal = temp_macd * (2 / 10) + state._cache['macd_signal_history'][-1] * (8 / 10)
+                    else:
+                        temp_signal = 0.0
+                macd_val = temp_macd
+                macd_sig_val = temp_signal
+            else:
+                macd_val = state._cache['macd_history'][-1] if state._cache['macd_history'] else 0.0
+                macd_sig_val = state._cache['macd_signal_history'][-1] if state._cache['macd_signal_history'] else 0.0
+                
+            state.indicators['MACD'] = macd_val
+            state.indicators['MACD_signal'] = macd_sig_val
+            state.indicators['MACD_hist'] = macd_val - macd_sig_val
         sma20 = mean(closes[-20:])
         sd20 = safe_std(closes[-20:])
         upper = sma20 + 2 * sd20

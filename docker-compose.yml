@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  research-os:
+    build: .
+    container_name: research_os_v3
+    ports:
+      - "8500:8000"
+    volumes:
+      - ./runtime:/app/runtime
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped

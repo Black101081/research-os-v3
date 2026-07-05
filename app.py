@@ -23,6 +23,8 @@ from validator_runner import run_validator
 from backtest_bridge import build_bridge_demo
 from baseline_backtest_runner import run_backtest_runner_demo
 
+from paper_broker import PaperBroker
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -31,6 +33,7 @@ CONFIG = json.loads((BASE / 'config.example.json').read_text())
 
 engine = ResearchEngine(symbols=CONFIG['symbols'], max_bars=CONFIG['runtime']['max_bars'], thresholds=CONFIG['thresholds'])
 registry = RegistryWriter(BASE / 'runtime')
+broker = PaperBroker(initial_balance=10000.0)
 ws_client = None
 ws_task = None
 writer_task = None
@@ -67,19 +70,56 @@ def build_specs_and_packets(snapshot: Dict[str, Any]) -> tuple[list[Dict[str, An
 async def writer_loop() -> None:
     while True:
         snapshot = engine.snapshot()
-        registry.write_snapshot(snapshot)
+        
+        # Process live paper broker ticks & entries
+        for symbol, state in snapshot.items():
+            current_price = state.get('last_trade') or state.get('mid')
+            current_time = state.get('updated_at')
+            if current_price:
+                broker.process_tick(symbol, current_price, current_time)
+                
+            for strategy_name, strategy_state in state.get('strategies', {}).items():
+                if strategy_state.get('execution_ready'):
+                    risk = state.get('risk_packets', {}).get(strategy_name, {})
+                    qty = risk.get('target_quantity', 0.0)
+                    side = strategy_state.get('entry_side', 'long')
+                    stop_policy = risk.get('stop_policy', {})
+                    sl = stop_policy.get('initial_stop_price')
+                    tp = current_price * (1 + 0.03) if side == 'long' else current_price * (1 - 0.03)
+                    
+                    broker.execute_order(
+                        symbol=symbol,
+                        direction=side,
+                        quantity=qty,
+                        price=current_price,
+                        stop_loss=sl,
+                        take_profit=tp,
+                        time_str=current_time
+                    )
+
         specs, packets = build_specs_and_packets(snapshot)
-        registry.append_strategy_specs(specs)
-        registry.append_playbook_packets(packets)
-        registry.append_strategy_candidates(snapshot)
+        def do_writes():
+            registry.write_snapshot(snapshot)
+            registry.append_strategy_specs(specs)
+            registry.append_playbook_packets(packets)
+            registry.append_strategy_candidates(snapshot)
+        try:
+            await asyncio.to_thread(do_writes)
+        except Exception as e:
+            logger.error(f"Registry write failed: {e}")
         await asyncio.sleep(CONFIG['runtime']['write_every_seconds'])
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global ws_client, ws_task, writer_task
-    warmup_engine(engine, BASE / 'sample_data')
-    ws_client = HyperliquidWSClient(url=CONFIG['ws_url'], subscriptions=build_subscriptions(), handler=engine.handle_message)
+    try:
+        warmup_engine(engine, CONFIG['symbols'], CONFIG['candle_interval'], CONFIG['runtime']['warmup_bars'])
+    except Exception as e:
+        logger.error(f"Warmup failed: {e}. Proceeding without warmup.")
+    async def on_message_wrapper(msg):
+        engine.process_message(msg)
+    ws_client = HyperliquidWSClient(url=CONFIG['ws_url'], subscriptions=build_subscriptions(), on_message=on_message_wrapper)
     ws_task = asyncio.create_task(ws_client.run_forever())
     writer_task = asyncio.create_task(writer_loop())
     logger.info('Research OS started')
@@ -100,35 +140,77 @@ app.mount('/static', StaticFiles(directory=str(BASE / 'static')), name='static')
 
 
 @app.get('/health')
+@app.get('/api/health')
 def health() -> Dict[str, Any]:
     snapshot = engine.snapshot()
     active_counts = {symbol: len([s for s in state.get('signals', {}).values() if s.get('active')]) for symbol, state in snapshot.items()}
-    return {'ok': True, 'symbols': list(snapshot.keys()), 'active_signal_counts': active_counts}
+    return {'status': 'ok', 'ok': True, 'symbols': list(snapshot.keys()), 'active_signal_counts': active_counts}
+
+
+@app.get('/api/config')
+def get_config() -> Dict[str, Any]:
+    return CONFIG
 
 
 @app.get('/snapshot')
+@app.get('/api/snapshot')
 def snapshot() -> JSONResponse:
     return JSONResponse(engine.snapshot())
 
 
+@app.get('/api/validation')
+def get_validation() -> Dict[str, Any]:
+    snap = engine.snapshot()
+    return {symbol: state.get('validation_packet', {}) for symbol, state in snap.items()}
+
+
+def read_jsonl(path: Path) -> list[Dict[str, Any]]:
+    if not path.exists():
+        return []
+    try:
+        with path.open('r', encoding='utf-8') as fh:
+            return [json.loads(line) for line in fh if line.strip()]
+    except Exception:
+        return []
+
+
+@app.get('/api/specs')
+def get_specs() -> Dict[str, Any]:
+    specs = read_jsonl(registry.specs_file)
+    packets = read_jsonl(registry.playbook_file)
+    return {
+        'strategy_specs': specs,
+        'playbook_packets': packets
+    }
+
+
 @app.get('/replay-demo')
+@app.get('/api/replay-demo')
 def replay_demo() -> JSONResponse:
-    return JSONResponse(run_paper_replay_demo())
+    return JSONResponse(run_paper_replay_demo(CONFIG))
 
 
 @app.get('/validator-report')
+@app.get('/api/research-validator')
 def validator_report() -> JSONResponse:
     return JSONResponse(run_validator())
 
 
 @app.get('/backtest-bridge-demo')
+@app.get('/api/backtest-bridge-demo')
 def backtest_bridge_demo() -> JSONResponse:
     return JSONResponse(build_bridge_demo())
 
 
 @app.get('/backtest-runner-demo')
+@app.get('/api/backtest-runner-demo')
 def backtest_runner_demo() -> JSONResponse:
     return JSONResponse(run_backtest_runner_demo())
+
+
+@app.get('/api/positions')
+def get_positions() -> Dict[str, Any]:
+    return broker.get_summary()
 
 
 @app.get('/')

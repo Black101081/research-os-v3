@@ -50,5 +50,7 @@ def build_strategy_spec_v1(symbol: str, signal_name: str, signal_payload: Dict[s
             'rejection_reasons': risk_packet.get('rejection_reasons', []),
             'advisory_flags': risk_packet.get('advisory_flags', []),
         },
+        'status': strategy_state.get('status', 'candidate'),
+        'next_stage': 'spec_lock',
     }
     return strategy_spec
