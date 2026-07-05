@@ -77,6 +77,35 @@ class TestFactorMath(unittest.TestCase):
         self.assertIn("ZScore_Close", res)
         self.assertIn("RelativeVolume", res)
 
+    def test_ema_against_pandas(self):
+        import pandas as pd
+        closes = [10.0, 11.0, 12.0, 13.0, 14.0, 15.5, 17.2, 19.1]
+        for period in [3, 5, 8]:
+            pd_val = pd.Series(closes).ewm(span=period, adjust=False).mean().iloc[-1]
+            np_val = ema_np(closes, period)
+            self.assertIsNotNone(np_val)
+            self.assertAlmostEqual(np_val, pd_val, places=6)
+
+    def test_latency_benchmark(self):
+        import time
+        closes = [100.0 + i * 0.1 for i in range(500)]
+        volumes = [1000.0] * 500
+        
+        # Warmup
+        for _ in range(10):
+            compute_factors_np(closes, volumes)
+            
+        t0 = time.perf_counter()
+        iterations = 100
+        for _ in range(iterations):
+            factors = compute_factors_np(closes, volumes)
+            compute_indicators_np(closes, factors)
+        t1 = time.perf_counter()
+        
+        avg_time_ms = ((t1 - t0) / iterations) * 1000
+        print(f"\n[BENCHMARK] Average latency for 500 bars: {avg_time_ms:.4f} ms")
+        self.assertTrue(avg_time_ms < 5.0, f"Latency is {avg_time_ms:.2f} ms (expected < 5 ms)")
+
 
 if __name__ == "__main__":
     unittest.main()

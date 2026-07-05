@@ -28,31 +28,40 @@ def ema_np(values: List[float] | np.ndarray, period: int) -> Optional[float]:
 
 
 def macd_np(closes: List[float], fast: int = 12, slow: int = 26, signal: int = 9) -> Dict[str, float]:
-    """Return MACD, MACD_signal, MACD_hist as a dict (all floats)."""
+    """Return MACD, MACD_signal, MACD_hist as a dict (all floats). Vectorized via scipy.signal.lfilter."""
     arr = np.asarray(closes, dtype=np.float64)
     if arr.size < slow:
         return {"MACD": 0.0, "MACD_signal": 0.0, "MACD_hist": 0.0}
+
+    from scipy.signal import lfilter, lfilter_zi
 
     alpha_fast = 2.0 / (fast + 1)
     alpha_slow = 2.0 / (slow + 1)
     alpha_sig  = 2.0 / (signal + 1)
 
-    ema_fast = np.zeros(arr.size)
-    ema_slow = np.zeros(arr.size)
-    ema_fast[0] = ema_slow[0] = arr[0]
-    for i in range(1, arr.size):
-        ema_fast[i] = arr[i] * alpha_fast + ema_fast[i - 1] * (1 - alpha_fast)
-        ema_slow[i] = arr[i] * alpha_slow + ema_slow[i - 1] * (1 - alpha_slow)
+    # Fast EMA
+    b_fast = [alpha_fast]
+    a_fast = [1, -(1 - alpha_fast)]
+    zi_fast = lfilter_zi(b_fast, a_fast) * arr[0]
+    ema_fast, _ = lfilter(b_fast, a_fast, arr, zi=zi_fast)
+
+    # Slow EMA
+    b_slow = [alpha_slow]
+    a_slow = [1, -(1 - alpha_slow)]
+    zi_slow = lfilter_zi(b_slow, a_slow) * arr[0]
+    ema_slow, _ = lfilter(b_slow, a_slow, arr, zi=zi_slow)
 
     macd_line = ema_fast - ema_slow
 
-    sig_line = np.zeros(arr.size)
-    sig_line[0] = macd_line[0]
-    for i in range(1, arr.size):
-        sig_line[i] = macd_line[i] * alpha_sig + sig_line[i - 1] * (1 - alpha_sig)
+    # Signal Line EMA
+    b_sig = [alpha_sig]
+    a_sig = [1, -(1 - alpha_sig)]
+    zi_sig = lfilter_zi(b_sig, a_sig) * macd_line[0]
+    sig_line, _ = lfilter(b_sig, a_sig, macd_line, zi=zi_sig)
 
     macd_val = float(macd_line[-1])
     sig_val  = float(sig_line[-1])
+    return {"MACD": macd_val, "MACD_signal": sig_val, "MACD_hist": macd_val - sig_val}
     return {"MACD": macd_val, "MACD_signal": sig_val, "MACD_hist": macd_val - sig_val}
 
 
