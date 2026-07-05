@@ -24,6 +24,7 @@ from baseline_backtest_runner import run_backtest_runner_demo
 
 import database as db
 db.init_db()
+db.prune_old_records(keep_days=30)
 
 from globals import CONFIG, engine, registry, telemetry, broker, BASE
 engine._paper_broker = broker
@@ -117,6 +118,33 @@ async def writer_loop() -> None:
             await registry.append_strategy_candidates(snapshot)
         except Exception as e:
             logger.error(f"Registry write failed: {e}")
+
+        # ── Persist specs + packets to SQLite ──
+        try:
+            for spec in specs:
+                db.save_strategy_spec(
+                    symbol=spec.get("symbol", "unknown"),
+                    strategy=spec.get("strategy_name", "unknown"),
+                    spec=spec
+                )
+            for packet in packets:
+                db.save_playbook_packet(
+                    symbol=packet.get("symbol", "unknown"),
+                    strategy=packet.get("strategy_name", "unknown"),
+                    packet=packet
+                )
+        except Exception as e:
+            logger.error(f"[DB] Failed to persist specs/packets: {e}")
+
+        # ── Persist validation snapshots to SQLite (every cycle) ──
+        try:
+            for symbol, state in snapshot.items():
+                vp = state.get("validation_packet")
+                if vp:
+                    db.save_validation_snapshot(symbol, vp)
+        except Exception as e:
+            logger.error(f"[DB] Failed to persist validation: {e}")
+
         await asyncio.sleep(CONFIG['runtime']['write_every_seconds'])
 
 
@@ -425,6 +453,12 @@ def get_ranking() -> Dict[str, Any]:
     for i, item in enumerate(ranked):
         item['rank'] = i + 1
         
+    # Persist ranking snapshot to SQLite
+    try:
+        db.save_ranking_snapshot(ranked)
+    except Exception as e:
+        logger.error(f"[DB] Failed to persist ranking: {e}")
+
     return {
         'ranked_strategies': ranked,
         'rules': {
@@ -437,6 +471,29 @@ def get_ranking() -> Dict[str, Any]:
                 'complexity': 0.20
             }
         }
+    }
+
+
+@app.get('/api/ranking/history')
+def get_ranking_history(symbol: str = None, limit: int = 200) -> Dict[str, Any]:
+    rows = db.load_ranking_history(symbol=symbol, limit=limit)
+    return {"ranking_history": rows, "count": len(rows)}
+
+
+@app.get('/api/validation/history')
+def get_validation_history(symbol: str, limit: int = 100) -> Dict[str, Any]:
+    rows = db.load_validation_history(symbol=symbol, limit=limit)
+    return {"symbol": symbol, "validation_history": rows, "count": len(rows)}
+
+
+@app.get('/api/specs/history')
+def get_specs_history(limit: int = 100) -> Dict[str, Any]:
+    specs   = db.load_latest_strategy_specs(limit=limit)
+    packets = db.load_latest_playbook_packets(limit=limit)
+    return {
+        "strategy_specs": specs,
+        "playbook_packets": packets,
+        "counts": {"specs": len(specs), "packets": len(packets)}
     }
 
 

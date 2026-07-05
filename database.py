@@ -72,6 +72,55 @@ def init_db():
             snapshot   TEXT NOT NULL,
             created_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS strategy_specs (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol      TEXT NOT NULL,
+            strategy    TEXT NOT NULL,
+            spec_json   TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_strategy_specs_symbol
+            ON strategy_specs(symbol, strategy);
+
+        CREATE TABLE IF NOT EXISTS playbook_packets (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol      TEXT NOT NULL,
+            strategy    TEXT NOT NULL,
+            packet_json TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_playbook_symbol
+            ON playbook_packets(symbol, strategy);
+
+        CREATE TABLE IF NOT EXISTS ranking_history (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol          TEXT NOT NULL,
+            strategy_name   TEXT NOT NULL,
+            composite_score REAL NOT NULL,
+            perf_score      REAL NOT NULL,
+            robust_score    REAL NOT NULL,
+            decay_score     REAL NOT NULL,
+            complexity_score REAL NOT NULL,
+            decision        TEXT NOT NULL,
+            net_pnl         REAL NOT NULL DEFAULT 0.0,
+            win_rate        REAL NOT NULL DEFAULT 0.0,
+            recorded_at     TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_ranking_history_symbol
+            ON ranking_history(symbol, strategy_name);
+
+        CREATE TABLE IF NOT EXISTS validation_history (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol          TEXT NOT NULL,
+            decay_detected  INTEGER NOT NULL DEFAULT 0,
+            code_valid      INTEGER NOT NULL DEFAULT 1,
+            validation_json TEXT NOT NULL,
+            recorded_at     TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_validation_history_symbol
+            ON validation_history(symbol);
+
         CREATE INDEX IF NOT EXISTS idx_signal_snapshots_symbol 
             ON signal_snapshots(symbol, signal_id);
         CREATE INDEX IF NOT EXISTS idx_trade_history_symbol 
@@ -178,3 +227,130 @@ def load_trade_history(limit: int = 200) -> List[Dict[str, Any]]:
     ).fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+
+# ── Strategy specs ────────────────────────────────────────────────────────────
+
+def save_strategy_spec(symbol: str, strategy: str, spec: dict):
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+            INSERT INTO strategy_specs (symbol, strategy, spec_json, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (symbol, strategy, json.dumps(spec), datetime.now(UTC).isoformat()))
+    conn.close()
+
+def load_latest_strategy_specs(limit: int = 100) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT spec_json FROM strategy_specs
+        ORDER BY id DESC LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return [json.loads(r["spec_json"]) for r in rows]
+
+# ── Playbook packets ──────────────────────────────────────────────────────────
+
+def save_playbook_packet(symbol: str, strategy: str, packet: dict):
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+            INSERT INTO playbook_packets (symbol, strategy, packet_json, created_at)
+            VALUES (?, ?, ?, ?)
+        """, (symbol, strategy, json.dumps(packet), datetime.now(UTC).isoformat()))
+    conn.close()
+
+def load_latest_playbook_packets(limit: int = 100) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT packet_json FROM playbook_packets
+        ORDER BY id DESC LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return [json.loads(r["packet_json"]) for r in rows]
+
+# ── Ranking history ───────────────────────────────────────────────────────────
+
+def save_ranking_snapshot(ranked_items: list):
+    """Save one full ranking snapshot (all strategies at this moment)."""
+    if not ranked_items:
+        return
+    conn = get_connection()
+    now = datetime.now(UTC).isoformat()
+    with conn:
+        conn.executemany("""
+            INSERT INTO ranking_history
+                (symbol, strategy_name, composite_score, perf_score,
+                 robust_score, decay_score, complexity_score,
+                 decision, net_pnl, win_rate, recorded_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        """, [(
+            r["symbol"], r["strategy_name"],
+            r["composite_score"], r["perf_score"],
+            r["robust_score"], r["decay_score"], r["complexity_score"],
+            r["decision"], r["net_pnl"], r["win_rate"], now
+        ) for r in ranked_items])
+    conn.close()
+
+def load_ranking_history(symbol: str | None = None, limit: int = 500) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    if symbol:
+        rows = conn.execute("""
+            SELECT * FROM ranking_history WHERE symbol=?
+            ORDER BY id DESC LIMIT ?
+        """, (symbol, limit)).fetchall()
+    else:
+        rows = conn.execute("""
+            SELECT * FROM ranking_history ORDER BY id DESC LIMIT ?
+        """, (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+# ── Validation history ────────────────────────────────────────────────────────
+
+def save_validation_snapshot(symbol: str, validation_packet: dict):
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+            INSERT INTO validation_history
+                (symbol, decay_detected, code_valid, validation_json, recorded_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (
+            symbol,
+            int(validation_packet.get("decay_detected", False)),
+            int(validation_packet.get("code_valid", True)),
+            json.dumps(validation_packet),
+            datetime.now(UTC).isoformat()
+        ))
+    conn.close()
+
+def load_validation_history(symbol: str, limit: int = 200) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM validation_history WHERE symbol=?
+        ORDER BY id DESC LIMIT ?
+    """, (symbol, limit)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+# ── Auto-Pruning ──────────────────────────────────────────────────────────────
+
+def prune_old_records(keep_days: int = 30):
+    """Delete records older than keep_days to prevent DB bloat.
+    Safe to call on startup or periodically."""
+    from datetime import timedelta
+    cutoff = (datetime.now(UTC) - timedelta(days=keep_days)).isoformat()
+    conn = get_connection()
+    with conn:
+        for table in ("strategy_specs", "playbook_packets",
+                      "ranking_history", "validation_history",
+                      "signal_snapshots"):
+            try:
+                conn.execute(
+                    f"DELETE FROM {table} WHERE created_at < ? OR recorded_at < ?",
+                    (cutoff, cutoff)
+                )
+            except Exception:
+                pass  # column name differs — skip silently
+    conn.close()
+    logger.info(f"[DB] Pruned records older than {keep_days} days")
