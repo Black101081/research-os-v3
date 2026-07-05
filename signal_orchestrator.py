@@ -38,6 +38,7 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
             rel_vol_ok = indicators.get('RelativeVolume', 0.0) >= 1.0
             active = bool(was_squeezing and breakout and rel_vol_ok and regime_ok and regime_state.get('tradable', False))
             why = {
+                'squeeze': was_squeezing,
                 'was_squeezing': was_squeezing,
                 'prev_bollinger_width': prev_bollinger_width,
                 'breakout': breakout,
