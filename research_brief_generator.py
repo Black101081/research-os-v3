@@ -136,7 +136,7 @@ def generate_playbook_code(symbol: str, strategy_name: str, parameters: dict, ri
             return 1   # oversold, long reversion
         return 0'''
     elif strategy_name == "bollinger_squeeze_breakout":
-        evaluate_body = '''        width = indicators.get("BollingerWidth", 1.0)
+        evaluate_body = f'''        width = indicators.get("BollingerWidth", 1.0)
         last_bar = bars[-1] if bars else None
         try:
             close = last_bar['close'] if isinstance(last_bar, dict) else last_bar.close
