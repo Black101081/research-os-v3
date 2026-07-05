@@ -16,7 +16,7 @@
             alert("Failed to copy code: " + err);
           });
         };
-        document.getElementById('tourOverlay').classList.add('active');
+        document.getElementById('playbookOverlay').classList.add('active');
         document.getElementById('playbookExportModal').classList.add('active');
       } else {
         alert("Failed to export: " + JSON.stringify(data));
@@ -27,7 +27,7 @@
   };
 
   window.closePlaybookExport = function() {
-    document.getElementById('tourOverlay').classList.remove('active');
+    document.getElementById('playbookOverlay').classList.remove('active');
     document.getElementById('playbookExportModal').classList.remove('active');
   };
 })();

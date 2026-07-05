@@ -872,6 +872,7 @@
 </header>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="tour-overlay" id="tourOverlay"></div>
+<div class="tour-overlay" id="playbookOverlay"></div>
 <div class="guided-tour-modal" id="tourModal">
   <div style="display:flex; justify-content:space-between; align-items:center;">
     <h3 style="color:var(--primary); font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:8px;">
@@ -962,6 +963,9 @@
         </button>
         <button class="tab-btn" style="width:100%; border-radius:6px; padding:4px; font-size:0.72rem;" onclick="toggleTradingMode()">
           Toggle Live Mode
+        </button>
+        <button class="tab-btn" id="resetKillSwitchBtn" style="width:100%; border-radius:6px; padding:4px; font-size:0.72rem; display:none; background-color:var(--success); border-color:var(--success); color:#fff; font-weight:700;" onclick="triggerResetKillSwitch()">
+          🟢 Reset Emergency Stop
         </button>
       </div>
     </div>
@@ -1451,13 +1455,16 @@
       }
       
       const killBtn = document.getElementById('killSwitchBtn');
+      const resetBtn = document.getElementById('resetKillSwitchBtn');
       if (killBtn) {
         if (telemetryData.kill_switch_active) {
           killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
           killBtn.style.backgroundColor = '#991b1b'; // darker red
+          if (resetBtn) resetBtn.style.display = 'block';
         } else {
           killBtn.textContent = '🚨 EMERGENCY STOP (KILL)';
           killBtn.style.backgroundColor = 'var(--error)';
+          if (resetBtn) resetBtn.style.display = 'none';
         }
       }
     }
