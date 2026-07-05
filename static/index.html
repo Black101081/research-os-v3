@@ -1613,8 +1613,22 @@
       const dashboard = await loadDashboard();
       lastDashboardCache = dashboard;
       
+      const ov = dashboard.overview;
+
       if (!lastSnapshotCache) {
-        await slowTick();
+        lastSnapshotCache = {
+          config: { symbols: ov.symbols, candle_interval: ov.candle_interval },
+          snap: {},
+          validation: {},
+          specs: {},
+          replay: {},
+          validator: {},
+          backtests: {},
+          broker: {},
+          telemetry: {},
+          ranking: {}
+        };
+        slowTick();
       }
 
       // Re-create snapshot structure to keep compatibility with other scripts
@@ -1694,10 +1708,10 @@
 
       // 2. RENDER FEED DETAILS (Sidebar)
       const feedMeta = document.getElementById('sbAssets');
-      if (feedMeta) feedMeta.textContent = lastSnapshotCache.config.symbols.join(', ');
+      if (feedMeta) feedMeta.textContent = ov.symbols.join(', ');
       
       const sbInt = document.getElementById('sbInterval');
-      if (sbInt) sbInt.textContent = lastSnapshotCache.config.candle_interval;
+      if (sbInt) sbInt.textContent = ov.candle_interval;
 
       // 3. RENDER TELEMETRY Details (Sidebar)
       const sbThru = document.getElementById('sbThroughput');

@@ -32,7 +32,9 @@ def get_dashboard_payload() -> Dict[str, Any]:
         "active_signal_count": active_sig_count,
         "confirmed_signal_count": confirmed_sig_count,
         "execution_ready_count": execution_ready_count,
-        "open_positions_count": summary.get("active_positions_count", 0)
+        "open_positions_count": summary.get("active_positions_count", 0),
+        "symbols": globals.CONFIG['symbols'],
+        "candle_interval": globals.CONFIG['candle_interval']
     }
 
     # 2. Symbols overview

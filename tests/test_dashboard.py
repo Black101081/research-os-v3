@@ -27,6 +27,8 @@ def test_get_dashboard_payload():
     assert 'confirmed_signal_count' in over
     assert 'execution_ready_count' in over
     assert 'open_positions_count' in over
+    assert 'symbols' in over
+    assert 'candle_interval' in over
     
     # 3. Verify symbols
     assert isinstance(payload['symbols'], list)
