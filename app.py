@@ -165,6 +165,62 @@ def get_config() -> Dict[str, Any]:
     return CONFIG
 
 
+@app.post('/api/config/update')
+async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
+    global ws_client, ws_task, CONFIG
+    new_symbols = data.get('symbols')
+    new_interval = data.get('candle_interval')
+    
+    if not new_symbols or not new_interval:
+        return {'status': 'error', 'message': 'Missing symbols or candle_interval'}
+        
+    if isinstance(new_symbols, str):
+        new_symbols = [s.strip().upper() for s in new_symbols.split(',') if s.strip()]
+        
+    try:
+        # 1. Close current WS client
+        if ws_client is not None:
+            await ws_client.close()
+        if ws_task is not None:
+            ws_task.cancel()
+            
+        # 2. Update and save CONFIG
+        CONFIG['symbols'] = new_symbols
+        CONFIG['candle_interval'] = new_interval
+        config_path = BASE / 'config.json'
+        config_path.write_text(json.dumps(CONFIG, indent=2), encoding='utf-8')
+        
+        # 3. Hot-reinitialize ResearchEngine state keys
+        from realtime_engine import SymbolState
+        from collections import deque
+        engine.states = {s: SymbolState(symbol=s, bars=deque(maxlen=CONFIG['runtime']['max_bars'])) for s in new_symbols}
+        
+        # 4. Perform Warmup Bootstrap
+        try:
+            warmup_engine(engine, new_symbols, new_interval, CONFIG['runtime']['warmup_bars'])
+        except Exception as e:
+            logger.error(f"Warmup failed during reload: {e}")
+            
+        # 5. Create new Websocket Client and launch task
+        async def on_message_wrapper(msg):
+            t_start = time.perf_counter()
+            try:
+                engine.process_message(msg)
+                telemetry.record_success(time.perf_counter() - t_start)
+            except Exception as e:
+                telemetry.record_error()
+                logger.error(f"WS process message failed: {e}")
+                
+        ws_client = HyperliquidWSClient(url=CONFIG['ws_url'], subscriptions=build_subscriptions(), on_message=on_message_wrapper)
+        ws_task = asyncio.create_task(ws_client.run_forever())
+        
+        logger.info(f"Pipeline hot-reloaded successfully: {new_symbols} - {new_interval}")
+        return {'status': 'ok', 'message': f'Successfully updated config and hot-reloaded pipeline for {new_symbols} on {new_interval}!'}
+    except Exception as e:
+        logger.error(f"Failed to hot-reload config: {e}")
+        return {'status': 'error', 'message': str(e)}
+
+
 @app.get('/snapshot')
 @app.get('/api/snapshot')
 def snapshot() -> JSONResponse:

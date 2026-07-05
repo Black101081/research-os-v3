@@ -12,7 +12,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).resolve().parent
-CONFIG = json.loads((BASE / 'config.example.json').read_text())
+config_path = BASE / 'config.json'
+if not config_path.exists():
+    config_path = BASE / 'config.example.json'
+CONFIG = json.loads(config_path.read_text())
 
 engine = ResearchEngine(
     symbols=CONFIG['symbols'],

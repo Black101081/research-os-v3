@@ -1264,9 +1264,55 @@
           <pre id="validatorView" class="json-code"></pre>
         </div>
 
-        <!-- Raw State Panel -->
+        <!-- Raw State & Inspector Panel -->
         <div class="tab-panel" id="panel-raw-state">
-          <pre id="stateView" class="json-code"></pre>
+          <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+            <!-- Left Column: Config Panel -->
+            <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;">
+              <h3 style="margin-top:0; color: var(--accent-glow); font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Pipeline Settings</h3>
+              <div style="margin-bottom: 15px;">
+                <label style="display:block; margin-bottom: 5px; font-size:0.8rem; opacity:0.8; font-weight: 600;">Active Symbols (comma-separated)</label>
+                <input type="text" id="cfgSymbols" style="width:100%; padding:8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color:#fff; border-radius:4px; font-family: monospace; font-size: 0.85rem;">
+              </div>
+              <div style="margin-bottom: 15px;">
+                <label style="display:block; margin-bottom: 5px; font-size:0.8rem; opacity:0.8; font-weight: 600;">Candle Interval (Timeframe)</label>
+                <select id="cfgInterval" style="width:100%; padding:8px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color:#fff; border-radius:4px; font-size: 0.85rem;">
+                  <option value="1m">1m (1 Minute)</option>
+                  <option value="5m">5m (5 Minutes)</option>
+                  <option value="15m">15m (15 Minutes)</option>
+                  <option value="1h">1h (1 Hour)</option>
+                  <option value="4h">4h (4 Hours)</option>
+                  <option value="1d">1d (1 Day)</option>
+                </select>
+              </div>
+              <button class="tab-btn active" style="width:100%; padding:10px; border-radius:6px; font-weight:700; background: var(--accent); border: 1px solid var(--accent); color: #fff; cursor: pointer; transition: all 0.2s;" onclick="savePipelineConfig()">Save & Restart Pipeline</button>
+              <div id="cfgFeedback" style="margin-top:10px; font-size:0.75rem; display:none; padding: 6px; border-radius: 4px; font-family: monospace;"></div>
+            </div>
+            
+            <!-- Right Column: Metrics Inspector -->
+            <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; display: flex; flex-direction: column;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <h3 style="margin:0; color: var(--accent-glow); font-size: 1.1rem;">Asset Metrics & Indicators Inspector</h3>
+                <select id="inspectSymbol" style="padding:6px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); color:#fff; border-radius:4px; font-size: 0.85rem;" onchange="updateInspectionView()"></select>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1; overflow-y: auto; max-height: 400px;">
+                <!-- Factors -->
+                <div>
+                  <h4 style="margin-top:0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px; color: var(--text-dim); font-size: 0.9rem;">Factors (Live State)</h4>
+                  <div id="inspectFactors" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                </div>
+                <!-- Indicators -->
+                <div>
+                  <h4 style="margin-top:0; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:5px; color: var(--text-dim); font-size: 0.9rem;">Indicators (Interpretation)</h4>
+                  <div id="inspectIndicators" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <h4 style="margin-top: 25px; margin-bottom: 10px; color: var(--text-dim); font-size: 0.9rem;">Raw System State Snapshot (JSON)</h4>
+          <pre id="stateView" class="json-code" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);"></pre>
         </div>
       </div>
     </section>
@@ -1411,7 +1457,29 @@
   }
 
   function render(config, snap, validation, specs, replay, validator, backtests, broker, telemetryData, ranking) {
-    // Update mobile wallet sum
+    activeConfigCache = config;
+    activeSnapshotCacheGlobal = snap;
+    
+    const cfgSymsEl = document.getElementById('cfgSymbols');
+    if (cfgSymsEl && document.activeElement !== cfgSymsEl) {
+      cfgSymsEl.value = config.symbols.join(', ');
+    }
+    const cfgIntEl = document.getElementById('cfgInterval');
+    if (cfgIntEl) {
+      cfgIntEl.value = config.candle_interval;
+    }
+    
+    const inspectSelect = document.getElementById('inspectSymbol');
+    if (inspectSelect) {
+      const prevVal = inspectSelect.value;
+      inspectSelect.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
+      if (config.symbols.includes(prevVal)) {
+        inspectSelect.value = prevVal;
+      }
+    }
+    
+    updateInspectionView();
+
     const mobSum = document.getElementById('mobileWalletSum');
     if (mobSum) {
       mobSum.textContent = fmtCurrency(broker.balance);
@@ -1886,6 +1954,77 @@
       drilldownOverlay.classList.remove('active');
     };
   }
+
+  let activeConfigCache = null;
+  let activeSnapshotCacheGlobal = null;
+
+  window.savePipelineConfig = async function() {
+    const symbolsVal = document.getElementById('cfgSymbols').value;
+    const intervalVal = document.getElementById('cfgInterval').value;
+    const feedback = document.getElementById('cfgFeedback');
+    
+    feedback.style.display = 'block';
+    feedback.style.background = 'rgba(255,255,255,0.05)';
+    feedback.style.color = '#fff';
+    feedback.textContent = 'Saving configuration & restarting pipeline...';
+    
+    try {
+      const response = await fetch('/api/config/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols: symbolsVal, candle_interval: intervalVal })
+      });
+      const data = await response.json();
+      if (data.status === 'ok') {
+        feedback.style.background = 'var(--success-glow)';
+        feedback.style.color = 'var(--success)';
+        feedback.textContent = data.message;
+        setTimeout(() => { feedback.style.display = 'none'; }, 5000);
+        tick();
+      } else {
+        feedback.style.background = 'var(--error-glow)';
+        feedback.style.color = 'var(--error)';
+        feedback.textContent = 'Error: ' + data.message;
+      }
+    } catch (err) {
+      feedback.style.background = 'var(--error-glow)';
+      feedback.style.color = 'var(--error)';
+      feedback.textContent = 'Network Error: ' + err.message;
+    }
+  };
+
+  window.updateInspectionView = function() {
+    if (!activeSnapshotCacheGlobal) return;
+    const select = document.getElementById('inspectSymbol');
+    const selectedSym = select.value || (activeConfigCache ? activeConfigCache.symbols[0] : 'BTC');
+    
+    const assetState = activeSnapshotCacheGlobal[selectedSym] || {};
+    const factors = assetState.factors || {};
+    const indicators = assetState.indicators || {};
+    
+    const factorsContainer = document.getElementById('inspectFactors');
+    const indicatorsContainer = document.getElementById('inspectIndicators');
+    
+    if (factorsContainer) {
+      const factorKeys = Object.keys(factors).sort();
+      factorsContainer.innerHTML = factorKeys.map(k => `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.75rem;">
+          <span style="font-family: monospace; color: var(--text-dim);">${k}</span>
+          <span style="font-family: monospace; font-weight: 700; color: #fff;">${typeof factors[k] === 'number' ? factors[k].toFixed(4) : factors[k]}</span>
+        </div>
+      `).join('') || '<div class="empty-state" style="padding:10px; font-size:0.75rem;">No factors computed yet.</div>';
+    }
+    
+    if (indicatorsContainer) {
+      const indicatorKeys = Object.keys(indicators).sort();
+      indicatorsContainer.innerHTML = indicatorKeys.map(k => `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 5px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.04); font-size: 0.75rem;">
+          <span style="font-family: monospace; color: var(--text-dim);">${k}</span>
+          <span style="font-family: monospace; font-weight: 700; color: var(--accent-glow);">${typeof indicators[k] === 'number' ? indicators[k].toFixed(4) : indicators[k]}</span>
+        </div>
+      `).join('') || '<div class="empty-state" style="padding:10px; font-size:0.75rem;">No indicators computed yet.</div>';
+    }
+  };
 
   bindTabs();
   tick();
