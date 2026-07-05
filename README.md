@@ -13,10 +13,17 @@ pinned: false
 Executable realtime research system for Hyperliquid websocket market data.
 
 ## Added in this revision
-- `strategy_spec_builder.py`: auto-builds `strategy_spec_v1` from active signals.
-- `playbook_bridge.py`: pushes active strategy specs into the standard research lifecycle packet shape.
-- Registry now writes snapshots, strategy candidates, strategy specs, and playbook packets.
-- API now exposes `/api/specs` to preview generated strategy specs and lifecycle packets.
+- **Phase 2: Dynamic Signal Pipeline**: Connected Alpha Factory and Live Engine via `promoted_signal_bridge.py` to evaluate dynamic candidates.
+- **Safe Expression Evaluation**: Safe evaluation of indicator-based logical conditions using a restricted sandbox `safe_eval_expression`.
+- **Dynamic Expression Generation**: Built candidates dynamically based on factor catalog requirements in `signal_generator.py`.
+- **6 Business Logic Hardening Fixes**:
+  - Restrict tradable regimes to `uptrend`, `downtrend`, `range_chop` (high volatility disabled).
+  - Bollinger squeeze breakout logic uses previous-bar width state tracking to avoid immediate expansion block.
+  - Centralized single-source-of-truth thresholds in `indicator_keys.py`.
+  - Dynamic entry-side (`long`/`short`) inference for Z-Score and MACD signals.
+  - Volatility-based dynamic take-profit fallback.
+  - SciPy `lfilter` normalized EMA computation.
+- **UI/UX Polish**: Glassmorphism premium dark cards, neon glow hover micro-animations, and scroll-wrapped boards for responsive layout.
 
 ## What it does
 - Connects directly to Hyperliquid websocket.
