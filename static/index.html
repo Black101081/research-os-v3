@@ -745,6 +745,60 @@
       pointer-events: auto;
     }
 
+    .tour-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 9998;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .tour-overlay.active {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .guided-tour-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 480px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      border-radius: 16px;
+      padding: 24px;
+      z-index: 9999;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .guided-tour-modal.active {
+      display: flex;
+    }
+    .preset-card {
+      padding: 16px;
+      border-radius: 16px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+    .preset-card:hover {
+      border-color: var(--primary);
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+
     /* Responsive adjustments */
     @media (max-width: 1024px) {
       .app {
@@ -817,6 +871,28 @@
   <div id="mobileWalletSum" style="font-family:var(--font-mono); font-size:0.9rem; font-weight:700; color:var(--primary);">$10,000.00</div>
 </header>
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="tour-overlay" id="tourOverlay"></div>
+<div class="guided-tour-modal" id="tourModal">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="color:var(--primary); font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+      <span>🚀 Guided Tour:</span>
+      <span id="tourStepTitle" style="color:#fff; font-size:0.95rem;">Step 1</span>
+    </h3>
+    <button class="drilldown-close" onclick="closeGuidedTour()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+    </button>
+  </div>
+  <div style="font-size:0.85rem; line-height:1.5; color:var(--text-muted);" id="tourStepContent">
+    Content goes here...
+  </div>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+    <span style="font-size:0.75rem; color:var(--muted);" id="tourStepIndicator">1 / 5</span>
+    <div style="display:flex; gap:8px;">
+      <button class="tab-btn" id="tourPrevBtn" style="padding:4px 8px; font-size:0.75rem; border-radius:4px;" onclick="prevTourStep()">Back</button>
+      <button class="tab-btn active" id="tourNextBtn" style="padding:4px 12px; font-size:0.75rem; border-radius:4px;" onclick="nextTourStep()">Next</button>
+    </div>
+  </div>
+</div>
 <div class="drilldown-overlay" id="drilldownOverlay"></div>
 <div class="cockpit-drilldown" id="drilldownPanel">
   <div class="drilldown-header">
@@ -895,6 +971,12 @@
     <div class="panel">
       <h3>Principle</h3>
       <div class="brand-sub">Inputs: websocket tick feeds. Outputs: spec-locked strategy candidates.</div>
+    </div>
+
+    <div style="padding: 10px 14px; margin-top: auto;">
+      <button class="tab-btn active" style="width: 100%; border-radius: 8px; font-weight: 700; padding: 10px;" onclick="startGuidedTour()">
+        🚀 Getting Started Guide
+      </button>
     </div>
   </aside>
 
@@ -981,6 +1063,7 @@
           <button class="tab-btn" data-tab="validation">Validation Details</button>
           <button class="tab-btn" data-tab="backtests">Backtests (High-Fidelity)</button>
           <button class="tab-btn" data-tab="ranking">Ranking & Promotion</button>
+          <button class="tab-btn" data-tab="presets">Research Presets</button>
           <button class="tab-btn" data-tab="validator">Code Validator</button>
           <button class="tab-btn" data-tab="raw-state">Raw State</button>
         </div>
@@ -1109,6 +1192,16 @@
           </div>
         </div>
 
+        <!-- Research Presets Panel -->
+        <div class="tab-panel" id="panel-presets">
+          <div style="font-size:0.85rem; color:var(--muted); margin-bottom:16px;">
+            Copy or clone these preconfigured quantitative strategies directly into your workflow:
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;" id="presetsContainer">
+            <!-- Dynamic presets rendered here -->
+          </div>
+        </div>
+
         <!-- Code Validator Panel -->
         <div class="tab-panel" id="panel-validator">
           <pre id="validatorView" class="json-code"></pre>
@@ -1157,10 +1250,15 @@
   function bindTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.onclick = () => {
-        document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+        if (!btn.dataset.tab) return;
+        document.querySelectorAll('.tab-btn').forEach(x => { if (x.dataset.tab) x.classList.remove('active'); });
         document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
         btn.classList.add('active');
-        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+        const targetPanel = document.getElementById('panel-' + btn.dataset.tab);
+        if (targetPanel) targetPanel.classList.add('active');
+        if (btn.dataset.tab === 'presets') {
+          loadResearchPresets();
+        }
       };
     });
   }
@@ -1701,6 +1799,140 @@
       drilldownOverlay.classList.remove('active');
     };
   }
+
+  // Onboarding Guided Tour State
+  let currentTourStep = 0;
+  const tourSteps = [
+    {
+      title: "Real-time Ingestion Pipeline",
+      content: `
+        <p><strong>Step 1: Real-time Ingestion</strong></p>
+        <p style="margin-top: 8px;">The pipeline starts with high-frequency live WebSockets streaming trade ticks and raw order books directly from the exchange. Each tick triggers immediate processing and is routed to memory caches for feature calculation.</p>
+        <p style="margin-top: 6px; color: var(--primary);">Key Component: <code>HyperliquidWSClient</code></p>
+      `
+    },
+    {
+      title: "Incremental Feature Calculations",
+      content: `
+        <p><strong>Step 2: Factors & Indicators</strong></p>
+        <p style="margin-top: 8px;">Raw ticks are converted into OHLCV bars. The OS computes high-frequency factors (like returns, volatility, z-scores) and indicators (like MACD, Bollinger Bands) incrementally using high-speed vector math under 5ms.</p>
+        <p style="margin-top: 6px; color: var(--primary);">Key Component: <code>ResearchEngine</code></p>
+      `
+    },
+    {
+      title: "Security Gateways & Validator",
+      content: `
+        <p><strong>Step 3: Validation Gating & Decay</strong></p>
+        <p style="margin-top: 8px;">Before any strategy candidate can trigger an order, it must pass the live execution gate. This confirms the spec file has not decayed and satisfies code verification hashes.</p>
+        <p style="margin-top: 6px; color: var(--primary);">Key Component: <code>ValidatorRunner</code></p>
+      `
+    },
+    {
+      title: "Event-Driven Backtest Sandbox",
+      content: `
+        <p><strong>Step 4: High-Fidelity Simulation</strong></p>
+        <p style="margin-top: 8px;">Each candidate goes through rigorous event-driven backtesting simulating historical market phases, modeling realistic transaction fees and slippage to ensure profitability.</p>
+        <p style="margin-top: 6px; color: var(--primary);">Key Component: <code>BaselineBacktestRunner</code></p>
+      `
+    },
+    {
+      title: "Composite Scoring & Cockpit Control",
+      content: `
+        <p><strong>Step 5: Ranking & Playbook Decision</strong></p>
+        <p style="margin-top: 8px;">Strategies are ranked using a multi-factor Composite Score. Researchers can review detailed Research Briefs, write comments, and submit GO/NOGO decisions directly to the OS to override the status on the board.</p>
+        <p style="margin-top: 6px; color: var(--primary);">Key Component: <code>Research Cockpit (UI Drawer)</code></p>
+      `
+    }
+  ];
+
+  window.startGuidedTour = function() {
+    currentTourStep = 0;
+    document.getElementById('tourOverlay').classList.add('active');
+    document.getElementById('tourModal').classList.add('active');
+    renderTourStep();
+  };
+
+  window.closeGuidedTour = function() {
+    document.getElementById('tourOverlay').classList.remove('active');
+    document.getElementById('tourModal').classList.remove('active');
+  };
+
+  window.nextTourStep = function() {
+    if (currentTourStep < tourSteps.length - 1) {
+      currentTourStep++;
+      renderTourStep();
+    } else {
+      closeGuidedTour();
+    }
+  };
+
+  window.prevTourStep = function() {
+    if (currentTourStep > 0) {
+      currentTourStep--;
+      renderTourStep();
+    }
+  };
+
+  function renderTourStep() {
+    const step = tourSteps[currentTourStep];
+    document.getElementById('tourStepTitle').textContent = step.title;
+    document.getElementById('tourStepContent').innerHTML = step.content;
+    document.getElementById('tourStepIndicator').textContent = `${currentTourStep + 1} / ${tourSteps.length}`;
+    
+    const prevBtn = document.getElementById('tourPrevBtn');
+    const nextBtn = document.getElementById('tourNextBtn');
+    
+    prevBtn.style.opacity = currentTourStep === 0 ? '0.4' : '1';
+    prevBtn.disabled = currentTourStep === 0;
+    
+    nextBtn.textContent = currentTourStep === tourSteps.length - 1 ? 'Finish' : 'Next';
+  }
+
+  // Load and Render Research Presets
+  async function loadResearchPresets() {
+    const container = document.getElementById('presetsContainer');
+    if (!container) return;
+    container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; padding: 24px;">Loading templates...</div>`;
+    
+    try {
+      const response = await fetch('/api/presets');
+      const presets = await response.json();
+      
+      if (!presets || !presets.length) {
+        container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; padding: 24px;">No presets available.</div>`;
+        return;
+      }
+      
+      container.innerHTML = presets.map((p, idx) => `
+        <div class="preset-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="badge badge-blue" style="font-size:0.65rem;">${p.category}</span>
+            <span style="font-size:0.7rem; color:var(--muted); font-weight:700;">#${idx + 1}</span>
+          </div>
+          <h4 style="color:#fff; font-size:0.92rem; font-weight:700; margin:4px 0 2px 0;">${p.name}</h4>
+          <p style="font-size:0.78rem; color:var(--text-muted); line-height:1.4; flex-grow:1;">${p.description}</p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);">
+            <span style="font-size:0.72rem; font-family:var(--font-mono); color:var(--primary); font-weight:700;">${p.spec.strategy_family}</span>
+            <button class="tab-btn active" style="padding:4px 8px; font-size:0.7rem; border-radius:4px;" onclick="copyPresetSpec(${idx})">Copy Spec JSON</button>
+          </div>
+        </div>
+      `).join('');
+      
+      window.cachedPresets = presets;
+    } catch (err) {
+      container.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; padding: 24px; color:var(--error);">Failed to load presets: ${err.message}</div>`;
+    }
+  }
+
+  window.copyPresetSpec = function(idx) {
+    if (!window.cachedPresets || !window.cachedPresets[idx]) return;
+    const specStr = JSON.stringify(window.cachedPresets[idx].spec, null, 2);
+    navigator.clipboard.writeText(specStr).then(() => {
+      alert("Strategy Spec JSON copied to clipboard!");
+    }).catch(err => {
+      alert("Failed to copy Spec: " + err);
+    });
+  };
 
   bindTabs();
   tick();
