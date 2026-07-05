@@ -538,7 +538,7 @@
       "direction": "both",
       "min_bars": 35,
       "trigger_definition": "MACD > MACD_signal and ema_spread_8_21 > 0",
-      "confirmation_definition": "MACD_hist > 0 and RelativeVolume >= 1.0",
+      "confirmation_definition": "MACD_hist > 0",
       "invalidation_definition": "MACD <= MACD_signal or price_vs_sma20 < -0.02",
       "thesis_summary": "Ride persistent trend momentum confirmed by MACD and EMA alignment",
       "entry_logic_summary": "MACD line crosses above signal line with positive medium trend bias",
