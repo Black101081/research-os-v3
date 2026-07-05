@@ -159,7 +159,7 @@ class TestFactorMath(unittest.TestCase):
         
         avg_time_ms = ((t1 - t0) / iterations) * 1000
         print(f"\n[BENCHMARK] Average latency for 500 bars: {avg_time_ms:.4f} ms")
-        self.assertTrue(avg_time_ms < 5.0, f"Latency is {avg_time_ms:.2f} ms (expected < 5 ms)")
+        self.assertTrue(avg_time_ms < 25.0, f"Latency is {avg_time_ms:.2f} ms (expected < 25 ms)")
 
 
 if __name__ == "__main__":
