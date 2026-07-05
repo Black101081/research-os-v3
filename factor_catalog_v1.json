@@ -1,0 +1,319 @@
+{
+  "schema_version": "factor_catalog_v1",
+  "families": [
+    {
+      "family_id": "trend",
+      "description": "Trend-following and directional persistence factors",
+      "factors": [
+        {
+          "factor_id": "ret_1",
+          "type": "bar_factor",
+          "tags": [
+            "return",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "ret_5",
+          "type": "bar_factor",
+          "tags": [
+            "return",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "ema_spread_8_21",
+          "type": "bar_factor",
+          "tags": [
+            "ema",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "MACD",
+          "type": "indicator_alias",
+          "tags": [
+            "trend",
+            "momentum"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "MACD_signal",
+          "type": "indicator_alias",
+          "tags": [
+            "trend",
+            "momentum"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        }
+      ]
+    },
+    {
+      "family_id": "mean_reversion",
+      "description": "Distance-from-center and normalization factors",
+      "factors": [
+        {
+          "factor_id": "zscore_close_20",
+          "type": "bar_factor",
+          "tags": [
+            "zscore",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "trade_zscore_20",
+          "type": "micro_factor",
+          "tags": [
+            "zscore",
+            "reversion",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "BBANDS_upper",
+          "type": "indicator_alias",
+          "tags": [
+            "bands",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "BBANDS_lower",
+          "type": "indicator_alias",
+          "tags": [
+            "bands",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "BollingerWidth",
+          "type": "indicator_alias",
+          "tags": [
+            "bands",
+            "volatility"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        }
+      ]
+    },
+    {
+      "family_id": "volume_flow",
+      "description": "Participation and directional flow factors",
+      "factors": [
+        {
+          "factor_id": "rel_volume_20",
+          "type": "bar_factor",
+          "tags": [
+            "volume",
+            "participation"
+          ],
+          "dependencies": [
+            "volume"
+          ]
+        },
+        {
+          "factor_id": "trade_flow_imbalance_20",
+          "type": "micro_factor",
+          "tags": [
+            "flow",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_sizes",
+            "trade_sides"
+          ]
+        },
+        {
+          "factor_id": "trade_size_mean_20",
+          "type": "micro_factor",
+          "tags": [
+            "volume",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_sizes"
+          ]
+        },
+        {
+          "factor_id": "RelativeVolume",
+          "type": "indicator_alias",
+          "tags": [
+            "volume"
+          ],
+          "dependencies": [
+            "rel_volume_20"
+          ]
+        },
+        {
+          "factor_id": "TradeFlowImbalance",
+          "type": "indicator_alias",
+          "tags": [
+            "flow",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_flow_imbalance_20"
+          ]
+        }
+      ]
+    },
+    {
+      "family_id": "volatility_microstructure",
+      "description": "Volatility and execution-sensitivity factors",
+      "factors": [
+        {
+          "factor_id": "volatility_20",
+          "type": "bar_factor",
+          "tags": [
+            "volatility"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "micro_volatility_20",
+          "type": "micro_factor",
+          "tags": [
+            "volatility",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "spread_bps",
+          "type": "micro_factor",
+          "tags": [
+            "spread",
+            "microstructure"
+          ],
+          "dependencies": [
+            "bid",
+            "ask",
+            "mid"
+          ]
+        },
+        {
+          "factor_id": "last_trade_minus_mid_bps",
+          "type": "micro_factor",
+          "tags": [
+            "microstructure",
+            "intrabar"
+          ],
+          "dependencies": [
+            "last_trade",
+            "mid"
+          ]
+        },
+        {
+          "factor_id": "LiveReturnFromClose",
+          "type": "indicator_alias",
+          "tags": [
+            "intrabar",
+            "drift"
+          ],
+          "dependencies": [
+            "live_ret_from_last_close"
+          ]
+        }
+      ]
+    },
+    {
+      "family_id": "regime_transition",
+      "description": "Factors useful for transition and state-change detection",
+      "factors": [
+        {
+          "factor_id": "live_ret_from_last_close",
+          "type": "micro_factor",
+          "tags": [
+            "intrabar",
+            "transition"
+          ],
+          "dependencies": [
+            "last_trade",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "tick_ret_1",
+          "type": "micro_factor",
+          "tags": [
+            "tick",
+            "transition"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "tick_ret_5",
+          "type": "micro_factor",
+          "tags": [
+            "tick",
+            "transition"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "SpreadBps",
+          "type": "indicator_alias",
+          "tags": [
+            "microstructure",
+            "transition"
+          ],
+          "dependencies": [
+            "spread_bps"
+          ]
+        },
+        {
+          "factor_id": "MicroVolatility",
+          "type": "indicator_alias",
+          "tags": [
+            "intrabar",
+            "transition"
+          ],
+          "dependencies": [
+            "micro_volatility_20"
+          ]
+        }
+      ]
+    }
+  ],
+  "anti_duplication_rules": {
+    "same_expression_same_params": "reject",
+    "same_normalized_expression": "flag",
+    "same_family_high_overlap": "penalize"
+  }
+}

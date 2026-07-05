@@ -1,0 +1,3501 @@
+{
+  "version": "expanded_indicator_catalog_v1",
+  "target": {
+    "families": 5,
+    "indicators_per_family": 10,
+    "total_indicators": 50
+  },
+  "families": {
+    "displacement_equilibrium": {
+      "title": "Displacement and equilibrium indicators",
+      "indicators": [
+        {
+          "indicator_id": "ZScore_Close",
+          "tier": "core",
+          "title": "Close z-score",
+          "novelty_claim": "Standardized displacement baseline.",
+          "inputs": [
+            "zscore_close_20"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Close z-score",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "zscore_close_20"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "MeanDistanceBand",
+          "tier": "core",
+          "title": "Distance-to-mean band",
+          "novelty_claim": "Non-standardized equilibrium distance framing.",
+          "inputs": [
+            "distance_to_20_mean_pct"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Distance-to-mean band",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "distance_to_20_mean_pct"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "PercentilePosition50",
+          "tier": "core",
+          "title": "50-bar percentile position",
+          "novelty_claim": "Distribution rank instead of raw distance.",
+          "inputs": [
+            "rolling_percentile_close_50"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "50-bar percentile position",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "rolling_percentile_close_50"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "EquilibriumDriftChannel",
+          "tier": "edge",
+          "title": "Equilibrium drift channel",
+          "novelty_claim": "Tracks moving center plus drift gap, not static mean only.",
+          "inputs": [
+            "equilibrium_drift_gap"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Equilibrium drift channel",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "equilibrium_drift_gap"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "RecenterVelocityOscillator",
+          "tier": "edge",
+          "title": "Recenter velocity oscillator",
+          "novelty_claim": "Measures snapback urgency instead of stretch only.",
+          "inputs": [
+            "recenter_velocity"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Recenter velocity oscillator",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "recenter_velocity"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "TailPersistenceGauge",
+          "tier": "edge",
+          "title": "Tail persistence gauge",
+          "novelty_claim": "Time-in-tail view of extreme distribution occupancy.",
+          "inputs": [
+            "extreme_percentile_persistence"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Tail persistence gauge",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "extreme_percentile_persistence"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "EscapeFromBalanceScore",
+          "tier": "frontier",
+          "title": "Escape from balance score",
+          "novelty_claim": "Quality of departure from equilibrium, not just size.",
+          "inputs": [
+            "equilibrium_escape_score",
+            "displacement_vs_range_share"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Escape from balance score",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "equilibrium_escape_score",
+            "displacement_vs_range_share"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ShockReversalMeter",
+          "tier": "frontier",
+          "title": "Shock reversal meter",
+          "novelty_claim": "Detects likely reversal after abnormal impulse.",
+          "inputs": [
+            "shock_reversal_pressure",
+            "impulse_decay_ratio"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Shock reversal meter",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "shock_reversal_pressure",
+            "impulse_decay_ratio"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "CurvatureDisplacementLens",
+          "tier": "frontier",
+          "title": "Curvature displacement lens",
+          "novelty_claim": "Second-order path shape of displacement.",
+          "inputs": [
+            "return_curvature_5",
+            "displacement_efficiency_5"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Curvature displacement lens",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "return_curvature_5",
+            "displacement_efficiency_5"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "AsymmetricStretchMap",
+          "tier": "frontier",
+          "title": "Asymmetric stretch map",
+          "novelty_claim": "Separates upside and downside imbalance in distribution pressure.",
+          "inputs": [
+            "asymmetric_zscore_upside",
+            "asymmetric_zscore_downside"
+          ],
+          "family": "Displacement and equilibrium indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Asymmetric stretch map",
+          "thesis_type": "equilibrium_interpretation",
+          "core_question": "How should raw displacement be interpreted: stretch, drift, persistence, or recenter urgency?",
+          "intuition": "Indicators in this family transform raw displacement into interpretable balance-versus-imbalance states.",
+          "information_edge": "Useful when they separate static stretch from drift-aware or persistence-aware imbalance.",
+          "non_edge_warning": "Distance from mean alone is often a control feature rather than differentiated edge.",
+          "transform_logic": "Convert raw distance or rank into interpretable equilibrium state objects for signal templates.",
+          "preferred_regimes": [
+            "range",
+            "transition",
+            "weak_drift"
+          ],
+          "avoid_regimes": [
+            "event_shock",
+            "strong_acceptance_trend"
+          ],
+          "nearest_factors": [
+            "asymmetric_zscore_upside",
+            "asymmetric_zscore_downside"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "recenter",
+            "tail_exhaustion",
+            "drift_contamination_filter"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal"
+          ],
+          "misuse_patterns": [
+            "Fading every extreme without checking persistence.",
+            "Confusing acceptance with exhaustion."
+          ],
+          "validation_targets": [
+            "recenter_efficiency",
+            "tail_occupancy_value",
+            "contamination_resistance"
+          ],
+          "baseline_control": "ZScore_Close",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "equilibrium_interpretation",
+      "template_status": "backfilled_v1"
+    },
+    "trend_path": {
+      "title": "Trend and path indicators",
+      "indicators": [
+        {
+          "indicator_id": "MACD",
+          "tier": "core",
+          "title": "MACD",
+          "novelty_claim": "Momentum continuation baseline.",
+          "inputs": [
+            "bars"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "MACD",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "bars"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "TrendPersistenceGauge",
+          "tier": "core",
+          "title": "Trend persistence gauge",
+          "novelty_claim": "Summarizes directional consistency over recent path.",
+          "inputs": [
+            "trend_persistence_10"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Trend persistence gauge",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "trend_persistence_10"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "AnchorAlignmentIndex",
+          "tier": "core",
+          "title": "Anchor alignment index",
+          "novelty_claim": "Alignment across key trend anchors.",
+          "inputs": [
+            "ema_spread_8_21",
+            "multi_anchor_alignment"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Anchor alignment index",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "ema_spread_8_21",
+            "multi_anchor_alignment"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "PullbackQualityMeter",
+          "tier": "edge",
+          "title": "Pullback quality meter",
+          "novelty_claim": "Grades retrace health instead of treating all pullbacks equally.",
+          "inputs": [
+            "pullback_depth_vs_trend",
+            "trend_smoothness_10"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Pullback quality meter",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "pullback_depth_vs_trend",
+            "trend_smoothness_10"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "TrendFragilityPanel",
+          "tier": "edge",
+          "title": "Trend fragility panel",
+          "novelty_claim": "Measures how easy a trend is to break.",
+          "inputs": [
+            "trend_fragility_score",
+            "slope_dispersion_score"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Trend fragility panel",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "trend_fragility_score",
+            "slope_dispersion_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ReaccelerationSignalLine",
+          "tier": "edge",
+          "title": "Reacceleration signal line",
+          "novelty_claim": "Focuses on renewed trend force after pause.",
+          "inputs": [
+            "directional_reacceleration",
+            "countertrend_absorption"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Reacceleration signal line",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "directional_reacceleration",
+            "countertrend_absorption"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "TrendCoherenceIndex",
+          "tier": "frontier",
+          "title": "Trend coherence index",
+          "novelty_claim": "Holistic path consistency score across anchors and swings.",
+          "inputs": [
+            "trend_coherence_index",
+            "path_dependence_ratio"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Trend coherence index",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "trend_coherence_index",
+            "path_dependence_ratio"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "LateTrendRiskGauge",
+          "tier": "frontier",
+          "title": "Late trend risk gauge",
+          "novelty_claim": "Combines extension and trend age penalty.",
+          "inputs": [
+            "late_trend_penalty",
+            "swing_extension_score"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Late trend risk gauge",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "late_trend_penalty",
+            "swing_extension_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "FailedReclaimScanner",
+          "tier": "frontier",
+          "title": "Failed reclaim scanner",
+          "novelty_claim": "Looks for structurally weak recoveries inside damaged trends.",
+          "inputs": [
+            "reclaim_failure_score",
+            "trend_memory_score"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Failed reclaim scanner",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "reclaim_failure_score",
+            "trend_memory_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "DriftNoiseDifferential",
+          "tier": "frontier",
+          "title": "Drift-noise differential",
+          "novelty_claim": "Separates clean trend drift from noisy directional clutter.",
+          "inputs": [
+            "drift_to_noise_ratio",
+            "trend_smoothness_10"
+          ],
+          "family": "Trend and path indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Drift-noise differential",
+          "thesis_type": "continuation_interpretation",
+          "core_question": "Does the path of motion support continuation, pause renewal, or structural damage?",
+          "intuition": "Indicators in this family interpret momentum as path quality rather than simple direction.",
+          "information_edge": "Useful when they improve timing and filter out low-quality continuation states.",
+          "non_edge_warning": "Simple momentum alignment is common and should not be confused with differentiated continuation edge.",
+          "transform_logic": "Convert trend primitives into coherence, pullback quality, or renewal quality states.",
+          "preferred_regimes": [
+            "orderly_trend",
+            "pause_resume"
+          ],
+          "avoid_regimes": [
+            "chop",
+            "violent_reversal"
+          ],
+          "nearest_factors": [
+            "drift_to_noise_ratio",
+            "trend_smoothness_10"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "continuation",
+            "pullback quality",
+            "reacceleration"
+          ],
+          "strategy_roles": [
+            "trend_alignment",
+            "trend_reacceleration"
+          ],
+          "misuse_patterns": [
+            "Buying every dip in a damaged trend.",
+            "Treating all momentum bursts as renewal."
+          ],
+          "validation_targets": [
+            "coherence_retention",
+            "late_entry_penalty_reduction",
+            "renewal_selectivity"
+          ],
+          "baseline_control": "MACD",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "continuation_interpretation",
+      "template_status": "backfilled_v1"
+    },
+    "volatility_compression": {
+      "title": "Volatility and compression indicators",
+      "indicators": [
+        {
+          "indicator_id": "BollingerWidth",
+          "tier": "core",
+          "title": "Bollinger width",
+          "novelty_claim": "Compression baseline.",
+          "inputs": [
+            "BBANDS_upper",
+            "BBANDS_lower",
+            "BBANDS_mid"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Bollinger width",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "BBANDS_upper",
+            "BBANDS_lower",
+            "BBANDS_mid"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "CompressionRatioPanel",
+          "tier": "core",
+          "title": "Compression ratio panel",
+          "novelty_claim": "Direct compression regime framing.",
+          "inputs": [
+            "compression_ratio_20"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Compression ratio panel",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "compression_ratio_20"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "ShockRangeMonitor",
+          "tier": "core",
+          "title": "Shock range monitor",
+          "novelty_claim": "Tracks abrupt instability via range shocks.",
+          "inputs": [
+            "true_range_shock",
+            "range_pct_1"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Shock range monitor",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "true_range_shock",
+            "range_pct_1"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "VolShiftDetector",
+          "tier": "edge",
+          "title": "Volatility shift detector",
+          "novelty_claim": "Separates quiet-to-expanding transitions from noisy baseline.",
+          "inputs": [
+            "volatility_regime_shift",
+            "volatility_of_volatility"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Volatility shift detector",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "volatility_regime_shift",
+            "volatility_of_volatility"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "SqueezePersistenceMeter",
+          "tier": "edge",
+          "title": "Squeeze persistence meter",
+          "novelty_claim": "How mature a squeeze is before release.",
+          "inputs": [
+            "compression_persistence",
+            "bollinger_width_proxy"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Squeeze persistence meter",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "compression_persistence",
+            "bollinger_width_proxy"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ExpansionQualityGauge",
+          "tier": "edge",
+          "title": "Expansion quality gauge",
+          "novelty_claim": "Distinguishes tradable expansion from chaotic blowout.",
+          "inputs": [
+            "expansion_followthrough_ratio",
+            "range_asymmetry_score"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Expansion quality gauge",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "expansion_followthrough_ratio",
+            "range_asymmetry_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "LatentBreakoutPressure",
+          "tier": "frontier",
+          "title": "Latent breakout pressure",
+          "novelty_claim": "Compression plus directional and participation preload.",
+          "inputs": [
+            "latent_breakout_pressure"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Latent breakout pressure",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "latent_breakout_pressure"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "FragileCompressionMap",
+          "tier": "frontier",
+          "title": "Fragile compression map",
+          "novelty_claim": "Detects compression likely to fail into disorder.",
+          "inputs": [
+            "fragile_compression_index",
+            "wick_instability_ratio"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Fragile compression map",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "fragile_compression_index",
+            "wick_instability_ratio"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "VolatilityExhaustionGauge",
+          "tier": "frontier",
+          "title": "Volatility exhaustion gauge",
+          "novelty_claim": "Expansion already losing energy.",
+          "inputs": [
+            "volatility_exhaustion_score",
+            "shock_absorption_score"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Volatility exhaustion gauge",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "volatility_exhaustion_score",
+            "shock_absorption_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "DirectionalVolSplit",
+          "tier": "frontier",
+          "title": "Directional volatility split",
+          "novelty_claim": "Upside and downside volatility separated into one view.",
+          "inputs": [
+            "directional_volatility_split",
+            "quiet_trend_instability"
+          ],
+          "family": "Volatility and compression indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Directional volatility split",
+          "thesis_type": "volatility_state_interpretation",
+          "core_question": "Is volatility storing pressure, releasing cleanly, or decaying toward exhaustion?",
+          "intuition": "Indicators in this family turn raw dispersion into actionable transition states.",
+          "information_edge": "Useful when they tell clean release from fake release or mature expansion.",
+          "non_edge_warning": "Low volatility alone is not a breakout signal and high volatility alone is not exhaustion.",
+          "transform_logic": "Transform volatility measures into squeeze, release, and exhaustion quality states.",
+          "preferred_regimes": [
+            "compression",
+            "transition"
+          ],
+          "avoid_regimes": [
+            "chaotic_event_state"
+          ],
+          "nearest_factors": [
+            "directional_volatility_split",
+            "quiet_trend_instability"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "squeeze breakout",
+            "release quality",
+            "expansion exhaustion"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Trading every squeeze blindly.",
+            "Shorting every expansion burst."
+          ],
+          "validation_targets": [
+            "false_breakout_reduction",
+            "orderly_release_rate",
+            "second_leg_risk"
+          ],
+          "baseline_control": "BollingerWidth",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "volatility_state_interpretation",
+      "template_status": "backfilled_v1"
+    },
+    "participation_conviction": {
+      "title": "Participation and conviction indicators",
+      "indicators": [
+        {
+          "indicator_id": "RelativeVolume",
+          "tier": "core",
+          "title": "Relative volume",
+          "novelty_claim": "Participation baseline.",
+          "inputs": [
+            "rel_volume_20"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Relative volume",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "rel_volume_20"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "ParticipationTrendLine",
+          "tier": "core",
+          "title": "Participation trend line",
+          "novelty_claim": "Volume drift over time, not just single spike.",
+          "inputs": [
+            "volume_trend_10"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Participation trend line",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "volume_trend_10"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "UpDownConvictionSplit",
+          "tier": "core",
+          "title": "Up-down conviction split",
+          "novelty_claim": "Directional support asymmetry.",
+          "inputs": [
+            "up_close_volume_share"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Up-down conviction split",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "up_close_volume_share"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "BreakoutConvictionPanel",
+          "tier": "edge",
+          "title": "Breakout conviction panel",
+          "novelty_claim": "Specialized support lens for breakout quality.",
+          "inputs": [
+            "breakout_conviction_ratio",
+            "confirmation_decay_score"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Breakout conviction panel",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "breakout_conviction_ratio",
+            "confirmation_decay_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "BurstinessFilter",
+          "tier": "edge",
+          "title": "Burstiness filter",
+          "novelty_claim": "Separates sustainable activity from random bursts.",
+          "inputs": [
+            "volume_burstiness_score",
+            "participation_consistency_10"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Burstiness filter",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "volume_burstiness_score",
+            "participation_consistency_10"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "EffortResultDivergence",
+          "tier": "edge",
+          "title": "Effort-result divergence",
+          "novelty_claim": "High effort with poor result detection.",
+          "inputs": [
+            "effort_vs_result_gap",
+            "move_per_unit_volume"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Effort-result divergence",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "effort_vs_result_gap",
+            "move_per_unit_volume"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ExhaustionParticipationGauge",
+          "tier": "frontier",
+          "title": "Exhaustion participation gauge",
+          "novelty_claim": "Strong activity spent on weakening continuation.",
+          "inputs": [
+            "exhaustion_volume_signature",
+            "failed_move_participation_penalty"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Exhaustion participation gauge",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "exhaustion_volume_signature",
+            "failed_move_participation_penalty"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "LatentParticipationPressure",
+          "tier": "frontier",
+          "title": "Latent participation pressure",
+          "novelty_claim": "Rising conviction before visible range expansion.",
+          "inputs": [
+            "latent_participation_pressure"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Latent participation pressure",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "latent_participation_pressure"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ConvictionFragilityMap",
+          "tier": "frontier",
+          "title": "Conviction fragility map",
+          "novelty_claim": "Participation looks strong but lacks resilience.",
+          "inputs": [
+            "participation_fragility_score",
+            "volume_regime_contamination"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Conviction fragility map",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "participation_fragility_score",
+            "volume_regime_contamination"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "AsymmetricConvictionSurface",
+          "tier": "frontier",
+          "title": "Asymmetric conviction surface",
+          "novelty_claim": "Directional skew in support across up and down movement.",
+          "inputs": [
+            "conviction_asymmetry_up_down",
+            "participation_divergence_index"
+          ],
+          "family": "Participation and conviction indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Asymmetric conviction surface",
+          "thesis_type": "conviction_interpretation",
+          "core_question": "Does participation confirm direction, reveal divergence, or expose weak commitment?",
+          "intuition": "Indicators in this family translate raw activity into conviction and effort-result judgments.",
+          "information_edge": "Useful when activity quality changes the reliability of entries and filters.",
+          "non_edge_warning": "More volume does not always mean better opportunity.",
+          "transform_logic": "Convert activity and effort-result context into participation quality states.",
+          "preferred_regimes": [
+            "breakout",
+            "transition_resolution",
+            "structured_trend"
+          ],
+          "avoid_regimes": [
+            "naturally_bursty_assets_without_context"
+          ],
+          "nearest_factors": [
+            "conviction_asymmetry_up_down",
+            "participation_divergence_index"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "participation confirmation",
+            "effort-result divergence",
+            "quality gate"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Assuming spikes in activity are always confirmation.",
+            "Ignoring late-chase participation."
+          ],
+          "validation_targets": [
+            "follow_through_quality",
+            "divergence_precision",
+            "burst_contamination_rate"
+          ],
+          "baseline_control": "RelativeVolume",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "conviction_interpretation",
+      "template_status": "backfilled_v1"
+    },
+    "microstructure_execution": {
+      "title": "Microstructure and execution indicators",
+      "indicators": [
+        {
+          "indicator_id": "SpreadState",
+          "tier": "core",
+          "title": "Spread state",
+          "novelty_claim": "Execution friction baseline.",
+          "inputs": [
+            "quoted_spread_bps"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Spread state",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "quoted_spread_bps"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "TradeIntensityPulse",
+          "tier": "core",
+          "title": "Trade intensity pulse",
+          "novelty_claim": "Execution tempo baseline.",
+          "inputs": [
+            "trade_intensity_1s"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Trade intensity pulse",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "trade_intensity_1s"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "MicropricePressure",
+          "tier": "core",
+          "title": "Microprice pressure",
+          "novelty_claim": "Near-term local quote pressure proxy.",
+          "inputs": [
+            "microprice_pressure_proxy"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Microprice pressure",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "microprice_pressure_proxy"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "indicator_id": "AggressorFlowImbalance",
+          "tier": "edge",
+          "title": "Aggressor flow imbalance",
+          "novelty_claim": "Directionality of initiated flow.",
+          "inputs": [
+            "aggressor_imbalance_5s"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Aggressor flow imbalance",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "aggressor_imbalance_5s"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ExecutionFrictionPanel",
+          "tier": "edge",
+          "title": "Execution friction panel",
+          "novelty_claim": "Composite stress lens for tradeability.",
+          "inputs": [
+            "execution_friction_score",
+            "spread_instability_score"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Execution friction panel",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "execution_friction_score",
+            "spread_instability_score"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "LiquidityRecoveryMonitor",
+          "tier": "edge",
+          "title": "Liquidity recovery monitor",
+          "novelty_claim": "Tracks normalization after stress.",
+          "inputs": [
+            "liquidity_recovery_speed",
+            "quote_fade_ratio"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Liquidity recovery monitor",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "liquidity_recovery_speed",
+            "quote_fade_ratio"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "SlippageHazardGauge",
+          "tier": "frontier",
+          "title": "Slippage hazard gauge",
+          "novelty_claim": "Pre-trade slippage warning composite.",
+          "inputs": [
+            "slippage_hazard_index",
+            "adverse_selection_risk_proxy"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Slippage hazard gauge",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "slippage_hazard_index",
+            "adverse_selection_risk_proxy"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "LiquidityTrapScanner",
+          "tier": "frontier",
+          "title": "Liquidity trap scanner",
+          "novelty_claim": "Detects apparent liquidity that invites bad fills.",
+          "inputs": [
+            "liquidity_trap_signature",
+            "micro_transition_ambiguity"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Liquidity trap scanner",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "liquidity_trap_signature",
+            "micro_transition_ambiguity"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "MicroBreakoutQuality",
+          "tier": "frontier",
+          "title": "Micro breakout quality",
+          "novelty_claim": "Tape-level confirmation of breakout execution quality.",
+          "inputs": [
+            "micro_breakout_quality",
+            "quote_pressure_exhaustion"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Micro breakout quality",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "micro_breakout_quality",
+            "quote_pressure_exhaustion"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "indicator_id": "ExecutionReadinessPanel",
+          "tier": "frontier",
+          "title": "Execution readiness panel",
+          "novelty_claim": "Composite readiness layer for promotion from signal to tradeable candidate.",
+          "inputs": [
+            "execution_readiness_score",
+            "liquidity_stress_rebound"
+          ],
+          "family": "Microstructure and execution indicators",
+          "nearest_neighbors": [
+            "research_review_required"
+          ],
+          "overlap_risk": "Requires validator review against adjacent indicators and parent factors.",
+          "failure_modes": [
+            "Needs empirical validation before production use."
+          ],
+          "downstream_uses": [
+            "signal_templates",
+            "regime_filters",
+            "strategy_validation"
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "redundancy",
+            "thesis_fit"
+          ],
+          "canonical_title": "Execution readiness panel",
+          "thesis_type": "execution_interpretation",
+          "core_question": "Do tape and liquidity conditions permit a trade to be executed with acceptable damage?",
+          "intuition": "Indicators in this family convert microstructure noise into tradeability assessments.",
+          "information_edge": "Useful when execution gating improves realized outcomes more than extra directional logic would.",
+          "non_edge_warning": "Execution-readiness is usually a veto layer, not a standalone directional forecast.",
+          "transform_logic": "Translate microstructure inputs into hazard, readiness, and liquidity stress states.",
+          "preferred_regimes": [
+            "liquidity_sensitive_setups",
+            "fast_breakouts"
+          ],
+          "avoid_regimes": [
+            "synthetic_or_unrealistic_history"
+          ],
+          "nearest_factors": [
+            "execution_readiness_score",
+            "liquidity_stress_rebound"
+          ],
+          "nearest_indicators": [],
+          "signal_roles": [
+            "hazard veto",
+            "liquidity trap",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "breakout_execution_gated",
+            "execution_aware_overlay"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as alpha generators.",
+            "Ignoring slippage asymmetry."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "opportunity_preservation"
+          ],
+          "baseline_control": "SpreadState",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "execution_interpretation",
+      "template_status": "backfilled_v1"
+    }
+  }
+}

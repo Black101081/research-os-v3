@@ -1,0 +1,423 @@
+{
+  "version": "expanded_strategy_catalog_v1",
+  "target": {
+    "strategy_families": 8
+  },
+  "strategy_families": {
+    "breakout_confirmation": {
+      "source_signals": [
+        "bollinger_squeeze_breakout",
+        "latent_breakout_pressure_release",
+        "squeeze_release_quality_breakout"
+      ],
+      "validation_focus": [
+        "follow_through_quality",
+        "false_breakout_rate",
+        "slippage_sensitivity",
+        "baseline_breakout_lift",
+        "pressure_release_precision"
+      ],
+      "risk_focus": [
+        "entry_confirmation",
+        "liquidity_filtering",
+        "fragility_recheck"
+      ],
+      "promotion_rule": "Promote only when pressure-aware breakout confirmation beats the baseline breakout control on follow-through, false-break reduction, and execution stability rather than merely producing more triggers.",
+      "baseline_controls": [
+        "raw_squeeze_breakout",
+        "simple_expansion_break"
+      ],
+      "differentiated_claim": "Pressure-aware breakout confirmation should improve follow-through and reduce fakeouts relative to naive breakout triggers.",
+      "why_now_logic": "Breakouts only deserve promotion when pressure build-up and release quality are jointly credible.",
+      "execution_realism_assumptions": "Entry quality degrades during expansion; slippage and thin-book traps matter.",
+      "rejection_rule": "Reject if confirmation logic removes too many good breakouts or fails to reduce fakeouts after realistic costs.",
+      "failure_archetypes": [
+        "fragile compression",
+        "late confirmation",
+        "trapped liquidity"
+      ],
+      "negative_knowledge_targets": [
+        "fakeout clusters",
+        "compression states that do not release cleanly"
+      ],
+      "validation_targets": [
+        "baseline_breakout_lift",
+        "filter_precision",
+        "execution_stability"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "cost_check",
+        "smoke_test",
+        "baseline_backtest",
+        "walk_forward"
+      ],
+      "parent_signal_families": [
+        "bollinger_squeeze_breakout",
+        "latent_breakout_pressure_release",
+        "squeeze_release_quality_breakout"
+      ]
+    },
+    "breakout_execution_gated": {
+      "source_signals": [
+        "micro_breakout_quality_gate",
+        "fragile_compression_fakeout_filter"
+      ],
+      "validation_focus": [
+        "execution_hazard",
+        "quality_gate_value",
+        "filter_precision",
+        "bad_trade_reduction",
+        "slippage_avoidance_delta"
+      ],
+      "risk_focus": [
+        "abort_on_hazard",
+        "post-break fragility",
+        "liquidity_trap_veto"
+      ],
+      "promotion_rule": "Promote only if execution gating materially removes low-quality breakouts, reduces slippage damage, and preserves enough high-quality trades to outperform ungated breakout variants.",
+      "baseline_controls": [
+        "ungated_breakout",
+        "simple_liquidity_filter"
+      ],
+      "differentiated_claim": "Execution gating should improve realized quality by vetoing trades with hidden hazard rather than by adding directional prediction.",
+      "why_now_logic": "Execution damage can dominate edge during fast expansion regimes.",
+      "execution_realism_assumptions": "Slippage, adverse selection, and hidden liquidity failure are first-order risks.",
+      "rejection_rule": "Reject if gating acts as decorative friction and does not materially reduce bad trades.",
+      "failure_archetypes": [
+        "false vetoes",
+        "noisy hazard spikes",
+        "over-filtering"
+      ],
+      "negative_knowledge_targets": [
+        "veto states that still outperform",
+        "hazard conditions with no realized damage"
+      ],
+      "validation_targets": [
+        "bad_trade_reduction",
+        "slippage_avoidance_delta",
+        "opportunity_preservation"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "execution_simulation",
+        "cost_stress",
+        "walk_forward"
+      ],
+      "parent_signal_families": [
+        "micro_breakout_quality_gate",
+        "fragile_compression_fakeout_filter"
+      ]
+    },
+    "equilibrium_recenter": {
+      "source_signals": [
+        "zscore_recenter",
+        "tail_persistence_fade"
+      ],
+      "validation_focus": [
+        "max_adverse_excursion",
+        "recenter_speed",
+        "trend_contamination",
+        "drift_aware_edge",
+        "tail_persistence_decay_value"
+      ],
+      "risk_focus": [
+        "tight_invalidation",
+        "size_conservatism",
+        "trend_reclassification_abort"
+      ],
+      "promotion_rule": "Promote only when drift-aware or tail-persistence recenter variants beat the raw z-score control on contamination resistance, adverse excursion, and recenter efficiency rather than simply fading more extremes.",
+      "baseline_controls": [
+        "raw_zscore_fade",
+        "simple_band_reversion"
+      ],
+      "differentiated_claim": "Drift-aware or persistence-aware recenter logic should beat generic stretch fading by resisting contamination.",
+      "why_now_logic": "Ordinary stretch is too generic; reversion needs contamination awareness to survive.",
+      "execution_realism_assumptions": "Mean-reversion entries can suffer fast adverse excursion when acceptance continues.",
+      "rejection_rule": "Reject if the strategy keeps fading genuine trend acceptance or cannot improve adverse excursion.",
+      "failure_archetypes": [
+        "acceptance mistaken for exhaustion",
+        "drift migration",
+        "event continuation"
+      ],
+      "negative_knowledge_targets": [
+        "persistent tail occupancy that does not revert",
+        "drift states that reclassify as trend"
+      ],
+      "validation_targets": [
+        "contamination_resistance",
+        "recenter_efficiency",
+        "mae_containment"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "trend_contamination_test",
+        "baseline_backtest",
+        "oos_check"
+      ],
+      "parent_signal_families": [
+        "zscore_recenter",
+        "tail_persistence_fade"
+      ]
+    },
+    "shock_reversal": {
+      "source_signals": [
+        "shock_reversal_recenter",
+        "aggressor_flow_dislocation_snap"
+      ],
+      "validation_focus": [
+        "impulse_decay_quality",
+        "snapback_completion",
+        "event_fragility",
+        "abnormal_move_repeatability",
+        "micro_reversal_precision"
+      ],
+      "risk_focus": [
+        "fast_abort",
+        "small_size",
+        "event_regime_veto"
+      ],
+      "promotion_rule": "Promote only when shock-reversal logic captures repeatable abnormal impulse decay with tight risk and avoids event-driven continuation traps better than generic reversion baselines.",
+      "baseline_controls": [
+        "generic_reversion_after_impulse",
+        "oversold_snapback"
+      ],
+      "differentiated_claim": "Shock reversal should capture repeatable impulse decay rather than blindly fading every abnormal move.",
+      "why_now_logic": "Only some abnormal moves decay cleanly enough to offer controlled reversal entries.",
+      "execution_realism_assumptions": "Fast reversal windows are sensitive to latency, spreads, and fast invalidation needs.",
+      "rejection_rule": "Reject if event-driven continuation dominates and reversal precision collapses.",
+      "failure_archetypes": [
+        "second impulse continuation",
+        "news repricing",
+        "false snapback"
+      ],
+      "negative_knowledge_targets": [
+        "abnormal impulses that persist",
+        "reversals that only work in thin samples"
+      ],
+      "validation_targets": [
+        "impulse_decay_quality",
+        "snapback_completion",
+        "micro_reversal_precision"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "event_filter_test",
+        "small_size_simulation",
+        "walk_forward"
+      ],
+      "parent_signal_families": [
+        "shock_reversal_recenter",
+        "aggressor_flow_dislocation_snap"
+      ]
+    },
+    "trend_alignment": {
+      "source_signals": [
+        "macd_trend_continuation",
+        "pullback_quality_continuation"
+      ],
+      "validation_focus": [
+        "path_dependency",
+        "pullback_depth",
+        "continuation_quality",
+        "baseline_crossover_lift",
+        "coherence_retention"
+      ],
+      "risk_focus": [
+        "trend_exit_logic",
+        "late_entry_penalty",
+        "coherence_break_abort"
+      ],
+      "promotion_rule": "Promote only when pullback-quality and coherence-aware continuation outperforms generic momentum-alignment controls on trend retention, drawdown containment, and late-entry penalty reduction.",
+      "baseline_controls": [
+        "generic_crossover_continuation",
+        "simple_macd_alignment"
+      ],
+      "differentiated_claim": "Continuation should improve when path quality and pullback structure are better than naive momentum alignment.",
+      "why_now_logic": "Not all momentum persistence is tradable; path coherence determines continuation quality.",
+      "execution_realism_assumptions": "Late entries and trend exhaustion can destroy expectancy after costs.",
+      "rejection_rule": "Reject if coherence filters lag too much or if cost-adjusted edge collapses.",
+      "failure_archetypes": [
+        "late continuation",
+        "false renewal",
+        "path break"
+      ],
+      "negative_knowledge_targets": [
+        "continuations that only work pre-cost",
+        "pullbacks that looked healthy but failed structurally"
+      ],
+      "validation_targets": [
+        "baseline_crossover_lift",
+        "coherence_retention",
+        "late_entry_penalty_reduction"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "cost_check",
+        "parameter_sensitivity",
+        "walk_forward"
+      ],
+      "parent_signal_families": [
+        "macd_trend_continuation",
+        "pullback_quality_continuation"
+      ]
+    },
+    "trend_reacceleration": {
+      "source_signals": [
+        "reacceleration_after_pause"
+      ],
+      "validation_focus": [
+        "pause_quality",
+        "renewal_strength",
+        "whipsaw_rate",
+        "reentry_timing_edge",
+        "trend_renewal_selectivity"
+      ],
+      "risk_focus": [
+        "pause_failure_abort",
+        "structure_loss",
+        "renewal_fakeout_filter"
+      ],
+      "promotion_rule": "Promote only if reacceleration entries after orderly pauses improve timing, reduce chase behavior, and show cleaner renewal selectivity than continuous trend-following baselines.",
+      "baseline_controls": [
+        "always_on_trend_following",
+        "simple_pause_break"
+      ],
+      "differentiated_claim": "Pause-to-renewal entries should improve timing and reduce chase behavior relative to continuous continuation logic.",
+      "why_now_logic": "A clean pause can offer better timing than always-on exposure when renewal is selective.",
+      "execution_realism_assumptions": "Renewal entries are vulnerable to fake restarts and degraded fills during fast re-expansion.",
+      "rejection_rule": "Reject if pause classification is noisy or if renewal logic does not improve timing.",
+      "failure_archetypes": [
+        "pause failure",
+        "false restart",
+        "structure loss"
+      ],
+      "negative_knowledge_targets": [
+        "pauses that precede full reversal",
+        "renewals that only trigger after exhaustion"
+      ],
+      "validation_targets": [
+        "reentry_timing_edge",
+        "trend_renewal_selectivity",
+        "whipsaw_rate"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "pause_taxonomy_test",
+        "baseline_backtest",
+        "walk_forward"
+      ],
+      "parent_signal_families": [
+        "reacceleration_after_pause"
+      ]
+    },
+    "volatility_transition": {
+      "source_signals": [
+        "vol_shift_breakout_transition",
+        "squeeze_release_quality_breakout",
+        "quiet_trend_instability_warning"
+      ],
+      "validation_focus": [
+        "transition_capture",
+        "chaos_filtering",
+        "expansion_quality",
+        "orderly_release_advantage",
+        "hidden_instability_value"
+      ],
+      "risk_focus": [
+        "volatility_spike_abort",
+        "instability_filtering",
+        "chaotic_release_veto"
+      ],
+      "promotion_rule": "Promote only if volatility-transition logic captures orderly expansion while filtering chaotic releases and hidden-instability traps better than plain breakout or continuation templates.",
+      "baseline_controls": [
+        "simple_vol_breakout",
+        "generic_regime_shift_trigger"
+      ],
+      "differentiated_claim": "Volatility transition logic should capture orderly state change while filtering chaos and mature expansion.",
+      "why_now_logic": "The edge depends on recognizing clean transition quality, not volatility level alone.",
+      "execution_realism_assumptions": "Transitions can gap or slip quickly, so execution conditions affect realized edge.",
+      "rejection_rule": "Reject if transition states are too noisy or if fake-release filtering adds no value.",
+      "failure_archetypes": [
+        "chaotic release",
+        "mature expansion chase",
+        "false transition"
+      ],
+      "negative_knowledge_targets": [
+        "compression states that explode without follow-through",
+        "transition states that are indistinguishable from noise"
+      ],
+      "validation_targets": [
+        "transition_capture",
+        "chaos_filtering",
+        "orderly_release_quality"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "cost_stress",
+        "state_transition_test",
+        "walk_forward"
+      ],
+      "parent_signal_families": [
+        "vol_shift_breakout_transition",
+        "squeeze_release_quality_breakout",
+        "quiet_trend_instability_warning"
+      ]
+    },
+    "execution_aware_overlay": {
+      "source_signals": [
+        "spread_collapse_reentry",
+        "liquidity_trap_avoidance",
+        "execution_hazard_abort",
+        "execution_readiness_continuation"
+      ],
+      "validation_focus": [
+        "overlay_value_add",
+        "bad_trade_reduction",
+        "tradeability_precision",
+        "hazard_veto_value",
+        "liquidity_trap_avoidance_rate"
+      ],
+      "risk_focus": [
+        "hazard_abort",
+        "liquidity_recheck",
+        "adverse_selection_veto"
+      ],
+      "promotion_rule": "Promote only if the execution-aware overlay materially reduces bad trades, adverse selection, and trap entries while preserving the majority of high-quality opportunities from upstream directional systems.",
+      "baseline_controls": [
+        "ungated_signal_family",
+        "naive_tradeability_check"
+      ],
+      "differentiated_claim": "Execution-aware overlays should add value primarily by preventing bad trades with hidden hazard.",
+      "why_now_logic": "In friction-heavy regimes, avoiding bad fills can add more value than adding more entries.",
+      "execution_realism_assumptions": "Slippage, liquidity holes, and adverse selection dominate realized outcomes.",
+      "rejection_rule": "Reject if opportunity cost exceeds the quality gain from avoided trades.",
+      "failure_archetypes": [
+        "false vetoes",
+        "over-filtering",
+        "hazard signals with no realized damage"
+      ],
+      "negative_knowledge_targets": [
+        "filters that only look good in backtest",
+        "hazard conditions that are not execution-relevant"
+      ],
+      "validation_targets": [
+        "bad_trade_reduction",
+        "slippage_avoidance_delta",
+        "opportunity_preservation"
+      ],
+      "lifecycle_requirements": [
+        "spec_lock",
+        "execution_simulation",
+        "cost_stress",
+        "portfolio_review"
+      ],
+      "parent_signal_families": [
+        "spread_collapse_reentry",
+        "liquidity_trap_avoidance",
+        "execution_hazard_abort",
+        "execution_readiness_continuation"
+      ]
+    }
+  }
+}

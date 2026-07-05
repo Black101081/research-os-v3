@@ -1,0 +1,36 @@
+{
+  "network": "mainnet",
+  "ws_url": "wss://api.hyperliquid.xyz/ws",
+  "symbols": [
+    "BTC",
+    "ETH",
+    "SOL"
+  ],
+  "candle_interval": "1m",
+  "subscriptions": [
+    "trades",
+    "candle",
+    "bbo",
+    "allMids"
+  ],
+  "runtime": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "reconnect_seconds": 5,
+    "max_bars": 500,
+    "warmup_bars": 240
+  },
+  "thresholds": {
+    "zscore_entry": -1.5,
+    "zscore_exit": -0.2,
+    "rel_volume_min": 1.0,
+    "squeeze_width_pct": 0.15,
+    "macd_positive_only": true
+  },
+  "execution": {
+    "fees_bps": 5,
+    "slippage_bps": 3,
+    "sizing_mode": "fixed_fraction",
+    "max_fraction_per_trade": 0.02
+  }
+}

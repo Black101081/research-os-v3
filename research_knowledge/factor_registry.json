@@ -1,0 +1,90 @@
+{
+  "version": "factor_registry_v1",
+  "families": [
+    {
+      "family_id": "return_displacement",
+      "title": "Return and displacement",
+      "factors": [
+        "ret_1",
+        "ret_5",
+        "zscore_close_20"
+      ]
+    },
+    {
+      "family_id": "trend_structure",
+      "title": "Trend structure",
+      "factors": [
+        "ema_spread_8_21"
+      ]
+    },
+    {
+      "family_id": "participation_activity",
+      "title": "Participation and activity",
+      "factors": [
+        "rel_volume_20"
+      ]
+    },
+    {
+      "family_id": "volatility_compression",
+      "title": "Volatility and compression",
+      "factors": [
+        "volatility_20"
+      ]
+    }
+  ],
+  "factors": {
+    "ret_1": {
+      "source": "bars",
+      "lookback": 1,
+      "family": "return_displacement",
+      "used_by": [
+        "regime_engine",
+        "signal_templates"
+      ]
+    },
+    "ret_5": {
+      "source": "bars",
+      "lookback": 5,
+      "family": "return_displacement",
+      "used_by": [
+        "regime_engine"
+      ]
+    },
+    "zscore_close_20": {
+      "source": "bars",
+      "lookback": 20,
+      "family": "return_displacement",
+      "used_by": [
+        "mean_reversion_signals",
+        "regime_engine"
+      ]
+    },
+    "ema_spread_8_21": {
+      "source": "bars",
+      "lookback": 21,
+      "family": "trend_structure",
+      "used_by": [
+        "trend_signals",
+        "regime_engine"
+      ]
+    },
+    "rel_volume_20": {
+      "source": "bars",
+      "lookback": 20,
+      "family": "participation_activity",
+      "used_by": [
+        "breakout_signals"
+      ]
+    },
+    "volatility_20": {
+      "source": "bars",
+      "lookback": 20,
+      "family": "volatility_compression",
+      "used_by": [
+        "regime_engine",
+        "squeeze_logic",
+        "risk_logic"
+      ]
+    }
+  }
+}

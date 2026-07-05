@@ -1,0 +1,56 @@
+{
+  "version": "validator_registry_v1",
+  "layers": {
+    "structural": {
+      "severity": "hard_fail",
+      "checks": [
+        "required_fields",
+        "valid_family",
+        "valid_tier",
+        "unique_ids",
+        "reference_resolution"
+      ]
+    },
+    "redundancy": {
+      "severity": "warn_or_fail",
+      "checks": [
+        "lookback_clone_detection",
+        "nearest_neighbor_overlap",
+        "cross_layer_duplicate_detection"
+      ]
+    },
+    "thesis_fit": {
+      "severity": "warn_or_fail",
+      "checks": [
+        "downstream_use_present",
+        "dependency_map_present",
+        "template_parentage"
+      ]
+    },
+    "regime_fit": {
+      "severity": "warn_or_fail",
+      "checks": [
+        "preferred_regimes_present",
+        "avoid_regimes_present",
+        "template_regime_consistency"
+      ]
+    },
+    "research_quality": {
+      "severity": "scored",
+      "checks": [
+        "interpretability",
+        "novelty",
+        "falsifiability",
+        "portability",
+        "execution_relevance",
+        "failure_clarity"
+      ]
+    }
+  },
+  "decision_thresholds": {
+    "strong_candidate_min": 24,
+    "review_band_min": 18,
+    "review_band_max": 23,
+    "reject_below": 18
+  }
+}

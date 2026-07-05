@@ -1,0 +1,112 @@
+{
+  "schema_version": "alpha_registry_schema_v1",
+  "tables": {
+    "alpha_definitions": {
+      "primary_key": [
+        "alpha_id"
+      ],
+      "fields": [
+        "alpha_id",
+        "alpha_name",
+        "source_type",
+        "symbol_scope",
+        "universe_scope",
+        "timeframe",
+        "regime_scope",
+        "factor_dependencies",
+        "indicator_dependencies",
+        "signal_template_family",
+        "signal_expression",
+        "parameter_set",
+        "thesis_summary",
+        "lineage_parent_ids",
+        "created_at",
+        "created_by"
+      ]
+    },
+    "validation_scorecards": {
+      "primary_key": [
+        "alpha_id",
+        "validation_run_id"
+      ],
+      "fields": [
+        "alpha_id",
+        "validation_run_id",
+        "sample_window",
+        "train_window",
+        "test_window",
+        "walk_forward_slice_id",
+        "expectancy",
+        "sharpe",
+        "sortino",
+        "drawdown_max",
+        "turnover",
+        "capacity_proxy",
+        "win_rate",
+        "profit_factor",
+        "stability_score",
+        "overfit_risk_score",
+        "research_score",
+        "validation_status",
+        "rejection_reasons",
+        "created_at"
+      ]
+    },
+    "regime_panels": {
+      "primary_key": [
+        "alpha_id",
+        "regime_name",
+        "created_at"
+      ],
+      "fields": [
+        "alpha_id",
+        "regime_name",
+        "trade_count",
+        "expectancy",
+        "sharpe",
+        "drawdown_max",
+        "turnover",
+        "hit_rate",
+        "robustness_score",
+        "created_at"
+      ]
+    },
+    "decay_profiles": {
+      "primary_key": [
+        "alpha_id",
+        "observation_window",
+        "created_at"
+      ],
+      "fields": [
+        "alpha_id",
+        "observation_window",
+        "prior_research_score",
+        "current_research_score",
+        "delta_score",
+        "prior_sharpe",
+        "current_sharpe",
+        "prior_expectancy",
+        "current_expectancy",
+        "decay_flag",
+        "decay_reason",
+        "created_at"
+      ]
+    },
+    "lifecycle_events": {
+      "primary_key": [
+        "alpha_id",
+        "event_type",
+        "created_at"
+      ],
+      "fields": [
+        "alpha_id",
+        "event_type",
+        "previous_state",
+        "new_state",
+        "trigger_reason",
+        "supporting_validation_run_id",
+        "created_at"
+      ]
+    }
+  }
+}

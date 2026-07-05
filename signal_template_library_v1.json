@@ -1,0 +1,158 @@
+{
+  "schema_version": "signal_template_library_v1",
+  "template_families": [
+    {
+      "template_id": "breakout_basic_v1",
+      "family": "breakout",
+      "description": "Low compression followed by directional break",
+      "required_inputs": [
+        "BollingerWidth",
+        "live_ret_from_last_close"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "directional_change",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "high_volatility"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Volatility compression followed by expansion",
+        "failure_mode": "False break in range or illiquid conditions",
+        "execution_sensitivities": [
+          "spread_bps",
+          "micro_volatility_20"
+        ]
+      }
+    },
+    {
+      "template_id": "mean_reversion_basic_v1",
+      "family": "mean_reversion",
+      "description": "Distance from center with controlled volatility",
+      "required_inputs": [
+        "zscore_close_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop",
+        "transition_ambiguous"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Extreme displacement with probability of re-centering",
+        "failure_mode": "Entering against a strong persistent trend",
+        "execution_sensitivities": [
+          "micro_volatility_20",
+          "trade_flow_imbalance_20"
+        ]
+      }
+    },
+    {
+      "template_id": "continuation_basic_v1",
+      "family": "continuation",
+      "description": "Momentum alignment with directional confirmation",
+      "required_inputs": [
+        "MACD",
+        "MACD_signal",
+        "ema_spread_8_21"
+      ],
+      "allowed_expression_types": [
+        "cross",
+        "comparison",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Persistent directional move with momentum confirmation",
+        "failure_mode": "Late entry after exhaustion",
+        "execution_sensitivities": [
+          "spread_bps"
+        ]
+      }
+    },
+    {
+      "template_id": "volatility_event_basic_v1",
+      "family": "volatility_event",
+      "description": "Detect rapid change in micro-volatility or liquidity state",
+      "required_inputs": [
+        "micro_volatility_20",
+        "spread_bps"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "directional_change",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "high_volatility",
+        "transition_ambiguous"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Microstructure instability preceding larger move",
+        "failure_mode": "Noise spikes with no follow-through",
+        "execution_sensitivities": [
+          "spread_bps",
+          "trade_flow_imbalance_20"
+        ]
+      }
+    },
+    {
+      "template_id": "regime_transition_basic_v1",
+      "family": "regime_transition",
+      "description": "Detect state shifts before bar-confirmed regime flip",
+      "required_inputs": [
+        "tick_ret_5",
+        "trade_flow_imbalance_20",
+        "live_ret_from_last_close"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "lag_relation",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "transition_ambiguous"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Early state change before conventional confirmation",
+        "failure_mode": "Whipsaw around transition zone",
+        "execution_sensitivities": [
+          "micro_volatility_20",
+          "spread_bps"
+        ]
+      }
+    }
+  ],
+  "generation_defaults": {
+    "max_candidates_per_batch": 200,
+    "max_factors_per_candidate": 3,
+    "max_conjunction_depth": 3,
+    "default_threshold_grid": [
+      -2.0,
+      -1.5,
+      -1.0,
+      0.0,
+      1.0,
+      1.5,
+      2.0
+    ],
+    "default_lag_grid": [
+      1,
+      3,
+      5
+    ],
+    "default_percentile_grid": [
+      0.1,
+      0.2,
+      0.8,
+      0.9
+    ]
+  }
+}

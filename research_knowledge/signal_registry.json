@@ -1,0 +1,61 @@
+{
+  "version": "signal_registry_v1",
+  "templates": {
+    "bollinger_squeeze_breakout": {
+      "template_family": "breakout",
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "event_driven"
+      ],
+      "required_factors": [
+        "rel_volume_20"
+      ],
+      "required_indicators": [
+        "BollingerWidth",
+        "RelativeVolume"
+      ],
+      "thesis_ref": "signal_thesis_templates.md#bollinger_squeeze_breakout"
+    },
+    "zscore_recenter": {
+      "template_family": "mean_reversion",
+      "preferred_regimes": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "uptrend",
+        "downtrend",
+        "high_volatility"
+      ],
+      "required_factors": [
+        "zscore_close_20"
+      ],
+      "required_indicators": [
+        "ZScore_Close"
+      ],
+      "thesis_ref": "signal_thesis_templates.md#zscore_recenter"
+    },
+    "macd_trend_continuation": {
+      "template_family": "trend_continuation",
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "transition_ambiguous",
+        "event_driven"
+      ],
+      "required_factors": [],
+      "required_indicators": [
+        "MACD",
+        "MACD_signal"
+      ],
+      "thesis_ref": "signal_thesis_templates.md#macd_trend_continuation"
+    }
+  }
+}

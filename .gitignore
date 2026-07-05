@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.DS_Store
+*.log
+*.jsonl
+sandbox_test_reports/alpha_factory_demo_v1_hardened_run/
+sandbox_test_reports/alpha_factory_demo_v1_run/
+sandbox_test_reports/alpha_registry_store_*/
+sandbox_test_reports/audit_demo_run/
+validation_reports/
+runtime/

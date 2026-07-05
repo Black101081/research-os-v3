@@ -1,0 +1,42 @@
+category,script,returncode,status,stderr,stdout
+cli_help_smoke,baseline_backtest_runner.py,0,PASS,,"ated_at"": ""2026-07-05T02:55:49.480166+00:00"",
+      ""strategy_family"": ""volatility_transition"",
+      ""source_signals"": [
+        ""vol_shift_breakout_transition"",
+        ""squeeze_release_quality_breakout"",
+        ""quiet_trend_instability_warning""
+      ],
+      ""validation_focus"": [
+        ""transition_capture"",
+        ""chaos_filtering"",
+        ""expansion_quality"",
+        ""orderly_release_advantage"",
+        ""hidden_instability_value""
+      ],
+      ""risk_focus"": [
+        ""volatility_spike"
+cli_help_smoke,tests/test_api_surface.py,1,FAIL,"Traceback (most recent call last):
+  File ""/home/user/output/research_os_v3/tests/test_api_surface.py"", line 3, in <module>
+    import app
+ModuleNotFoundError: No module named 'app'
+",
+cli_help_smoke,tests/test_api_surfaces.py,1,FAIL,"Traceback (most recent call last):
+  File ""/home/user/output/research_os_v3/tests/test_api_surfaces.py"", line 5, in <module>
+    import app as app_module
+ModuleNotFoundError: No module named 'app'
+",
+cli_help_smoke,tests/test_integration_flow.py,1,FAIL,"Traceback (most recent call last):
+  File ""/home/user/output/research_os_v3/tests/test_integration_flow.py"", line 5, in <module>
+    from bootstrap_ohlcv import warmup_engine
+ModuleNotFoundError: No module named 'bootstrap_ohlcv'
+",
+cli_help_smoke,tests/test_regression_contracts.py,1,FAIL,"Traceback (most recent call last):
+  File ""/home/user/output/research_os_v3/tests/test_regression_contracts.py"", line 5, in <module>
+    from paper_replay import run_paper_replay_demo
+ModuleNotFoundError: No module named 'paper_replay'
+",
+cli_help_smoke,tests/test_research_regression.py,1,FAIL,"Traceback (most recent call last):
+  File ""/home/user/output/research_os_v3/tests/test_research_regression.py"", line 5, in <module>
+    from backtest_bridge import build_bridge_demo
+ModuleNotFoundError: No module named 'backtest_bridge'
+",

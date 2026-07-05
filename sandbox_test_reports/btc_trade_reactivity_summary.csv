@@ -1,0 +1,2 @@
+warmup_bars_loaded,baseline_bar_count,baseline_regime,baseline_tradable,baseline_active_signals,baseline_execution_ready,trade_messages_processed,trade_events_processed,bars_changed_any,factors_changed_any,indicators_changed_any,regime_changed_any,signals_changed_any,strategies_changed_any,last_trade_changed_any,final_last_trade,final_active_signals,final_execution_ready
+241,50,transition_ambiguous,False,0,0,12,58,False,False,False,False,False,True,True,62697.0,0,0

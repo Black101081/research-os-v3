@@ -1,0 +1,744 @@
+{
+  "version": "expanded_signal_catalog_v1",
+  "target": {
+    "families": 5,
+    "signals_per_family": 4,
+    "total_signals": 20
+  },
+  "families": {
+    "breakout_expansion": {
+      "title": "Breakout and expansion",
+      "signals": [
+        {
+          "signal_id": "bollinger_squeeze_breakout",
+          "template_family": "breakout",
+          "tier": "core",
+          "thesis": "Compression can resolve into directional expansion when participation confirms release.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend",
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "range_chop",
+            "event_driven"
+          ],
+          "required_factors": [
+            "rel_volume_20",
+            "volatility_20"
+          ],
+          "required_indicators": [
+            "BollingerWidth",
+            "RelativeVolume"
+          ],
+          "trigger_logic": "Squeeze is mature, breakout is present, and participation confirms expansion.",
+          "invalidation_logic": "Reject when release quality deteriorates, conviction fades, or execution readiness collapses rather than assuming every band break is tradable.",
+          "execution_note": "Use as a control breakout template, not just a default entry rule; promotion should favor pressure-aware and execution-gated variants.",
+          "novelty_claim": "Baseline control that combines compression and participation, but should be used as a quality anchor rather than a priority promotion path.",
+          "nearest_neighbors": [
+            "latent_breakout_pressure_release",
+            "fragile_compression_fakeout_filter"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "latent_breakout_pressure_release",
+          "template_family": "breakout",
+          "tier": "edge",
+          "thesis": "A breakout is higher quality when latent pressure builds before visible expansion.",
+          "preferred_regimes": [
+            "transition_ambiguous",
+            "uptrend"
+          ],
+          "avoid_regimes": [
+            "event_driven",
+            "range_chop"
+          ],
+          "required_factors": [
+            "latent_breakout_pressure",
+            "compression_persistence"
+          ],
+          "required_indicators": [
+            "LatentBreakoutPressure",
+            "SqueezePersistenceMeter"
+          ],
+          "trigger_logic": "Latent pressure rises while compression persists, then release begins with improving conviction.",
+          "invalidation_logic": "Pressure dissipates without release or release becomes chaotic.",
+          "execution_note": "Prefer staged entry that combines pressure release with readiness quality rather than instant chase.",
+          "novelty_claim": "Combines latent pressure, squeeze maturity, and release quality to separate pre-break buildup from observed breakout alone.",
+          "nearest_neighbors": [
+            "bollinger_squeeze_breakout",
+            "micro_breakout_quality_gate"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "fragile_compression_fakeout_filter",
+          "template_family": "breakout",
+          "tier": "frontier",
+          "thesis": "Some compressions are structurally fragile and should be filtered rather than traded as standard breakouts.",
+          "preferred_regimes": [
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "event_driven"
+          ],
+          "required_factors": [
+            "fragile_compression_index",
+            "wick_instability_ratio"
+          ],
+          "required_indicators": [
+            "FragileCompressionMap",
+            "ExpansionQualityGauge"
+          ],
+          "trigger_logic": "Compression exists but fragility score is low enough and release quality is acceptable.",
+          "invalidation_logic": "Fragility rises or expansion quality deteriorates immediately after break.",
+          "execution_note": "Best used as a breakout quality gate, not standalone trigger.",
+          "novelty_claim": "Differentiates tradable squeezes from disorderly ones.",
+          "nearest_neighbors": [
+            "bollinger_squeeze_breakout",
+            "squeeze_release_quality_breakout"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "micro_breakout_quality_gate",
+          "template_family": "breakout",
+          "tier": "frontier",
+          "thesis": "A breakout should be filtered through tape and execution quality before becoming tradeable.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend",
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "range_chop"
+          ],
+          "required_factors": [
+            "micro_breakout_quality",
+            "execution_readiness_score"
+          ],
+          "required_indicators": [
+            "MicroBreakoutQuality",
+            "ExecutionReadinessPanel"
+          ],
+          "trigger_logic": "Breakout aligns with supportive tape and execution readiness metrics.",
+          "invalidation_logic": "Tape support collapses or slippage hazard spikes.",
+          "execution_note": "Useful for routing signal candidates into strategy specs only when execution quality is acceptable.",
+          "novelty_claim": "Bridges breakout detection with execution state.",
+          "nearest_neighbors": [
+            "latent_breakout_pressure_release",
+            "execution_readiness_continuation"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        }
+      ]
+    },
+    "mean_reversion_recenter": {
+      "title": "Mean reversion and recenter",
+      "signals": [
+        {
+          "signal_id": "zscore_recenter",
+          "template_family": "mean_reversion",
+          "tier": "core",
+          "thesis": "Temporary displacement can revert when structure stays balanced and trend pressure remains weak.",
+          "preferred_regimes": [
+            "range_chop"
+          ],
+          "avoid_regimes": [
+            "uptrend",
+            "downtrend",
+            "high_volatility"
+          ],
+          "required_factors": [
+            "zscore_close_20"
+          ],
+          "required_indicators": [
+            "ZScore_Close"
+          ],
+          "trigger_logic": "Z-score enters stretch zone while regime remains balanced.",
+          "invalidation_logic": "Invalidate when directional coherence strengthens, tail persistence rises, or equilibrium drift keeps moving away from price rather than stabilizing.",
+          "execution_note": "Use as a baseline control and pair with tail persistence or drift context, not just isolated oversold/overbought thresholds.",
+          "novelty_claim": "Baseline control for equilibrium reversion; useful as a comparator, but differentiated promotion should favor drift-aware, tail-persistence, or shock-decay variants rather than raw z-score alone.",
+          "nearest_neighbors": [
+            "tail_persistence_fade",
+            "shock_reversal_recenter"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "tail_persistence_fade",
+          "template_family": "mean_reversion",
+          "tier": "edge",
+          "thesis": "Extended time spent in distribution tails can create a cleaner fade opportunity than one-off stretch.",
+          "preferred_regimes": [
+            "range_chop",
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "strong_uptrend",
+            "strong_downtrend"
+          ],
+          "required_factors": [
+            "extreme_percentile_persistence",
+            "rolling_percentile_close_50"
+          ],
+          "required_indicators": [
+            "TailPersistenceGauge",
+            "PercentilePosition50"
+          ],
+          "trigger_logic": "Tail persistence is elevated but continuation quality is decaying.",
+          "invalidation_logic": "Tail persistence remains high with strengthening continuation.",
+          "execution_note": "Prefer partial entries only when persistence is tiring and recenter quality improves, rather than fading every extreme print.",
+          "novelty_claim": "Separates time-in-extreme persistence from one-off stretch and combines tail occupancy with decay quality rather than distance-only mean reversion.",
+          "nearest_neighbors": [
+            "zscore_recenter",
+            "equilibrium_drift_snapback"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "equilibrium_drift_snapback",
+          "template_family": "mean_reversion",
+          "tier": "frontier",
+          "thesis": "Reversion quality improves when displacement outruns a drifting equilibrium and then begins snapping back.",
+          "preferred_regimes": [
+            "range_chop",
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "high_volatility",
+            "event_driven"
+          ],
+          "required_factors": [
+            "equilibrium_drift_gap",
+            "recenter_velocity"
+          ],
+          "required_indicators": [
+            "EquilibriumDriftChannel",
+            "RecenterVelocityOscillator"
+          ],
+          "trigger_logic": "Drift gap is stretched and recenter velocity turns favorable.",
+          "invalidation_logic": "Equilibrium continues drifting away from price or snapback stalls.",
+          "execution_note": "Best when trend coherence is weak.",
+          "novelty_claim": "Separates static-mean reversion from drifting-equilibrium reversion.",
+          "nearest_neighbors": [
+            "zscore_recenter",
+            "shock_reversal_recenter"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "shock_reversal_recenter",
+          "template_family": "mean_reversion",
+          "tier": "frontier",
+          "thesis": "An abnormal impulse that quickly decays can create a high-quality shock reversal rather than ordinary recenter trade.",
+          "preferred_regimes": [
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "event_driven",
+            "strong_trend"
+          ],
+          "required_factors": [
+            "shock_reversal_pressure",
+            "impulse_decay_ratio"
+          ],
+          "required_indicators": [
+            "ShockReversalMeter",
+            "CurvatureDisplacementLens"
+          ],
+          "trigger_logic": "Impulse is abnormal, decay is visible, and continuation quality weakens.",
+          "invalidation_logic": "Shock extends into a genuine directional regime.",
+          "execution_note": "Should be tightly invalidated and not averaged into.",
+          "novelty_claim": "Targets abnormal impulse decay rather than generic overextension.",
+          "nearest_neighbors": [
+            "zscore_recenter",
+            "tail_persistence_fade"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        }
+      ]
+    },
+    "trend_continuation_pullback": {
+      "title": "Trend continuation and pullback",
+      "signals": [
+        {
+          "signal_id": "macd_trend_continuation",
+          "template_family": "trend_continuation",
+          "tier": "core",
+          "thesis": "Join an established trend when momentum realigns after prior alignment exists.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "range_chop",
+            "transition_ambiguous",
+            "event_driven"
+          ],
+          "required_factors": [
+            "ema_spread_8_21"
+          ],
+          "required_indicators": [
+            "MACD",
+            "MACD_signal"
+          ],
+          "trigger_logic": "Momentum aligns with prevailing directional regime.",
+          "invalidation_logic": "Invalidate when momentum alignment weakens, trend coherence deteriorates, or execution readiness becomes hazardous rather than waiting for a simple cross reversal.",
+          "execution_note": "Use as a control continuation template, not just a standalone crossover trigger; promotion should favor coherence, pullback quality, and readiness filters.",
+          "novelty_claim": "Baseline control for continuation that combines momentum alignment with regime fit, but differentiated research should prefer pullback quality, reacceleration, and execution-readiness overlays rather than crossover logic alone.",
+          "nearest_neighbors": [
+            "pullback_quality_continuation",
+            "reacceleration_after_pause"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "pullback_quality_continuation",
+          "template_family": "trend_continuation",
+          "tier": "edge",
+          "thesis": "Not every pullback is equal; continuation improves when retrace quality remains structurally healthy.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "range_chop"
+          ],
+          "required_factors": [
+            "pullback_depth_vs_trend",
+            "trend_smoothness_10"
+          ],
+          "required_indicators": [
+            "PullbackQualityMeter",
+            "AnchorAlignmentIndex"
+          ],
+          "trigger_logic": "Pullback stays shallow enough while trend anchors remain aligned.",
+          "invalidation_logic": "Retrace deepens into trend fragility.",
+          "execution_note": "Prefer entering on reclaim after healthy pullback.",
+          "novelty_claim": "Grades retrace health instead of treating all pullbacks alike.",
+          "nearest_neighbors": [
+            "macd_trend_continuation",
+            "reacceleration_after_pause"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "reacceleration_after_pause",
+          "template_family": "trend_continuation",
+          "tier": "frontier",
+          "thesis": "A mature trend can offer a better continuation entry when force reappears after orderly pause.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "range_chop",
+            "event_driven"
+          ],
+          "required_factors": [
+            "directional_reacceleration",
+            "countertrend_absorption"
+          ],
+          "required_indicators": [
+            "ReaccelerationSignalLine",
+            "TrendCoherenceIndex"
+          ],
+          "trigger_logic": "Trend coherence remains intact and reacceleration begins after pause.",
+          "invalidation_logic": "Pause becomes rollover or coherence breaks.",
+          "execution_note": "Promote only when orderly pause, renewed force, and execution readiness align as a quality-of-trend continuation event.",
+          "novelty_claim": "Combines pause quality, coherence, and directional renewal to capture trend continuation through reacceleration rather than generic momentum persistence.",
+          "nearest_neighbors": [
+            "macd_trend_continuation",
+            "execution_readiness_continuation"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "execution_readiness_continuation",
+          "template_family": "trend_continuation",
+          "tier": "frontier",
+          "thesis": "A continuation signal should only graduate when trend quality and execution quality align.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "range_chop"
+          ],
+          "required_factors": [
+            "execution_readiness_score",
+            "trend_coherence_index"
+          ],
+          "required_indicators": [
+            "ExecutionReadinessPanel",
+            "TrendCoherenceIndex"
+          ],
+          "trigger_logic": "Continuation setup is valid and execution state remains supportive.",
+          "invalidation_logic": "Execution friction or slippage hazard rises beyond tolerance.",
+          "execution_note": "Acts as promotion filter from signal candidate to tradeable strategy.",
+          "novelty_claim": "Bridges trend logic with execution gating.",
+          "nearest_neighbors": [
+            "micro_breakout_quality_gate",
+            "reacceleration_after_pause"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        }
+      ]
+    },
+    "volatility_transition_exhaustion": {
+      "title": "Volatility transition and exhaustion",
+      "signals": [
+        {
+          "signal_id": "vol_shift_breakout_transition",
+          "template_family": "volatility_transition",
+          "tier": "edge",
+          "thesis": "Some of the best directional opportunities emerge when quiet conditions transition into orderly expansion.",
+          "preferred_regimes": [
+            "transition_ambiguous",
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "event_driven"
+          ],
+          "required_factors": [
+            "volatility_regime_shift",
+            "compression_persistence"
+          ],
+          "required_indicators": [
+            "VolShiftDetector",
+            "SqueezePersistenceMeter"
+          ],
+          "trigger_logic": "Vol shift rises from quiet state with orderly release characteristics.",
+          "invalidation_logic": "Expansion becomes chaotic or fails to follow through.",
+          "execution_note": "Best combined with conviction filter.",
+          "novelty_claim": "Focuses on volatility state transition rather than static breakout only.",
+          "nearest_neighbors": [
+            "bollinger_squeeze_breakout",
+            "volatility_exhaustion_fade"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "volatility_exhaustion_fade",
+          "template_family": "volatility_exhaustion",
+          "tier": "frontier",
+          "thesis": "Volatility bursts that are already exhausting can be faded more safely than fresh expansion.",
+          "preferred_regimes": [
+            "transition_ambiguous",
+            "range_chop"
+          ],
+          "avoid_regimes": [
+            "fresh_breakout",
+            "event_driven"
+          ],
+          "required_factors": [
+            "volatility_exhaustion_score",
+            "shock_absorption_score"
+          ],
+          "required_indicators": [
+            "VolatilityExhaustionGauge",
+            "ExpansionQualityGauge"
+          ],
+          "trigger_logic": "Expansion is extended, exhaustion rises, and quality of follow-through decays.",
+          "invalidation_logic": "Burst reaccelerates into new directional regime.",
+          "execution_note": "Do not treat as standard mean reversion; this is a vol-state fade.",
+          "novelty_claim": "Targets exhausted expansion rather than simple overbought/oversold.",
+          "nearest_neighbors": [
+            "shock_reversal_recenter",
+            "vol_shift_breakout_transition"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "quiet_trend_instability_warning",
+          "template_family": "volatility_transition",
+          "tier": "frontier",
+          "thesis": "Some low-vol trends hide instability and should trigger caution before continuation entries.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "range_chop"
+          ],
+          "required_factors": [
+            "quiet_trend_instability",
+            "volatility_of_volatility"
+          ],
+          "required_indicators": [
+            "DirectionalVolSplit",
+            "FragileCompressionMap"
+          ],
+          "trigger_logic": "Trend is present but hidden fragility and volatility asymmetry worsen.",
+          "invalidation_logic": "Instability normalizes or trend quality improves.",
+          "execution_note": "Use as a warning/gating signal rather than direct entry.",
+          "novelty_claim": "Looks for hidden instability inside apparently orderly low-vol trends.",
+          "nearest_neighbors": [
+            "execution_readiness_continuation",
+            "fragile_compression_fakeout_filter"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "squeeze_release_quality_breakout",
+          "template_family": "volatility_transition",
+          "tier": "edge",
+          "thesis": "Release from compression is only valuable when the release itself is orderly and persistent.",
+          "preferred_regimes": [
+            "transition_ambiguous",
+            "uptrend",
+            "downtrend"
+          ],
+          "avoid_regimes": [
+            "event_driven"
+          ],
+          "required_factors": [
+            "squeeze_release_quality",
+            "expansion_followthrough_ratio"
+          ],
+          "required_indicators": [
+            "ExpansionQualityGauge",
+            "CompressionRatioPanel"
+          ],
+          "trigger_logic": "Compression release quality is strong and expansion persists.",
+          "invalidation_logic": "Release stalls or becomes disorderly.",
+          "execution_note": "Better as a breakout qualifier than a standalone thesis.",
+          "novelty_claim": "Grades release quality instead of assuming all breaks are equal.",
+          "nearest_neighbors": [
+            "bollinger_squeeze_breakout",
+            "vol_shift_breakout_transition"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        }
+      ]
+    },
+    "microstructure_execution_aware": {
+      "title": "Microstructure and execution-aware",
+      "signals": [
+        {
+          "signal_id": "spread_collapse_reentry",
+          "template_family": "execution_aware",
+          "tier": "edge",
+          "thesis": "After transient execution stress, reentry becomes more attractive once spread and liquidity normalize.",
+          "preferred_regimes": [
+            "uptrend",
+            "downtrend",
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "event_driven"
+          ],
+          "required_factors": [
+            "quoted_spread_bps",
+            "liquidity_recovery_speed"
+          ],
+          "required_indicators": [
+            "SpreadState",
+            "LiquidityRecoveryMonitor"
+          ],
+          "trigger_logic": "Stress resolves and spread normalizes while directional thesis remains valid.",
+          "invalidation_logic": "Spread rewidens or liquidity recovery stalls.",
+          "execution_note": "Useful as a reentry filter after aborted first attempt.",
+          "novelty_claim": "Turns execution recovery into a signal layer object.",
+          "nearest_neighbors": [
+            "liquidity_trap_avoidance",
+            "execution_readiness_continuation"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "liquidity_trap_avoidance",
+          "template_family": "execution_aware",
+          "tier": "frontier",
+          "thesis": "Some apparently attractive entries are actually liquidity traps and should be explicitly avoided.",
+          "preferred_regimes": [
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "event_driven"
+          ],
+          "required_factors": [
+            "liquidity_trap_signature",
+            "adverse_selection_risk_proxy"
+          ],
+          "required_indicators": [
+            "LiquidityTrapScanner",
+            "SlippageHazardGauge"
+          ],
+          "trigger_logic": "Directional setup exists but is blocked unless trap risk drops.",
+          "invalidation_logic": "Trap signal persists or adverse selection worsens.",
+          "execution_note": "Acts as veto layer for otherwise valid strategy candidates.",
+          "novelty_claim": "Avoidance-first signal built from microstructure risk.",
+          "nearest_neighbors": [
+            "micro_breakout_quality_gate",
+            "spread_collapse_reentry"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "aggressor_flow_dislocation_snap",
+          "template_family": "execution_aware",
+          "tier": "frontier",
+          "thesis": "Short-lived aggressor imbalance with weak follow-through can create a snapback opportunity.",
+          "preferred_regimes": [
+            "range_chop",
+            "transition_ambiguous"
+          ],
+          "avoid_regimes": [
+            "strong_trend",
+            "event_driven"
+          ],
+          "required_factors": [
+            "aggressor_imbalance_5s",
+            "micro_reversion_tendency"
+          ],
+          "required_indicators": [
+            "AggressorFlowImbalance",
+            "MicropricePressure"
+          ],
+          "trigger_logic": "Aggressor flow becomes one-sided but tape impact decays rapidly.",
+          "invalidation_logic": "Imbalance persists with strengthening directional follow-through.",
+          "execution_note": "Best for short-horizon tactical entries only.",
+          "novelty_claim": "Microstructure snapback rather than bar-level mean reversion.",
+          "nearest_neighbors": [
+            "shock_reversal_recenter",
+            "liquidity_trap_avoidance"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        },
+        {
+          "signal_id": "execution_hazard_abort",
+          "template_family": "execution_aware",
+          "tier": "edge",
+          "thesis": "A valid directional thesis should be aborted when execution hazard overwhelms expected edge.",
+          "preferred_regimes": [
+            "all_tradeable"
+          ],
+          "avoid_regimes": [
+            "none"
+          ],
+          "required_factors": [
+            "slippage_hazard_index",
+            "execution_friction_score"
+          ],
+          "required_indicators": [
+            "SlippageHazardGauge",
+            "ExecutionFrictionPanel"
+          ],
+          "trigger_logic": "Trade candidate exists but hazard metrics exceed tolerance.",
+          "invalidation_logic": "Hazard normalizes and tradeability returns.",
+          "execution_note": "This is a stop-go signal for promotion logic, not a direct market direction signal.",
+          "novelty_claim": "Explicit hazard-aware veto that combines slippage, friction, and tradeability risk rather than forcing direction-only signals into bad execution states.",
+          "nearest_neighbors": [
+            "liquidity_trap_avoidance",
+            "spread_collapse_reentry"
+          ],
+          "validator_checks": [
+            "schema",
+            "lineage",
+            "regime_fit",
+            "novelty"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "version": "strategy_registry_v1",
+  "strategy_spec_schema": "strategy_spec_v1",
+  "family_mappings": {
+    "breakout": {
+      "validation_focus": [
+        "slippage_sensitivity",
+        "false_breakout_rate",
+        "follow_through_quality"
+      ],
+      "risk_focus": [
+        "entry_confirmation",
+        "liquidity_filtering"
+      ]
+    },
+    "mean_reversion": {
+      "validation_focus": [
+        "max_adverse_excursion",
+        "stretch_persistence",
+        "regime_contamination"
+      ],
+      "risk_focus": [
+        "tight invalidation",
+        "size_conservatism"
+      ]
+    },
+    "trend_continuation": {
+      "validation_focus": [
+        "path_dependency",
+        "pullback_depth",
+        "transition_fragility"
+      ],
+      "risk_focus": [
+        "trend_exit_logic",
+        "late_entry_penalty"
+      ]
+    }
+  },
+  "stage_order": [
+    "intake_and_hypothesis",
+    "spec_lock",
+    "data_and_engine_validation",
+    "smoke_test",
+    "baseline_backtest",
+    "robustness_and_sensitivity",
+    "out_of_sample_and_walk_forward",
+    "decision_gate",
+    "portfolio_promotion"
+  ]
+}

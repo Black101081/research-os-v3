@@ -1,0 +1,19 @@
+{
+  "validation_bridge_signature": "(symbol: 'str', state: 'Dict[str, Any]') -> 'Dict[str, Any]'",
+  "pytest_returncode": 0,
+  "pytest_tail": "tcnow().strftime('%Y%m%d%H%M%S')}\",\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_full_pipeline_generates_strategy_spec_when_signal_active\ntests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet\ntests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist\ntests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist\n  /home/user/output/research_os_v3/strategy_spec_builder.py:14: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    'created_at': datetime.utcnow().isoformat(),\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_full_pipeline_generates_strategy_spec_when_signal_active\ntests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet\ntests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist\ntests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist\n  /home/user/output/research_os_v3/playbook_bridge.py:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    'created_at': datetime.utcnow().isoformat(),\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_registry_writes_snapshot_specs_and_packets\n  /home/user/output/research_os_v3/registry_writer.py:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    payload = {'ts': datetime.utcnow().isoformat(), 'snapshot': snapshot}\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_registry_writes_snapshot_specs_and_packets\n  /home/user/output/research_os_v3/registry_writer.py:23: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    ts = datetime.utcnow().isoformat()\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n\u001b[33m\u001b[32m9 passed\u001b[0m, \u001b[33m\u001b[1m14 warnings\u001b[0m\u001b[33m in 0.12s\u001b[0m\u001b[0m\n\n",
+  "warmup_bars_loaded": 241,
+  "trade_messages_processed": 12,
+  "trade_events_processed": 54,
+  "factors_changed_any": false,
+  "indicators_changed_any": false,
+  "regime_changed_any": true,
+  "signals_changed_any": true,
+  "strategies_changed_any": true,
+  "current_bar_changed_any": true,
+  "sample_ret_1_last": 1.5953034267157662e-05,
+  "sample_tick_ret_1_last": 0.0,
+  "sample_trade_flow_imbalance_last": -0.12518169661026796,
+  "sample_bollinger_width_last": 0.0020436963418745246,
+  "sample_live_return_from_close_last": 0.0001755113763282079
+}

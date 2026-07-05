@@ -1,0 +1,138 @@
+{
+  "status": "completed",
+  "started_at_utc": "2026-07-05T04:57:55.231511+00:00",
+  "ended_at_utc": "2026-07-05T05:15:53.958923+00:00",
+  "warmup_bars_loaded": 241,
+  "messages_total": 135,
+  "trade_events_total": 59,
+  "bbo_events_total": 116,
+  "acks": 2,
+  "last_trade": 62836.0,
+  "active_signals": 0,
+  "execution_ready_count": 0,
+  "risk_statuses": {
+    "bollinger_squeeze_breakout": "BLOCK",
+    "zscore_recenter": "BLOCK",
+    "macd_trend_continuation": "BLOCK"
+  },
+  "regime": "transition_ambiguous",
+  "tradable": false,
+  "recent_reactivity_tail": [
+    {
+      "symbol": "BTC",
+      "message_type": "bbo",
+      "processed_at": "2026-07-05T04:58:12.204652+00:00",
+      "current_bar_changed": false,
+      "factors_changed": [],
+      "indicators_changed": [],
+      "regime_changed": false,
+      "signals_changed": [],
+      "strategies_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "risk_changed": true,
+      "risk_packets_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "validation_changed": true,
+      "reactive_source": "live_intrabar"
+    },
+    {
+      "symbol": "BTC",
+      "message_type": "bbo",
+      "processed_at": "2026-07-05T04:58:12.684944+00:00",
+      "current_bar_changed": false,
+      "factors_changed": [],
+      "indicators_changed": [],
+      "regime_changed": false,
+      "signals_changed": [],
+      "strategies_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "risk_changed": true,
+      "risk_packets_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "validation_changed": true,
+      "reactive_source": "live_intrabar"
+    },
+    {
+      "symbol": "BTC",
+      "message_type": "bbo",
+      "processed_at": "2026-07-05T04:58:12.688179+00:00",
+      "current_bar_changed": false,
+      "factors_changed": [],
+      "indicators_changed": [],
+      "regime_changed": false,
+      "signals_changed": [],
+      "strategies_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "risk_changed": true,
+      "risk_packets_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "validation_changed": true,
+      "reactive_source": "live_intrabar"
+    },
+    {
+      "symbol": "BTC",
+      "message_type": "bbo",
+      "processed_at": "2026-07-05T04:58:12.808508+00:00",
+      "current_bar_changed": false,
+      "factors_changed": [],
+      "indicators_changed": [],
+      "regime_changed": false,
+      "signals_changed": [],
+      "strategies_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "risk_changed": true,
+      "risk_packets_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "validation_changed": true,
+      "reactive_source": "live_intrabar"
+    },
+    {
+      "symbol": "BTC",
+      "message_type": "bbo",
+      "processed_at": "2026-07-05T04:58:13.157293+00:00",
+      "current_bar_changed": false,
+      "factors_changed": [],
+      "indicators_changed": [],
+      "regime_changed": false,
+      "signals_changed": [],
+      "strategies_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "risk_changed": true,
+      "risk_packets_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "validation_changed": true,
+      "reactive_source": "live_intrabar"
+    }
+  ],
+  "last_error": "WebSocketConnectionClosedException: socket is already closed."
+}

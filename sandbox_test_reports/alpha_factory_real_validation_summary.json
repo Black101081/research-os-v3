@@ -1,0 +1,14 @@
+{
+  "implemented_real_validation_bridge_v1": [
+    "real_validation_bridge.py",
+    "alpha_factory_runner.py",
+    "tests/test_real_validation_bridge.py",
+    "tests/test_alpha_factory_runner_real_validation.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                    [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m5 passed\u001b[0m\u001b[32m in 0.05s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"scorecard_count\": 2, \"top_alpha\": \"alpha_1\", \"top_sample_window\": \"bt_breakout_confirmation\", \"top_validation_status\": \"accepted_for_ranking\", \"top_research_score\": 127.4135}\n",
+  "smoke_stderr": ""
+}

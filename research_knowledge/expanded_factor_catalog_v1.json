@@ -1,0 +1,4730 @@
+{
+  "version": "expanded_factor_catalog_v1",
+  "target": {
+    "families": 5,
+    "factors_per_family": 20,
+    "total_factors": 100
+  },
+  "families": {
+    "return_displacement": {
+      "title": "Return and displacement",
+      "core_question": "How far and how fast price has moved relative to recent history or equilibrium.",
+      "factors": [
+        {
+          "factor_id": "ret_1",
+          "tier": "core",
+          "title": "One-bar return",
+          "novelty_claim": "Immediate directional impulse baseline.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "One-bar return",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "ret_3",
+          "tier": "core",
+          "title": "Three-bar return",
+          "novelty_claim": "Short displacement with less micro-noise than ret_1.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Three-bar return",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "ret_5",
+          "tier": "core",
+          "title": "Five-bar return",
+          "novelty_claim": "Directional persistence baseline used in regime scoring.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Five-bar return",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "zscore_close_20",
+          "tier": "core",
+          "title": "20-bar close z-score",
+          "novelty_claim": "Normalized local stretch against equilibrium.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "20-bar close z-score",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "distance_to_20_mean_pct",
+          "tier": "core",
+          "title": "Percent distance to 20-bar mean",
+          "novelty_claim": "Non-standardized stretch useful when standard deviation is unstable.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Percent distance to 20-bar mean",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "return_acceleration_1_3",
+          "tier": "edge",
+          "title": "Return acceleration 1 vs 3",
+          "novelty_claim": "Captures whether impulse is strengthening faster than short baseline.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Return acceleration 1 vs 3",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "return_acceleration_3_5",
+          "tier": "edge",
+          "title": "Return acceleration 3 vs 5",
+          "novelty_claim": "Separates fresh expansion from stale displacement.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Return acceleration 3 vs 5",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "displacement_efficiency_5",
+          "tier": "edge",
+          "title": "5-bar displacement efficiency",
+          "novelty_claim": "Measures net travel relative to path noise.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "5-bar displacement efficiency",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "gap_to_prior_close_pct",
+          "tier": "edge",
+          "title": "Gap to prior close percent",
+          "novelty_claim": "Captures session discontinuity or sudden repricing.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Gap to prior close percent",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "recenter_velocity",
+          "tier": "edge",
+          "title": "Recenter velocity",
+          "novelty_claim": "Measures speed of return toward equilibrium after stretch.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Recenter velocity",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "asymmetric_zscore_upside",
+          "tier": "edge",
+          "title": "Asymmetric upside z-score",
+          "novelty_claim": "Separates upside stretch from symmetric dispersion assumptions.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Asymmetric upside z-score",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "asymmetric_zscore_downside",
+          "tier": "edge",
+          "title": "Asymmetric downside z-score",
+          "novelty_claim": "Separates downside stretch from symmetric dispersion assumptions.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Asymmetric downside z-score",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "rolling_percentile_close_50",
+          "tier": "frontier",
+          "title": "50-bar close percentile rank",
+          "novelty_claim": "Distribution-aware position instead of distance-only.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "50-bar close percentile rank",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "equilibrium_drift_gap",
+          "tier": "frontier",
+          "title": "Equilibrium drift gap",
+          "novelty_claim": "Difference between current displacement and drifting mean level.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Equilibrium drift gap",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "return_curvature_5",
+          "tier": "frontier",
+          "title": "5-bar return curvature",
+          "novelty_claim": "Second-order shape of short displacement path.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "5-bar return curvature",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "impulse_decay_ratio",
+          "tier": "frontier",
+          "title": "Impulse decay ratio",
+          "novelty_claim": "How quickly initial move loses force after burst.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Impulse decay ratio",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "shock_reversal_pressure",
+          "tier": "frontier",
+          "title": "Shock reversal pressure",
+          "novelty_claim": "Combines large displacement with rapid recenter tendency.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Shock reversal pressure",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "extreme_percentile_persistence",
+          "tier": "frontier",
+          "title": "Extreme percentile persistence",
+          "novelty_claim": "Tracks how long price remains in distribution tails.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Extreme percentile persistence",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "displacement_vs_range_share",
+          "tier": "frontier",
+          "title": "Displacement vs range share",
+          "novelty_claim": "Compares net move to intrabar excursion footprint.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Displacement vs range share",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "equilibrium_escape_score",
+          "tier": "frontier",
+          "title": "Equilibrium escape score",
+          "novelty_claim": "Measures quality of departure from balance rather than size alone.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Return and displacement",
+          "canonical_title": "Equilibrium escape score",
+          "thesis_type": "measurement_control",
+          "core_question": "How far, how fast, and how abnormally price has moved relative to recent history or local equilibrium.",
+          "intuition": "These factors measure displacement before interpretation, so they serve as the raw stretch and impulse layer for later mean-reversion, breakout, and transition logic.",
+          "information_edge": "Useful when they help separate ordinary movement from abnormal stretch, drift, or directional shock.",
+          "non_edge_warning": "Raw displacement is often a control signal, not differentiated alpha by itself.",
+          "signal_roles": [
+            "recenter triggers",
+            "transition alerts",
+            "breakout context"
+          ],
+          "strategy_roles": [
+            "equilibrium_recenter",
+            "shock_reversal",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Using raw stretch as a standalone reversal trigger.",
+            "Treating every fast move as breakout confirmation without context."
+          ],
+          "validation_targets": [
+            "stretch_persistence",
+            "recenter_efficiency",
+            "impulse_contamination_rate"
+          ],
+          "baseline_control": "ret_1",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "measurement_control",
+      "template_status": "backfilled_v1"
+    },
+    "trend_path_structure": {
+      "title": "Trend and path structure",
+      "core_question": "Whether motion is aligned, persistent, decaying, or internally unstable.",
+      "factors": [
+        {
+          "factor_id": "ema_spread_8_21",
+          "tier": "core",
+          "title": "EMA spread 8-21 normalized",
+          "novelty_claim": "Compact local trend alignment baseline.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "EMA spread 8-21 normalized",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "ema_slope_8",
+          "tier": "core",
+          "title": "EMA 8 slope",
+          "novelty_claim": "Fast trend angle proxy.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "EMA 8 slope",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "ema_slope_21",
+          "tier": "core",
+          "title": "EMA 21 slope",
+          "novelty_claim": "Medium trend angle proxy.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "EMA 21 slope",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "close_above_ema21_pct",
+          "tier": "core",
+          "title": "Percent distance above EMA21",
+          "novelty_claim": "Trend extension relative to medium anchor.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Percent distance above EMA21",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "trend_persistence_10",
+          "tier": "core",
+          "title": "Trend persistence over 10 bars",
+          "novelty_claim": "Fraction of bars aligned with directional drift.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Trend persistence over 10 bars",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "pullback_depth_vs_trend",
+          "tier": "edge",
+          "title": "Pullback depth vs trend",
+          "novelty_claim": "Quantifies retrace severity within ongoing trend.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Pullback depth vs trend",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "trend_smoothness_10",
+          "tier": "edge",
+          "title": "Trend smoothness 10",
+          "novelty_claim": "Separates clean trends from noisy drifts.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Trend smoothness 10",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "higher_high_lower_low_balance",
+          "tier": "edge",
+          "title": "Higher-high lower-low balance",
+          "novelty_claim": "Structure-based bias independent of moving averages.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Higher-high lower-low balance",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "path_dependence_ratio",
+          "tier": "edge",
+          "title": "Path dependence ratio",
+          "novelty_claim": "Measures whether order of moves matters for state quality.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Path dependence ratio",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "swing_extension_score",
+          "tier": "edge",
+          "title": "Swing extension score",
+          "novelty_claim": "Degree to which current move extends prior swing.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Swing extension score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "trend_fragility_score",
+          "tier": "edge",
+          "title": "Trend fragility score",
+          "novelty_claim": "Likelihood trend breaks under modest counter-move.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Trend fragility score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "multi_anchor_alignment",
+          "tier": "edge",
+          "title": "Multi-anchor alignment",
+          "novelty_claim": "Alignment across fast, medium, and slow trend anchors.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Multi-anchor alignment",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "reclaim_failure_score",
+          "tier": "frontier",
+          "title": "Reclaim failure score",
+          "novelty_claim": "Quantifies failed attempts to recover broken trend structure.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Reclaim failure score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "drift_to_noise_ratio",
+          "tier": "frontier",
+          "title": "Drift to noise ratio",
+          "novelty_claim": "Path efficiency with explicit directional drift lens.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Drift to noise ratio",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "trend_memory_score",
+          "tier": "frontier",
+          "title": "Trend memory score",
+          "novelty_claim": "Persistence of directional state after interruption.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Trend memory score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "countertrend_absorption",
+          "tier": "frontier",
+          "title": "Countertrend absorption",
+          "novelty_claim": "How well prevailing trend absorbs opposing movement.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Countertrend absorption",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "slope_dispersion_score",
+          "tier": "frontier",
+          "title": "Slope dispersion score",
+          "novelty_claim": "Variation between multi-lookback slopes as instability proxy.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Slope dispersion score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "directional_reacceleration",
+          "tier": "frontier",
+          "title": "Directional reacceleration",
+          "novelty_claim": "Renewal of momentum after structured pause.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Directional reacceleration",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "late_trend_penalty",
+          "tier": "frontier",
+          "title": "Late trend penalty",
+          "novelty_claim": "Measures exhaustion risk from overextended path age.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Late trend penalty",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "trend_coherence_index",
+          "tier": "frontier",
+          "title": "Trend coherence index",
+          "novelty_claim": "Holistic path consistency score across anchors and swings.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Trend and path structure",
+          "canonical_title": "Trend coherence index",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "ema_spread_8_21",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "measurement_control",
+      "template_status": "backfilled_v1"
+    },
+    "volatility_compression": {
+      "title": "Volatility and compression",
+      "core_question": "Whether the market is compressed, expanding, shocked, or fragile.",
+      "factors": [
+        {
+          "factor_id": "volatility_20",
+          "tier": "core",
+          "title": "20-bar realized volatility normalized",
+          "novelty_claim": "Baseline close dispersion for regime and risk.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "20-bar realized volatility normalized",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "range_pct_1",
+          "tier": "core",
+          "title": "One-bar range percent",
+          "novelty_claim": "Simple intrabar expansion baseline.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "One-bar range percent",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "range_pct_5_mean",
+          "tier": "core",
+          "title": "Mean 5-bar range percent",
+          "novelty_claim": "Short realized range pressure.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Mean 5-bar range percent",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "compression_ratio_20",
+          "tier": "core",
+          "title": "Compression ratio 20",
+          "novelty_claim": "Current dispersion relative to longer baseline.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Compression ratio 20",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "bollinger_width_proxy",
+          "tier": "core",
+          "title": "Bollinger-width proxy factor",
+          "novelty_claim": "Factor-form compression measure before indicator packaging.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Bollinger-width proxy factor",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "true_range_shock",
+          "tier": "edge",
+          "title": "True range shock",
+          "novelty_claim": "Flags sudden intrabar instability spikes.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "True range shock",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "volatility_regime_shift",
+          "tier": "edge",
+          "title": "Volatility regime shift",
+          "novelty_claim": "Detects transition between quiet and expanding states.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Volatility regime shift",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "range_asymmetry_score",
+          "tier": "edge",
+          "title": "Range asymmetry score",
+          "novelty_claim": "Directional skew in intrabar excursion.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Range asymmetry score",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "wick_instability_ratio",
+          "tier": "edge",
+          "title": "Wick instability ratio",
+          "novelty_claim": "Separates unstable bars from clean directional bars.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Wick instability ratio",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "compression_persistence",
+          "tier": "edge",
+          "title": "Compression persistence",
+          "novelty_claim": "How long low-vol state has persisted before release.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Compression persistence",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "expansion_followthrough_ratio",
+          "tier": "edge",
+          "title": "Expansion follow-through ratio",
+          "novelty_claim": "Whether expansion extends or immediately mean reverts.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Expansion follow-through ratio",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "volatility_of_volatility",
+          "tier": "edge",
+          "title": "Volatility of volatility",
+          "novelty_claim": "Meta-instability rather than level alone.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Volatility of volatility",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "latent_breakout_pressure",
+          "tier": "frontier",
+          "title": "Latent breakout pressure",
+          "novelty_claim": "Compression combined with directional drift and participation hints.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Latent breakout pressure",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "shock_absorption_score",
+          "tier": "frontier",
+          "title": "Shock absorption score",
+          "novelty_claim": "How quickly market normalizes after volatility burst.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Shock absorption score",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "fragile_compression_index",
+          "tier": "frontier",
+          "title": "Fragile compression index",
+          "novelty_claim": "Compression likely to fail into disorder rather than clean breakout.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Fragile compression index",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "range_memory_gap",
+          "tier": "frontier",
+          "title": "Range memory gap",
+          "novelty_claim": "Difference between current range and remembered range state.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Range memory gap",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "directional_volatility_split",
+          "tier": "frontier",
+          "title": "Directional volatility split",
+          "novelty_claim": "Separates upside and downside volatility pressure.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Directional volatility split",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "quiet_trend_instability",
+          "tier": "frontier",
+          "title": "Quiet trend instability",
+          "novelty_claim": "Trend present but with hidden fragility under low vol.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Quiet trend instability",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "volatility_exhaustion_score",
+          "tier": "frontier",
+          "title": "Volatility exhaustion score",
+          "novelty_claim": "Expansion that is losing energy rather than beginning.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Volatility exhaustion score",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "squeeze_release_quality",
+          "tier": "frontier",
+          "title": "Squeeze release quality",
+          "novelty_claim": "Grades whether release from compression is tradable or chaotic.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Volatility and compression",
+          "canonical_title": "Squeeze release quality",
+          "thesis_type": "state_transition_measurement",
+          "core_question": "Is volatility compressing, expanding, or decaying in a way that changes setup quality?",
+          "intuition": "These factors describe the state of dispersion and pressure storage before directional interpretation is layered on top.",
+          "information_edge": "Useful when they identify orderly compression or unstable expansion better than simple range measures.",
+          "non_edge_warning": "Compression alone is not direction; expansion alone is not fresh opportunity.",
+          "signal_roles": [
+            "squeeze filters",
+            "volatility shifts",
+            "exhaustion alerts"
+          ],
+          "strategy_roles": [
+            "breakout_confirmation",
+            "volatility_transition"
+          ],
+          "misuse_patterns": [
+            "Treating all squeezes as breakout edge.",
+            "Fading every expansion as exhaustion."
+          ],
+          "validation_targets": [
+            "orderly_release_rate",
+            "false_breakout_rate",
+            "expansion_decay_quality"
+          ],
+          "baseline_control": "volatility_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "state_transition_measurement",
+      "template_status": "backfilled_v1"
+    },
+    "participation_conviction": {
+      "title": "Participation and conviction",
+      "core_question": "Whether activity, volume, and follow-through support a move or contradict it.",
+      "factors": [
+        {
+          "factor_id": "rel_volume_20",
+          "tier": "core",
+          "title": "Relative volume 20",
+          "novelty_claim": "Baseline activity confirmation.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Relative volume 20",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "volume_delta_1",
+          "tier": "core",
+          "title": "One-bar volume change",
+          "novelty_claim": "Immediate participation shift.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "One-bar volume change",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "volume_trend_10",
+          "tier": "core",
+          "title": "10-bar volume trend",
+          "novelty_claim": "Participation drift rather than single spike.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "10-bar volume trend",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "up_close_volume_share",
+          "tier": "core",
+          "title": "Up-close volume share",
+          "novelty_claim": "Directional participation bias.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Up-close volume share",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "participation_consistency_10",
+          "tier": "core",
+          "title": "Participation consistency 10",
+          "novelty_claim": "Whether conviction persists across bars.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Participation consistency 10",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "breakout_conviction_ratio",
+          "tier": "edge",
+          "title": "Breakout conviction ratio",
+          "novelty_claim": "Volume support specifically during structural escape.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Breakout conviction ratio",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "volume_burstiness_score",
+          "tier": "edge",
+          "title": "Volume burstiness score",
+          "novelty_claim": "Distinguishes smooth participation from sporadic bursts.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Volume burstiness score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "move_per_unit_volume",
+          "tier": "edge",
+          "title": "Move per unit volume",
+          "novelty_claim": "Efficiency of price motion relative to activity.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Move per unit volume",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "exhaustion_volume_signature",
+          "tier": "edge",
+          "title": "Exhaustion volume signature",
+          "novelty_claim": "High activity with weakening continuation.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Exhaustion volume signature",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "quiet_break_quality",
+          "tier": "edge",
+          "title": "Quiet break quality",
+          "novelty_claim": "Whether low-volume breakouts still have structural quality.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Quiet break quality",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "confirmation_decay_score",
+          "tier": "edge",
+          "title": "Confirmation decay score",
+          "novelty_claim": "Participation fading after initial trigger.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Confirmation decay score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "participation_divergence_index",
+          "tier": "edge",
+          "title": "Participation divergence index",
+          "novelty_claim": "Price direction and activity disagree.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Participation divergence index",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "conviction_reacceleration",
+          "tier": "frontier",
+          "title": "Conviction reacceleration",
+          "novelty_claim": "Participation returns after pause inside trend.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Conviction reacceleration",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "volume_supported_absorption",
+          "tier": "frontier",
+          "title": "Volume-supported absorption",
+          "novelty_claim": "Counter-move absorbed while participation stays constructive.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Volume-supported absorption",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "latent_participation_pressure",
+          "tier": "frontier",
+          "title": "Latent participation pressure",
+          "novelty_claim": "Rising activity before visible range expansion.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Latent participation pressure",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "failed_move_participation_penalty",
+          "tier": "frontier",
+          "title": "Failed-move participation penalty",
+          "novelty_claim": "Strong activity spent on low-quality move.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Failed-move participation penalty",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "conviction_asymmetry_up_down",
+          "tier": "frontier",
+          "title": "Conviction asymmetry up vs down",
+          "novelty_claim": "Directional skew in supporting activity.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Conviction asymmetry up vs down",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "participation_fragility_score",
+          "tier": "frontier",
+          "title": "Participation fragility score",
+          "novelty_claim": "Participation that appears high but lacks persistence.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Participation fragility score",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "effort_vs_result_gap",
+          "tier": "frontier",
+          "title": "Effort vs result gap",
+          "novelty_claim": "Large activity with poor price response.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Effort vs result gap",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "volume_regime_contamination",
+          "tier": "frontier",
+          "title": "Volume regime contamination",
+          "novelty_claim": "Activity spikes inconsistent with prevailing state.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Participation and conviction",
+          "canonical_title": "Volume regime contamination",
+          "thesis_type": "measurement_control",
+          "core_question": "What market property does this factor measure before higher-level interpretation?",
+          "intuition": "This factor captures a low-level market descriptor intended for downstream composition.",
+          "information_edge": "Useful if it adds stable, interpretable information to downstream objects.",
+          "non_edge_warning": "A factor is often a control measurement, not alpha by itself.",
+          "signal_roles": [
+            "context"
+          ],
+          "strategy_roles": [
+            "research_control"
+          ],
+          "misuse_patterns": [
+            "Using the factor as standalone alpha."
+          ],
+          "validation_targets": [
+            "downstream_lift"
+          ],
+          "baseline_control": "rel_volume_20",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "measurement_control",
+      "template_status": "backfilled_v1"
+    },
+    "microstructure_execution": {
+      "title": "Microstructure and execution state",
+      "core_question": "Whether spread, imbalance, aggressor flow, and local liquidity support execution and signal quality.",
+      "factors": [
+        {
+          "factor_id": "quoted_spread_bps",
+          "tier": "core",
+          "title": "Quoted spread in bps",
+          "novelty_claim": "Baseline execution friction measure.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Quoted spread in bps",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "mid_deviation_last_trade",
+          "tier": "core",
+          "title": "Last trade deviation from mid",
+          "novelty_claim": "Micro-dislocation proxy.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Last trade deviation from mid",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "bid_ask_update_rate",
+          "tier": "core",
+          "title": "Bid-ask update rate",
+          "novelty_claim": "Local quote activity baseline.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Bid-ask update rate",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "trade_intensity_1s",
+          "tier": "core",
+          "title": "Trade intensity 1s",
+          "novelty_claim": "Short-horizon execution tempo.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Trade intensity 1s",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "microprice_pressure_proxy",
+          "tier": "core",
+          "title": "Microprice pressure proxy",
+          "novelty_claim": "Direction of near-term quote pressure using available state.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Microprice pressure proxy",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "benchmark"
+        },
+        {
+          "factor_id": "aggressor_imbalance_5s",
+          "tier": "edge",
+          "title": "Aggressor imbalance 5s",
+          "novelty_claim": "Directional pressure from initiated flow.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Aggressor imbalance 5s",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "spread_instability_score",
+          "tier": "edge",
+          "title": "Spread instability score",
+          "novelty_claim": "Execution quality deterioration before visible dislocation.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Spread instability score",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "quote_fade_ratio",
+          "tier": "edge",
+          "title": "Quote fade ratio",
+          "novelty_claim": "How often displayed liquidity disappears under pressure.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Quote fade ratio",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "liquidity_recovery_speed",
+          "tier": "edge",
+          "title": "Liquidity recovery speed",
+          "novelty_claim": "How quickly book conditions normalize after stress.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Liquidity recovery speed",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "trade_to_quote_pressure",
+          "tier": "edge",
+          "title": "Trade to quote pressure",
+          "novelty_claim": "Whether transactions or quote motion dominates state.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Trade to quote pressure",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "micro_reversion_tendency",
+          "tier": "edge",
+          "title": "Micro reversion tendency",
+          "novelty_claim": "Short-horizon snapback probability under small dislocations.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Micro reversion tendency",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "execution_friction_score",
+          "tier": "edge",
+          "title": "Execution friction score",
+          "novelty_claim": "Composite of spread, update speed, and dislocation.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Execution friction score",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "adverse_selection_risk_proxy",
+          "tier": "frontier",
+          "title": "Adverse selection risk proxy",
+          "novelty_claim": "Likelihood passive fill is immediately punished.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Adverse selection risk proxy",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "liquidity_trap_signature",
+          "tier": "frontier",
+          "title": "Liquidity trap signature",
+          "novelty_claim": "Conditions where apparent liquidity invites bad entry.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Liquidity trap signature",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "quote_pressure_exhaustion",
+          "tier": "frontier",
+          "title": "Quote pressure exhaustion",
+          "novelty_claim": "One-sided quote pressure losing effect.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Quote pressure exhaustion",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "micro_breakout_quality",
+          "tier": "frontier",
+          "title": "Micro breakout quality",
+          "novelty_claim": "Whether local tape supports breakout execution quality.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Micro breakout quality",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "slippage_hazard_index",
+          "tier": "frontier",
+          "title": "Slippage hazard index",
+          "novelty_claim": "Composite pre-trade slippage warning.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Slippage hazard index",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "micro_transition_ambiguity",
+          "tier": "frontier",
+          "title": "Micro transition ambiguity",
+          "novelty_claim": "Tape mixed enough to reject otherwise valid signal.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Micro transition ambiguity",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "liquidity_stress_rebound",
+          "tier": "frontier",
+          "title": "Liquidity stress rebound",
+          "novelty_claim": "Post-stress recovery quality as a signal filter.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Liquidity stress rebound",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        },
+        {
+          "factor_id": "execution_readiness_score",
+          "tier": "frontier",
+          "title": "Execution readiness score",
+          "novelty_claim": "Composite readiness metric for strategy promotion from signal to tradeable candidate.",
+          "preferred_regimes": [
+            "context_dependent"
+          ],
+          "avoid_regimes": [
+            "context_dependent"
+          ],
+          "failure_modes": [
+            "Requires dedicated validation before production use."
+          ],
+          "validator_checks": [
+            "schema",
+            "novelty",
+            "lineage",
+            "thesis_fit",
+            "redundancy"
+          ],
+          "family": "Microstructure and execution state",
+          "canonical_title": "Execution readiness score",
+          "thesis_type": "tradeability_measurement",
+          "core_question": "Is the setup realistically tradeable under current liquidity, tape, and execution conditions?",
+          "intuition": "These factors do not predict direction as much as they veto or qualify whether execution quality is acceptable.",
+          "information_edge": "Useful when avoiding bad trades matters more than adding extra entries.",
+          "non_edge_warning": "Tradeability context is usually a gating layer, not a directional edge by itself.",
+          "signal_roles": [
+            "hazard vetoes",
+            "liquidity traps",
+            "execution readiness"
+          ],
+          "strategy_roles": [
+            "execution_aware_overlay",
+            "breakout_execution_gated"
+          ],
+          "misuse_patterns": [
+            "Treating execution filters as directional alpha.",
+            "Ignoring slippage and adverse selection in fast markets."
+          ],
+          "validation_targets": [
+            "bad_trade_reduction",
+            "slippage_avoidance_delta",
+            "liquidity_trap_precision"
+          ],
+          "baseline_control": "quoted_spread_bps",
+          "promotion_preference": "candidate_if_measurable_lift"
+        }
+      ],
+      "thesis_type": "tradeability_measurement",
+      "template_status": "backfilled_v1"
+    }
+  }
+}

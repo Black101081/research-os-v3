@@ -1,0 +1,131 @@
+{
+  "message_counts": {
+    "subscriptionResponse": 4,
+    "trades": 1,
+    "candle": 1,
+    "bbo": 11,
+    "allMids": 1
+  },
+  "bars_loaded": 1,
+  "last_bar_ts": "2026-07-05T00:52:00+00:00",
+  "last_trade": 63019.0,
+  "mid": 63019.5,
+  "factor_keys": [],
+  "indicator_keys": [],
+  "regime_state": {
+    "regime": "range_chop",
+    "confidence": 0.64,
+    "tradable": true,
+    "why": {
+      "ret_5": 0.0,
+      "volatility_20": 0.0,
+      "macd": 0.0,
+      "bollinger_width": 0.0,
+      "zscore_close": 0.0
+    }
+  },
+  "signals": {
+    "bollinger_squeeze_breakout": {
+      "active": false,
+      "why": {
+        "squeeze": false,
+        "breakout": false,
+        "relative_volume": false,
+        "regime_ok": false
+      },
+      "template_family": "breakout",
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "event_driven"
+      ],
+      "thesis": "Compression regimes can precede directional expansion; breakouts are stronger when squeeze resolves with regime confirmation."
+    },
+    "zscore_recenter": {
+      "active": false,
+      "why": {
+        "zscore": 0.0,
+        "zscore_entry_condition": false,
+        "regime_ok": true
+      },
+      "template_family": "mean_reversion",
+      "preferred_regimes": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "uptrend",
+        "downtrend",
+        "high_volatility"
+      ],
+      "thesis": "Standardized displacement from local equilibrium can be systematically faded when structure remains balanced."
+    },
+    "macd_trend_continuation": {
+      "active": false,
+      "why": {
+        "macd": 0.0,
+        "macd_signal": 0.0,
+        "macd_above_signal": false,
+        "regime_ok": false
+      },
+      "template_family": "trend_continuation",
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "transition_ambiguous",
+        "event_driven"
+      ],
+      "thesis": "Join an established trend when momentum resumes after already aligning with the prevailing direction."
+    }
+  },
+  "strategies": {
+    "bollinger_squeeze_breakout": {
+      "status": "standby",
+      "signal_name": "bollinger_squeeze_breakout",
+      "symbol": "BTC",
+      "entry_side": "long",
+      "thesis_state": "not_triggered",
+      "execution_ready": false,
+      "last_price": 63019.0,
+      "updated_at": "2026-07-05T00:52:46.045864",
+      "regime": "range_chop"
+    },
+    "zscore_recenter": {
+      "status": "standby",
+      "signal_name": "zscore_recenter",
+      "symbol": "BTC",
+      "entry_side": "long",
+      "thesis_state": "not_triggered",
+      "execution_ready": false,
+      "last_price": 63019.0,
+      "updated_at": "2026-07-05T00:52:46.045864",
+      "regime": "range_chop"
+    },
+    "macd_trend_continuation": {
+      "status": "standby",
+      "signal_name": "macd_trend_continuation",
+      "symbol": "BTC",
+      "entry_side": "long",
+      "thesis_state": "not_triggered",
+      "execution_ready": false,
+      "last_price": 63019.0,
+      "updated_at": "2026-07-05T00:52:46.045864",
+      "regime": "range_chop"
+    }
+  },
+  "errors": [],
+  "latest_bar": {
+    "ts": "2026-07-05T00:52:00+00:00",
+    "open": 63024.0,
+    "high": 63025.0,
+    "low": 63019.0,
+    "close": 63019.0,
+    "volume": 3.05371
+  }
+}

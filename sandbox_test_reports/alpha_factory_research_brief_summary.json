@@ -1,0 +1,13 @@
+{
+  "implemented_research_brief_generator_v1": [
+    "research_brief_generator.py",
+    "alpha_factory_runner.py",
+    "tests/test_research_brief_generator.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                     [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m4 passed\u001b[0m\u001b[32m in 0.04s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"json_path\": \"/home/user/output/research_os_v3/sandbox_test_reports/alpha_registry_store_brief_demo/briefs/brief_demo.json\", \"md_path\": \"/home/user/output/research_os_v3/sandbox_test_reports/alpha_registry_store_brief_demo/briefs/brief_demo.md\", \"top_ranked_count\": 3, \"promoted_count\": 2, \"decay_flag_count\": 1, \"revalidation_task_count\": 1}\n",
+  "smoke_stderr": ""
+}

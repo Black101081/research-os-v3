@@ -1,0 +1,23 @@
+{
+  "implemented_in_order": [
+    "factor_catalog_v1.json",
+    "research_knowledge/factor_expression_grammar_v1.md",
+    "signal_template_library_v1.json",
+    "signal_generator.py",
+    "candidate_pruner.py",
+    "signal_lineage.py",
+    "alpha_registry_schema_v1.json",
+    "alpha_registry.py",
+    "alpha_registry_store.py",
+    "research_knowledge/validation_scorecard_spec_v1.md",
+    "ranking_engine.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                 [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m8 passed\u001b[0m\u001b[32m in 0.05s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"generated_candidates\": 5, \"kept_candidates\": 5, \"dropped_candidates\": 0, \"alpha_definitions\": 3, \"top_ranked_alpha\": \"alpha_1\", \"top_research_score\": 95.2}",
+  "smoke_stderr": "",
+  "compile_stdout_tail": "Compiling '/home/user/output/research_os_v3/alpha_registry_store.py'...\n",
+  "compile_stderr_tail": ""
+}

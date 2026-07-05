@@ -1,0 +1,13 @@
+{
+  "implemented_alpha_factory_demo_v1": [
+    "alpha_factory_demo_v1.py",
+    "tests/test_alpha_factory_demo_v1.py",
+    "sandbox_test_reports/alpha_factory_demo_v1_smoke.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                      [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m3 passed\u001b[0m\u001b[32m in 0.04s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"candidate_count\": 3, \"registered_alpha_count\": 3, \"validation_scorecard_count\": 4, \"top_ranked_alpha\": \"alpha_1\", \"top_research_score\": 127.4135, \"promoted_count\": 3, \"demoted_count\": 0, \"quarantined_count\": 0, \"decay_profile_count\": 1, \"revalidation_task_count\": 1, \"brief_json_path\": \"/home/user/output/research_os_v3/sandbox_test_reports/alpha_factory_demo_v1_run/registry_store/briefs/alpha_factory_demo_v1_brief.json\", \"brief_md_path\": \"/home/user/output/research_os_v3/sandbox_test_reports/alpha_factory_demo_v1_run/registry_store/briefs/alpha_factory_demo_v1_brief.md\"}\n",
+  "smoke_stderr": ""
+}

@@ -1,0 +1,18 @@
+{
+  "implemented_next_steps": [
+    "validation_runner.py",
+    "alpha_lifecycle.py",
+    "promotion_engine.py",
+    "research_knowledge/alpha_lifecycle_states.md",
+    "tests/test_validation_runner.py",
+    "tests/test_alpha_lifecycle.py",
+    "tests/test_promotion_engine.py",
+    "tests/test_signal_validation_promotion_flow.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                 [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m8 passed\u001b[0m\u001b[32m in 0.05s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"scorecards\": [{\"alpha_id\": \"alpha_1\", \"validation_run_id\": \"validation_0_1783229061\", \"sample_window\": \"sample_v1\", \"train_window\": null, \"test_window\": \"test_v1\", \"walk_forward_slice_id\": null, \"expectancy\": 0.03, \"sharpe\": 1.9, \"sortino\": 2.3, \"drawdown_max\": 0.08, \"turnover\": 0.25, \"capacity_proxy\": 0.7, \"win_rate\": 0.56, \"profit_factor\": null, \"stability_score\": 0.795, \"overfit_risk_score\": 0.1, \"validation_status\": \"accepted_for_ranking\", \"rejection_reasons\": [], \"created_at\": \"2026-07-05T05:24:21.869104+00:00\", \"candidate_id\": \"750c5d1723b2043c\", \"template_family\": \"breakout\", \"trigger_definition\": \"BollingerWidth < 0.03 and live_ret_from_last_close > 0.001\", \"research_score\": 104.375}, {\"alpha_id\": \"alpha_2\", \"validation_run_id\": \"validation_1_1783229061\", \"sample_window\": \"sample_v1\", \"train_window\": null, \"test_window\": \"test_v1\", \"walk_forward_slice_id\": null, \"expectancy\": -0.01, \"sharpe\": 0.3, \"sortino\": 0.2, \"drawdown_max\": 0.15, \"turnover\": 0.4, \"capacity_proxy\": 0.6, \"win_rate\": 0.45, \"profit_factor\": null, \"stability_score\": 0.6499999999999999, \"overfit_risk_score\": 0.1, \"validation_status\": \"reject\", \"rejection_reasons\": [\"non_positive_expectancy\"], \"created_at\": \"2026-07-05T05:24:21.869126+00:00\", \"candidate_id\": \"436dec53f1c5a137\", \"template_family\": \"mean_reversion\", \"trigger_definition\": \"zscore_close_20 < -1.5 and micro_volatility_20 < 0.004\", \"research_score\": 14.75}], \"decisions\": [{\"alpha_id\": \"alpha_1\", \"alpha_name\": \"750c5d1723b2043c\", \"current_state\": \"validated\", \"target_state\": \"promoted\", \"transition_allowed\": true, \"trigger_reason\": \"promotion_threshold_met\", \"supporting_validation_run_id\": \"validation_0_1783229061\", \"research_score\": 104.375, \"created_at\": \"2026-07-05T05:24:21.869150+00:00\"}, {\"alpha_id\": \"alpha_2\", \"alpha_name\": \"436dec53f1c5a137\", \"current_state\": \"validated\", \"target_state\": \"demoted\", \"transition_allowed\": true, \"trigger_reason\": \"low_research_score_or_rejected_validation\", \"supporting_validation_run_id\": \"validation_1_1783229061\", \"research_score\": 14.75, \"created_at\": \"2026-07-05T05:24:21.869158+00:00\"}]}\n",
+  "smoke_stderr": ""
+}

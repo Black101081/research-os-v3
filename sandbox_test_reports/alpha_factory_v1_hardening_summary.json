@@ -1,0 +1,15 @@
+{
+  "implemented_alpha_factory_v1_hardening": [
+    "alpha_registry.py",
+    "alpha_factory_runner.py",
+    "alpha_factory_demo_v1.py",
+    "research_knowledge/alpha_factory_v1_checklist.md",
+    "tests/test_alpha_factory_v1_hardening.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                     [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m4 passed\u001b[0m\u001b[32m in 0.07s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"alpha_count\": 3, \"validation_scorecard_count\": 4, \"latest_scorecard_count\": 3, \"lifecycle_event_count\": 3, \"decay_profile_count\": 1, \"revalidation_task_count\": 1, \"top_alpha_id\": \"alpha_3\"}\n",
+  "smoke_stderr": ""
+}

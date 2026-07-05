@@ -1,0 +1,113 @@
+{
+  "version": "indicator_registry_v1",
+  "indicators": {
+    "MACD": {
+      "params": [
+        12,
+        26,
+        9
+      ],
+      "family": "momentum_trend",
+      "depends_on": [
+        "bars"
+      ],
+      "used_by": [
+        "macd_trend_continuation",
+        "regime_engine"
+      ]
+    },
+    "MACD_signal": {
+      "params": [
+        12,
+        26,
+        9
+      ],
+      "family": "momentum_trend",
+      "depends_on": [
+        "MACD"
+      ]
+    },
+    "MACD_hist": {
+      "params": [
+        12,
+        26,
+        9
+      ],
+      "family": "momentum_trend",
+      "depends_on": [
+        "MACD",
+        "MACD_signal"
+      ]
+    },
+    "BBANDS_mid": {
+      "params": [
+        20,
+        2
+      ],
+      "family": "volatility_structure",
+      "depends_on": [
+        "bars"
+      ]
+    },
+    "BBANDS_upper": {
+      "params": [
+        20,
+        2
+      ],
+      "family": "volatility_structure",
+      "depends_on": [
+        "bars"
+      ]
+    },
+    "BBANDS_lower": {
+      "params": [
+        20,
+        2
+      ],
+      "family": "volatility_structure",
+      "depends_on": [
+        "bars"
+      ]
+    },
+    "BollingerWidth": {
+      "params": [
+        20,
+        2
+      ],
+      "family": "volatility_structure",
+      "depends_on": [
+        "BBANDS_upper",
+        "BBANDS_lower",
+        "BBANDS_mid"
+      ],
+      "used_by": [
+        "bollinger_squeeze_breakout",
+        "regime_engine"
+      ]
+    },
+    "ZScore_Close": {
+      "params": [
+        20
+      ],
+      "family": "displacement",
+      "depends_on": [
+        "zscore_close_20"
+      ],
+      "used_by": [
+        "zscore_recenter"
+      ]
+    },
+    "RelativeVolume": {
+      "params": [
+        20
+      ],
+      "family": "participation",
+      "depends_on": [
+        "rel_volume_20"
+      ],
+      "used_by": [
+        "bollinger_squeeze_breakout"
+      ]
+    }
+  }
+}

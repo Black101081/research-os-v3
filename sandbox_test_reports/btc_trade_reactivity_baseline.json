@@ -1,0 +1,130 @@
+{
+  "bar_count": 50,
+  "last_bar_ts": "2026-07-05T03:22:00+00:00",
+  "factors": {
+    "ret_1": -0.00015948454594749695,
+    "ret_5": -0.0009879848296523441,
+    "ema_spread_8_21": -9.290043694647554e-05,
+    "rel_volume_20": 0.6695698623204757,
+    "zscore_close_20": -2.320064360438593,
+    "volatility_20": 0.0003675116959017047
+  },
+  "indicators": {
+    "MACD": 2.1753394774350454,
+    "MACD_signal": 11.212658291018109,
+    "MACD_hist": -9.037318813583063,
+    "BBANDS_mid": 62745.5,
+    "BBANDS_upper": 62791.6194102304,
+    "BBANDS_lower": 62699.3805897696,
+    "BollingerWidth": 0.0014700467836067865,
+    "ZScore_Close": -2.320064360438593,
+    "RelativeVolume": 0.6695698623204757
+  },
+  "regime_state": {
+    "regime": "transition_ambiguous",
+    "confidence": 0.51,
+    "tradable": false,
+    "why": {
+      "ret_5": -0.0009879848296523441,
+      "volatility_20": 0.0003675116959017047,
+      "macd": 2.1753394774350454,
+      "bollinger_width": 0.0014700467836067865,
+      "zscore_close": -2.320064360438593
+    }
+  },
+  "signals": {
+    "bollinger_squeeze_breakout": {
+      "active": false,
+      "why": {
+        "squeeze": true,
+        "breakout": false,
+        "relative_volume": false,
+        "regime_ok": true
+      },
+      "template_family": "breakout",
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "event_driven"
+      ],
+      "thesis": "Compression regimes can precede directional expansion; breakouts are stronger when squeeze resolves with regime confirmation."
+    },
+    "zscore_recenter": {
+      "active": false,
+      "why": {
+        "zscore": -2.320064360438593,
+        "zscore_entry_condition": true,
+        "regime_ok": false
+      },
+      "template_family": "mean_reversion",
+      "preferred_regimes": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "uptrend",
+        "downtrend",
+        "high_volatility"
+      ],
+      "thesis": "Standardized displacement from local equilibrium can be systematically faded when structure remains balanced."
+    },
+    "macd_trend_continuation": {
+      "active": false,
+      "why": {
+        "macd": 2.1753394774350454,
+        "macd_signal": 11.212658291018109,
+        "macd_above_signal": false,
+        "regime_ok": false
+      },
+      "template_family": "trend_continuation",
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "transition_ambiguous",
+        "event_driven"
+      ],
+      "thesis": "Join an established trend when momentum resumes after already aligning with the prevailing direction."
+    }
+  },
+  "strategies": {
+    "bollinger_squeeze_breakout": {
+      "status": "standby",
+      "signal_name": "bollinger_squeeze_breakout",
+      "symbol": "BTC",
+      "entry_side": "long",
+      "thesis_state": "not_triggered",
+      "execution_ready": false,
+      "last_price": 62692.0,
+      "updated_at": "2026-07-05T03:22:55.960265",
+      "regime": "transition_ambiguous"
+    },
+    "zscore_recenter": {
+      "status": "standby",
+      "signal_name": "zscore_recenter",
+      "symbol": "BTC",
+      "entry_side": "long",
+      "thesis_state": "not_triggered",
+      "execution_ready": false,
+      "last_price": 62692.0,
+      "updated_at": "2026-07-05T03:22:55.960265",
+      "regime": "transition_ambiguous"
+    },
+    "macd_trend_continuation": {
+      "status": "standby",
+      "signal_name": "macd_trend_continuation",
+      "symbol": "BTC",
+      "entry_side": "long",
+      "thesis_state": "not_triggered",
+      "execution_ready": false,
+      "last_price": 62692.0,
+      "updated_at": "2026-07-05T03:22:55.960265",
+      "regime": "transition_ambiguous"
+    }
+  }
+}

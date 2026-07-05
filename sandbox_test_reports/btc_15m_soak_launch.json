@@ -1,0 +1,8 @@
+{
+  "script": "sandbox_test_reports/btc_15m_soak_runner.py",
+  "status_file": "sandbox_test_reports/btc_15m_soak_status.json",
+  "pid": 1179,
+  "started": true,
+  "started_at_utc": "2026-07-05T04:57:56.553419+00:00",
+  "expected_end_utc": "2026-07-05T05:12:56.553419+00:00"
+}

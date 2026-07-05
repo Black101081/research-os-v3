@@ -1,0 +1,13 @@
+message_idx,trade_batch_size,last_trade_before,last_trade_after,bars_changed,factor_values_changed,indicator_values_changed,regime_changed,signals_changed,strategies_changed,active_signals_before,active_signals_after,execution_ready_after
+2,30,,62692.0,False,False,False,False,False,True,0,0,0
+3,3,62692.0,62692.0,False,False,False,False,False,True,0,0,0
+4,1,62692.0,62693.0,False,False,False,False,False,True,0,0,0
+5,2,62693.0,62691.0,False,False,False,False,False,True,0,0,0
+6,1,62691.0,62691.0,False,False,False,False,False,True,0,0,0
+7,5,62691.0,62687.0,False,False,False,False,False,True,0,0,0
+8,2,62687.0,62686.0,False,False,False,False,False,True,0,0,0
+9,1,62686.0,62687.0,False,False,False,False,False,True,0,0,0
+10,5,62687.0,62692.0,False,False,False,False,False,True,0,0,0
+11,2,62692.0,62693.0,False,False,False,False,False,True,0,0,0
+12,4,62693.0,62695.0,False,False,False,False,False,True,0,0,0
+13,2,62695.0,62697.0,False,False,False,False,False,True,0,0,0

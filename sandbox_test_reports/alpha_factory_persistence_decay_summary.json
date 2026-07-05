@@ -1,0 +1,19 @@
+{
+  "implemented_followup": [
+    "alpha_registry.py",
+    "alpha_registry_store.py",
+    "validation_runner.py",
+    "promotion_engine.py",
+    "decay_tracker.py",
+    "alpha_factory_runner.py",
+    "tests/test_alpha_registry.py",
+    "tests/test_decay_tracker.py",
+    "tests/test_alpha_factory_runner.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                  [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m7 passed\u001b[0m\u001b[32m in 0.06s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"scorecards\": 2, \"decisions\": [{\"alpha_id\": \"alpha_1\", \"alpha_name\": \"breakout_1\", \"current_state\": \"validated\", \"target_state\": \"promoted\", \"transition_allowed\": true, \"trigger_reason\": \"promotion_threshold_met\", \"supporting_validation_run_id\": \"validation_0_1783229644\", \"research_score\": 104.375, \"created_at\": \"2026-07-05T05:34:04.153986+00:00\"}, {\"alpha_id\": \"alpha_2\", \"alpha_name\": \"mean_reversion_2\", \"current_state\": \"validated\", \"target_state\": \"demoted\", \"transition_allowed\": true, \"trigger_reason\": \"low_research_score_or_rejected_validation\", \"supporting_validation_run_id\": \"validation_1_1783229644\", \"research_score\": 14.75, \"created_at\": \"2026-07-05T05:34:04.153998+00:00\"}], \"decay_profiles\": [{\"alpha_id\": \"alpha_1\", \"observation_window\": \"validation_0_1783229644->run_later\", \"prior_research_score\": 104.375, \"current_research_score\": 50.0, \"delta_score\": -54.375, \"prior_sharpe\": 1.9, \"current_sharpe\": 1.0, \"prior_expectancy\": 0.03, \"current_expectancy\": 0.01, \"decay_flag\": true, \"decay_reason\": \"research_score_drop,sharpe_drop,expectancy_drop\", \"created_at\": \"2026-07-05T05:34:04.154100+00:00\"}]}\n",
+  "smoke_stderr": ""
+}

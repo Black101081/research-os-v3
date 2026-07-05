@@ -1,0 +1,17 @@
+{
+  "endpoint": "wss://api.hyperliquid.xyz/ws",
+  "coin": "BTC",
+  "run_seconds": 45,
+  "connect_ok": true,
+  "acks": 1,
+  "messages_received": 17,
+  "trades_received": 48,
+  "latency_connect_ms": 225.8,
+  "latency_first_ack_ms": 101.63,
+  "latency_first_trade_ms": 103.55,
+  "errors": [
+    "WebSocketTimeoutException: Connection timed out"
+  ],
+  "started_at_utc": "2026-07-05T03:16:17.490024+00:00",
+  "ended_at_utc": "2026-07-05T03:16:46.807211+00:00"
+}

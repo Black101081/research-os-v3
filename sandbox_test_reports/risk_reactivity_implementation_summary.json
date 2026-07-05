@@ -1,0 +1,78 @@
+{
+  "implemented_files": [
+    "risk_models.py",
+    "risk_engine.py",
+    "reactivity_diff.py",
+    "realtime_engine.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "tcnow().strftime('%Y%m%d%H%M%S')}\",\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_full_pipeline_generates_strategy_spec_when_signal_active\ntests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet\ntests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist\ntests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist\n  /home/user/output/research_os_v3/strategy_spec_builder.py:14: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    'created_at': datetime.utcnow().isoformat(),\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_full_pipeline_generates_strategy_spec_when_signal_active\ntests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet\ntests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist\ntests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist\n  /home/user/output/research_os_v3/playbook_bridge.py:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    'created_at': datetime.utcnow().isoformat(),\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_registry_writes_snapshot_specs_and_packets\n  /home/user/output/research_os_v3/registry_writer.py:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    payload = {'ts': datetime.utcnow().isoformat(), 'snapshot': snapshot}\n\ntests/test_engine_pipeline.py::EnginePipelineTests::test_registry_writes_snapshot_specs_and_packets\n  /home/user/output/research_os_v3/registry_writer.py:23: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).\n    ts = datetime.utcnow().isoformat()\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n\u001b[33m\u001b[32m9 passed\u001b[0m, \u001b[33m\u001b[1m14 warnings\u001b[0m\u001b[33m in 0.18s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_snapshot_checks": {
+    "has_risk_packets": true,
+    "has_recent_reactivity": true,
+    "has_current_bar": true,
+    "strategy_execution_ready_count": 1,
+    "risk_statuses": {
+      "bollinger_squeeze_breakout": "BLOCK",
+      "zscore_recenter": "BLOCK",
+      "macd_trend_continuation": "ALLOW_WITH_WARNINGS"
+    },
+    "first_reactivity_diff": {
+      "symbol": "BTC",
+      "message_type": "trades",
+      "processed_at": "2026-07-05T04:52:21.274344+00:00",
+      "current_bar_changed": true,
+      "factors_changed": [
+        "ema_spread_8_21",
+        "last_trade_minus_mid_bps",
+        "live_ret_from_last_close",
+        "rel_volume_20",
+        "ret_1",
+        "ret_5",
+        "trade_flow_imbalance_20",
+        "trade_size_mean_20",
+        "volatility_20",
+        "zscore_close_20"
+      ],
+      "indicators_changed": [
+        "BBANDS_lower",
+        "BBANDS_mid",
+        "BBANDS_upper",
+        "BollingerWidth",
+        "LiveReturnFromClose",
+        "MACD",
+        "MACD_hist",
+        "MACD_signal",
+        "RelativeVolume",
+        "TradeFlowImbalance",
+        "ZScore_Close"
+      ],
+      "regime_changed": true,
+      "signals_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "strategies_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "risk_changed": true,
+      "risk_packets_changed": [
+        "bollinger_squeeze_breakout",
+        "macd_trend_continuation",
+        "zscore_recenter"
+      ],
+      "validation_changed": true,
+      "reactive_source": "live_intrabar"
+    }
+  },
+  "smoke_debug": {
+    "returncode": 0,
+    "stderr": "",
+    "stdout_tail": ", \"zscore_recenter\"], \"validation_changed\": true, \"reactive_source\": \"bar_close\"}, {\"symbol\": \"BTC\", \"message_type\": \"candle\", \"processed_at\": \"2026-07-05T04:52:21.273210+00:00\", \"current_bar_changed\": false, \"factors_changed\": [\"ema_spread_8_21\", \"rel_volume_20\", \"ret_1\", \"ret_5\", \"volatility_20\"], \"indicators_changed\": [\"BBANDS_lower\", \"BBANDS_mid\", \"BBANDS_upper\", \"BollingerWidth\", \"MACD\", \"MACD_hist\", \"MACD_signal\", \"RelativeVolume\"], \"regime_changed\": true, \"signals_changed\": [\"macd_trend_continuation\"], \"strategies_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"risk_changed\": true, \"risk_packets_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"validation_changed\": true, \"reactive_source\": \"bar_close\"}, {\"symbol\": \"BTC\", \"message_type\": \"candle\", \"processed_at\": \"2026-07-05T04:52:21.273536+00:00\", \"current_bar_changed\": false, \"factors_changed\": [\"ema_spread_8_21\", \"rel_volume_20\", \"ret_1\", \"ret_5\", \"volatility_20\"], \"indicators_changed\": [\"BBANDS_lower\", \"BBANDS_mid\", \"BBANDS_upper\", \"BollingerWidth\", \"MACD\", \"MACD_hist\", \"MACD_signal\", \"RelativeVolume\"], \"regime_changed\": true, \"signals_changed\": [\"macd_trend_continuation\"], \"strategies_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"risk_changed\": true, \"risk_packets_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"validation_changed\": true, \"reactive_source\": \"bar_close\"}, {\"symbol\": \"BTC\", \"message_type\": \"bbo\", \"processed_at\": \"2026-07-05T04:52:21.273946+00:00\", \"current_bar_changed\": false, \"factors_changed\": [\"spread_bps\"], \"indicators_changed\": [\"SpreadBps\"], \"regime_changed\": false, \"signals_changed\": [], \"strategies_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"risk_changed\": true, \"risk_packets_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"validation_changed\": true, \"reactive_source\": \"bar_close\"}, {\"symbol\": \"BTC\", \"message_type\": \"trades\", \"processed_at\": \"2026-07-05T04:52:21.274344+00:00\", \"current_bar_changed\": true, \"factors_changed\": [\"ema_spread_8_21\", \"last_trade_minus_mid_bps\", \"live_ret_from_last_close\", \"rel_volume_20\", \"ret_1\", \"ret_5\", \"trade_flow_imbalance_20\", \"trade_size_mean_20\", \"volatility_20\", \"zscore_close_20\"], \"indicators_changed\": [\"BBANDS_lower\", \"BBANDS_mid\", \"BBANDS_upper\", \"BollingerWidth\", \"LiveReturnFromClose\", \"MACD\", \"MACD_hist\", \"MACD_signal\", \"RelativeVolume\", \"TradeFlowImbalance\", \"ZScore_Close\"], \"regime_changed\": true, \"signals_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"strategies_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"risk_changed\": true, \"risk_packets_changed\": [\"bollinger_squeeze_breakout\", \"macd_trend_continuation\", \"zscore_recenter\"], \"validation_changed\": true, \"reactive_source\": \"live_intrabar\"}]}\n"
+  }
+}

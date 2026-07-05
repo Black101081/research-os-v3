@@ -1,0 +1,79 @@
+cmd,returncode,stdout,stderr,status,category,test_file_count
+/usr/local/bin/python3.12 -m compileall /home/user/output/research_os_v3,0,"Listing '/home/user/output/research_os_v3'...
+Listing '/home/user/output/research_os_v3/live_integration_test_v1'...
+Listing '/home/user/output/research_os_v3/live_integration_test_v2'...
+Listing '/home/user/output/research_os_v3/live_integration_test_v3'...
+Listing '/home/user/output/research_os_v3/live_integration_test_v4'...
+Listing '/home/user/output/research_os_v3/research_knowledge'...
+Compiling '/home/user/output/research_os_v3/research_knowledge/validator_runner.py'...
+Compiling '/home/user/output/research_os_v3/run_full_test_suite.py'...
+Listing '/home/user/output/research_os_v3/runtime'...
+Listing '/home/user/output/research_os_v3/runtime_test'...
+Listing '/home/user/output/research_os_v3/runtime_test_success'...
+Listing '/home/user/output/research_os_v3/sandbox_test_reports'...
+Listing '/home/user/output/research_os_v3/static'...
+Listing '/home/user/output/research_os_v3/tests'...
+Listing '/home/user/output/research_os_v3/validation_reports'...
+",,PASS,syntax_compile,
+/usr/local/bin/python3.12 /home/user/output/research_os_v3/research_knowledge/validator_runner.py,0,"{
+  ""indicator_total"": 50,
+  ""indicator_decisions"": {
+    ""PASS"": 50
+  },
+  ""indicator_avg_score"": 90.0,
+  ""strategy_total"": 8,
+  ""strategy_decisions"": {
+    ""PASS"": 8
+  },
+  ""strategy_avg_score"": 100.0,
+  ""top_indicator_issues"": {
+    ""missing_template:nearest_indicators"": 50,
+    ""neighbor_resolution_pending"": 50
+  },
+  ""top_strategy_issues"": {
+    ""none"": 8
+  }
+}
+",,PASS,validator_runner,
+/usr/local/bin/python3.12 -m pytest -q tests/test_api_surface.py tests/test_api_surfaces.py tests/test_engine_pipeline.py tests/test_integration_flow.py tests/test_regression_contracts.py tests/test_research_regression.py,0,"atetime.UTC).
+    'spec_id': f""{signal_name}-{symbol}-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"",
+
+tests/test_engine_pipeline.py::EnginePipelineTests::test_full_pipeline_generates_strategy_spec_when_signal_active
+tests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet
+tests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist
+tests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist
+  /home/user/output/research_os_v3/strategy_spec_builder.py:14: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    'created_at': datetime.utcnow().isoformat(),
+
+tests/test_engine_pipeline.py::EnginePipelineTests::test_full_pipeline_generates_strategy_spec_when_signal_active
+tests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet
+tests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist
+tests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist
+  /home/user/output/research_os_v3/playbook_bridge.py:22: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    'created_at': datetime.utcnow().isoformat(),
+
+tests/test_engine_pipeline.py::EnginePipelineTests::test_registry_writes_snapshot_specs_and_packets
+  /home/user/output/research_os_v3/registry_writer.py:19: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    payload = {'ts': datetime.utcnow().isoformat(), 'snapshot': snapshot}
+
+tests/test_engine_pipeline.py::EnginePipelineTests::test_registry_writes_snapshot_specs_and_packets
+  /home/user/output/research_os_v3/registry_writer.py:23: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    ts = datetime.utcnow().isoformat()
+
+tests/test_engine_pipeline.py::EnginePipelineTests::test_trade_bbo_and_mid_updates_state
+tests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet
+tests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist
+tests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist
+  /home/user/output/research_os_v3/realtime_engine.py:82: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.updated_at = datetime.utcnow().isoformat()
+
+tests/test_engine_pipeline.py::EnginePipelineTests::test_trade_bbo_and_mid_updates_state
+tests/test_integration_flow.py::IntegrationFlowTests::test_paper_replay_generates_strategy_spec_and_packet
+tests/test_regression_contracts.py::RegressionContractTests::test_playbook_packet_contract_fields_exist
+tests/test_regression_contracts.py::RegressionContractTests::test_strategy_spec_contract_fields_exist
+  /home/user/output/research_os_v3/realtime_engine.py:164: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    state.updated_at = datetime.utcnow().isoformat()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+[33m[32m19 passed[0m, [33m[1m383 warnings[0m[33m in 0.62s[0m[0m
+",,PASS,pytest,6.0

@@ -1,0 +1,22 @@
+{
+  "endpoint": "wss://api.hyperliquid.xyz/ws",
+  "subscription": {
+    "method": "subscribe",
+    "subscription": {
+      "type": "allMids"
+    }
+  },
+  "connect_ok": true,
+  "subscribe_sent": true,
+  "ack_received": true,
+  "messages_received": 4,
+  "first_message_channel": "subscriptionResponse",
+  "first_data_keys_sample": [
+    "method",
+    "subscription"
+  ],
+  "latency_connect_ms": 229.38,
+  "latency_ack_ms": 166.11,
+  "runtime_seconds": 12,
+  "errors": []
+}

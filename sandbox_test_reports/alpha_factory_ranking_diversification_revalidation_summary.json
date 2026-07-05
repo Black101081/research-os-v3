@@ -1,0 +1,18 @@
+{
+  "implemented_followup_v2": [
+    "ranking_engine.py",
+    "diversification_filter.py",
+    "revalidation_scheduler.py",
+    "alpha_factory_runner.py",
+    "tests/test_ranking_integration.py",
+    "tests/test_diversification_filter.py",
+    "tests/test_revalidation_scheduler.py",
+    "tests/test_alpha_factory_runner_v2.py"
+  ],
+  "compile_returncode": 0,
+  "pytest_returncode": 0,
+  "pytest_tail": "\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m.\u001b[0m\u001b[32m                                                                  [100%]\u001b[0m\n\u001b[32m\u001b[32m\u001b[1m7 passed\u001b[0m\u001b[32m in 0.06s\u001b[0m\u001b[0m\n\n",
+  "smoke_returncode": 0,
+  "smoke_stdout": "{\"top_rank\": \"alpha_1\", \"decisions\": [{\"alpha_id\": \"alpha_1\", \"alpha_name\": \"breakout_1\", \"current_state\": \"validated\", \"target_state\": \"promoted\", \"transition_allowed\": true, \"trigger_reason\": \"promotion_threshold_met\", \"supporting_validation_run_id\": \"validation_0_1783229832\", \"research_score\": 104.375, \"created_at\": \"2026-07-05T05:37:12.067556+00:00\", \"diversification_pass\": true, \"diversification_reason\": null}, {\"alpha_id\": \"alpha_2\", \"alpha_name\": \"mean_reversion_2\", \"current_state\": \"validated\", \"target_state\": \"promoted\", \"transition_allowed\": true, \"trigger_reason\": \"promotion_threshold_met\", \"supporting_validation_run_id\": \"validation_1_1783229832\", \"research_score\": 99.775, \"created_at\": \"2026-07-05T05:37:12.067567+00:00\", \"diversification_pass\": true, \"diversification_reason\": null}, {\"alpha_id\": \"alpha_3\", \"alpha_name\": \"continuation_3\", \"current_state\": \"validated\", \"target_state\": \"demoted\", \"transition_allowed\": true, \"trigger_reason\": \"low_research_score_or_rejected_validation\", \"supporting_validation_run_id\": \"validation_2_1783229832\", \"research_score\": 14.75, \"created_at\": \"2026-07-05T05:37:12.067572+00:00\", \"diversification_pass\": true, \"diversification_reason\": null}], \"decay_count\": 1, \"revalidation_tasks\": [{\"task_id\": \"revalidate_alpha_3_demoted\", \"alpha_id\": \"alpha_3\", \"alpha_name\": \"continuation_3\", \"reason\": \"lifecycle_demoted\", \"priority\": \"medium\", \"due_hours\": 24, \"created_at\": \"2026-07-05T05:37:12.067764+00:00\"}, {\"task_id\": \"revalidate_alpha_1_decay\", \"alpha_id\": \"alpha_1\", \"alpha_name\": \"breakout_1\", \"reason\": \"decay:research_score_drop,sharpe_drop,expectancy_drop\", \"priority\": \"high\", \"due_hours\": 24, \"created_at\": \"2026-07-05T05:37:12.067769+00:00\"}]}\n",
+  "smoke_stderr": ""
+}

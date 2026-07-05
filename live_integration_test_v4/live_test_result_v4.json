@@ -1,0 +1,56 @@
+{
+  "warmup_counts": {
+    "BTC": 81
+  },
+  "message_counts": {
+    "subscriptionResponse": 4,
+    "trades": 2,
+    "bbo": 13,
+    "candle": 1
+  },
+  "bars_loaded": 50,
+  "last_bar_ts": "2026-07-05T00:57:00+00:00",
+  "last_trade": 62915.0,
+  "mid": null,
+  "factor_keys": [
+    "ema_spread_8_21",
+    "rel_volume_20",
+    "ret_1",
+    "ret_5",
+    "volatility_20",
+    "zscore_close_20"
+  ],
+  "indicator_keys": [
+    "BBANDS_lower",
+    "BBANDS_mid",
+    "BBANDS_upper",
+    "BollingerWidth",
+    "MACD",
+    "MACD_hist",
+    "MACD_signal",
+    "RelativeVolume",
+    "ZScore_Close"
+  ],
+  "regime_state": {
+    "regime": "downtrend",
+    "confidence": 0.68,
+    "tradable": true,
+    "why": {
+      "ret_5": -0.001903704291266739,
+      "volatility_20": 0.0009560528719259,
+      "macd": -26.353661115725117,
+      "bollinger_width": 0.003824211487703662,
+      "zscore_close": -2.2271653390470014
+    }
+  },
+  "signals": {
+    "bollinger_squeeze_breakout": false,
+    "zscore_recenter": false,
+    "macd_trend_continuation": false
+  },
+  "execution_ready_strategies": [],
+  "generated_specs": 0,
+  "generated_packets": 0,
+  "generated_signal_names": [],
+  "errors": []
+}
