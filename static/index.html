@@ -241,7 +241,7 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      overflow: hidden;
+      overflow-x: auto;
       width: 100%;
     }
 
@@ -260,6 +260,7 @@
       letter-spacing: 0.03em;
       color: var(--muted);
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
 
     .ui-table td {
@@ -267,6 +268,7 @@
       font-size: 0.85rem;
       border-bottom: 1px solid var(--border);
       vertical-align: middle;
+      white-space: nowrap;
     }
 
     .ui-table tbody tr {
@@ -341,6 +343,7 @@
       background: rgba(255, 255, 255, 0.01);
       padding: 20px;
       border-bottom: 1px solid var(--border);
+      white-space: normal;
     }
 
     .expanded-grid {
@@ -1607,103 +1610,107 @@
   // TICK & POLL LOOP
   async function tick() {
     try {
-      const [dashboard, config, validation, specs, replay, validator, backtests, ranking] = await Promise.all([
-        loadDashboard(),
-        loadConfig(),
-        loadValidation(),
-        loadSpecs(),
-        loadReplay(),
-        loadResearchValidator(),
-        loadBacktests(),
-        loadRanking()
-      ]);
-
+      const dashboard = await loadDashboard();
       lastDashboardCache = dashboard;
-      lastSnapshotCache = { 
-        config, 
-        snap: dashboard.symbols.reduce((acc, curr) => {
-          // Re-create snapshot structure to keep compatibility with other scripts
-          const rawSym = dashboard.signals.filter(x => x.symbol === curr.symbol);
-          const rawStrat = {};
-          rawSym.forEach(s => {
-            rawStrat[s.signal_id] = { status: s.active ? "candidate" : "standby", execution_ready: false };
-          });
-          
-          acc[curr.symbol] = {
-            last_trade: curr.last_trade,
-            mid: curr.mid,
-            updated_at: curr.updated_at,
-            regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
-            bars: Array(curr.bars_loaded).fill({}),
-            factors: dashboard.telemetry.active_candidates ? {} : {}, // Placeholder for fallback compatibility
-            indicators: {},
-            signals: rawSym.reduce((sigAcc, s) => {
-              sigAcc[s.signal_id] = { active: s.active, triggered: s.triggered, confirmed: s.confirmed, invalidated: s.invalidated, quality_tier: s.quality_tier, template_family: s.family, why: s.why };
-              return sigAcc;
-            }, {}),
-            strategies: rawSym.reduce((stratAcc, s) => {
-              const matchesSpec = specs.strategy_specs && specs.strategy_specs.find(spec => spec.symbol === curr.symbol && spec.signal_name === s.signal_id);
-              stratAcc[s.signal_id] = { status: s.active ? "candidate" : "standby", execution_ready: !!matchesSpec };
-              return stratAcc;
-            }, {})
-          };
-          return acc;
-        }, {}), 
-        validation, 
-        specs, 
-        replay, 
-        validator, 
-        backtests, 
-        broker: {
-          balance: dashboard.paper_positions.balance,
-          equity: dashboard.paper_positions.equity,
-          active_positions_count: dashboard.overview.open_positions_count,
-          positions: dashboard.paper_positions.positions,
-          trade_history: dashboard.paper_positions.history
-        }, 
-        telemetry: dashboard.telemetry, 
-        ranking 
+      
+      if (!lastSnapshotCache) {
+        await slowTick();
+      }
+
+      // Re-create snapshot structure to keep compatibility with other scripts
+      lastSnapshotCache.broker = {
+        balance: dashboard.paper_positions.balance,
+        equity: dashboard.paper_positions.equity,
+        active_positions_count: dashboard.overview.open_positions_count,
+        positions: dashboard.paper_positions.positions,
+        trade_history: dashboard.paper_positions.history
       };
+      lastSnapshotCache.telemetry = dashboard.telemetry;
+      
+      lastSnapshotCache.snap = dashboard.symbols.reduce((acc, curr) => {
+        const rawSym = dashboard.signals.filter(x => x.symbol === curr.symbol);
+        acc[curr.symbol] = {
+          last_trade: curr.last_trade,
+          mid: curr.mid,
+          updated_at: curr.updated_at,
+          regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
+          bars: Array(curr.bars_loaded).fill({}),
+          factors: {},
+          indicators: {},
+          signals: rawSym.reduce((sigAcc, s) => {
+            sigAcc[s.signal_id] = { active: s.active, triggered: s.triggered, confirmed: s.confirmed, invalidated: s.invalidated, quality_tier: s.quality_tier, template_family: s.family, why: s.why };
+            return sigAcc;
+          }, {}),
+          strategies: rawSym.reduce((stratAcc, s) => {
+            const matchesSpec = lastSnapshotCache.specs && lastSnapshotCache.specs.strategy_specs && lastSnapshotCache.specs.strategy_specs.find(spec => spec.symbol === curr.symbol && spec.signal_name === s.signal_id);
+            stratAcc[s.signal_id] = { status: s.active ? "candidate" : "standby", execution_ready: !!matchesSpec };
+            return stratAcc;
+          }, {})
+        };
+        return acc;
+      }, {});
 
       // 1. RENDER TOP BAR & TELEMETRY
       const ov = dashboard.overview;
       const topMode = document.getElementById('topModeBadge');
-      topMode.textContent = ov.mode.toUpperCase();
-      topMode.className = 'badge ' + (ov.mode === 'live' ? 'badge-error' : 'badge-success');
+      if (topMode) {
+        topMode.textContent = ov.mode.toUpperCase();
+        topMode.className = 'badge ' + (ov.mode === 'live' ? 'badge-error' : 'badge-success');
+      }
 
-      document.getElementById('topLatencyVal').textContent = ov.latency_ms.toFixed(2) + ' ms';
-      document.getElementById('topLatencyVal').style.color = ov.latency_ms < 10.0 ? 'var(--success)' : (ov.latency_ms < 50.0 ? 'var(--warn)' : 'var(--error)');
+      const topLat = document.getElementById('topLatencyVal');
+      if (topLat) {
+        topLat.textContent = ov.latency_ms.toFixed(2) + ' ms';
+        topLat.style.color = ov.latency_ms < 10.0 ? 'var(--success)' : (ov.latency_ms < 50.0 ? 'var(--warn)' : 'var(--error)');
+      }
       
-      document.getElementById('topErrorRate').textContent = ov.error_rate.toFixed(2) + '%';
-      document.getElementById('topErrorRate').style.color = ov.error_rate > 0.0 ? 'var(--error)' : 'var(--muted)';
+      const topErr = document.getElementById('topErrorRate');
+      if (topErr) {
+        topErr.textContent = ov.error_rate.toFixed(2) + '%';
+        topErr.style.color = ov.error_rate > 0.0 ? 'var(--error)' : 'var(--muted)';
+      }
 
-      const uptimeSec = ov.uptime_seconds;
-      const h = Math.floor(uptimeSec / 3600).toString().padStart(2, '0');
-      const m = Math.floor((uptimeSec % 3600) / 60).toString().padStart(2, '0');
-      document.getElementById('topUptime').textContent = `${h}h ${m}m`;
+      const topUp = document.getElementById('topUptime');
+      if (topUp) {
+        const uptimeSec = ov.uptime_seconds;
+        const h = Math.floor(uptimeSec / 3600).toString().padStart(2, '0');
+        const m = Math.floor((uptimeSec % 3600) / 60).toString().padStart(2, '0');
+        topUp.textContent = `${h}h ${m}m`;
+      }
 
       const killBtn = document.getElementById('topKillSwitch');
       const resetBtn = document.getElementById('topResetKillSwitch');
-      if (ov.kill_switch_active) {
-        killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
-        killBtn.style.background = '#991b1b';
-        if (resetBtn) resetBtn.style.display = 'inline-flex';
-      } else {
-        killBtn.textContent = '🚨 KILL SWITCH';
-        killBtn.style.background = 'var(--error)';
-        if (resetBtn) resetBtn.style.display = 'none';
+      if (killBtn) {
+        if (ov.kill_switch_active) {
+          killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
+          killBtn.style.background = '#991b1b';
+          if (resetBtn) resetBtn.style.display = 'inline-flex';
+        } else {
+          killBtn.textContent = '🚨 KILL SWITCH';
+          killBtn.style.background = 'var(--error)';
+          if (resetBtn) resetBtn.style.display = 'none';
+        }
       }
 
       // 2. RENDER FEED DETAILS (Sidebar)
       const feedMeta = document.getElementById('sbAssets');
-      if (feedMeta) feedMeta.textContent = config.symbols.join(', ');
-      document.getElementById('sbInterval').textContent = config.candle_interval;
+      if (feedMeta) feedMeta.textContent = lastSnapshotCache.config.symbols.join(', ');
+      
+      const sbInt = document.getElementById('sbInterval');
+      if (sbInt) sbInt.textContent = lastSnapshotCache.config.candle_interval;
 
       // 3. RENDER TELEMETRY Details (Sidebar)
-      document.getElementById('sbThroughput').textContent = dashboard.telemetry.msg_rate_fps.toFixed(1) + ' msg/s';
-      document.getElementById('sbLatency').textContent = dashboard.telemetry.avg_latency_ms.toFixed(2) + ' ms';
-      document.getElementById('sbErrors').textContent = dashboard.telemetry.error_rate_pct.toFixed(2) + '%';
-      document.getElementById('sbActiveSpecs').textContent = ov.execution_ready_count + ' ready';
+      const sbThru = document.getElementById('sbThroughput');
+      if (sbThru) sbThru.textContent = dashboard.telemetry.msg_rate_fps.toFixed(1) + ' msg/s';
+      
+      const sbLat = document.getElementById('sbLatency');
+      if (sbLat) sbLat.textContent = dashboard.telemetry.avg_latency_ms.toFixed(2) + ' ms';
+      
+      const sbErr = document.getElementById('sbErrors');
+      if (sbErr) sbErr.textContent = dashboard.telemetry.error_rate_pct.toFixed(2) + '%';
+      
+      const sbAct = document.getElementById('sbActiveSpecs');
+      if (sbAct) sbAct.textContent = ov.execution_ready_count + ' ready';
 
       // 4. RENDER REDESIGNED SECTION A
       renderSymbolOverview(dashboard.symbols);
@@ -1718,14 +1725,61 @@
       const inspectSelect = document.getElementById('inspectSelectSymbol');
       if (inspectSelect) {
         const prev = inspectSelect.value;
-        inspectSelect.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
-        if (config.symbols.includes(prev)) {
+        inspectSelect.innerHTML = lastSnapshotCache.config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
+        if (lastSnapshotCache.config.symbols.includes(prev)) {
           inspectSelect.value = prev;
         }
       }
       renderInspectors();
 
-      // 8. RENDER ADVANCED COLLAPSIBLE FOR COMPATIBILITY
+      // Update selected tab raw code view
+      const selectVal = document.getElementById('symbolSelect');
+      if (selectVal) {
+        const sym = selectVal.value || lastSnapshotCache.config.symbols[0];
+        const s = lastSnapshotCache.snap[sym] || {};
+        document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
+      }
+
+      // Reset auto-refresh indicator to success status
+      document.getElementById('topRefreshLabel').textContent = 'Auto-refreshing';
+      document.getElementById('topRefreshPulse').className = 'pulse-dot pulse-green';
+      document.getElementById('topRefreshPulse').style.backgroundColor = '';
+
+    } catch (e) {
+      console.error("Dashboard presenter poller error:", e);
+      document.getElementById('topRefreshLabel').textContent = 'Disconnected';
+      document.getElementById('topRefreshPulse').className = 'pulse-dot';
+      document.getElementById('topRefreshPulse').style.backgroundColor = 'var(--error)';
+      document.getElementById('topRefreshPulse').style.boxShadow = '0 0 0 4px var(--error-glow)';
+    }
+  }
+
+  // Slow metadata polling (every 10 seconds)
+  async function slowTick() {
+    try {
+      const [config, validation, specs, replay, validator, backtests, ranking] = await Promise.all([
+        loadConfig(),
+        loadValidation(),
+        loadSpecs(),
+        loadReplay(),
+        loadResearchValidator(),
+        loadBacktests(),
+        loadRanking()
+      ]);
+
+      if (lastSnapshotCache) {
+        lastSnapshotCache.config = config;
+        lastSnapshotCache.validation = validation;
+        lastSnapshotCache.specs = specs;
+        lastSnapshotCache.replay = replay;
+        lastSnapshotCache.validator = validator;
+        lastSnapshotCache.backtests = backtests;
+        lastSnapshotCache.ranking = ranking;
+      } else {
+        lastSnapshotCache = { config, snap: {}, validation, specs, replay, validator, backtests, broker: {}, telemetry: {}, ranking };
+      }
+
+      // Render advanced tools
       renderBoard(specs, validator, backtests);
 
       // Configuration Form Setup
@@ -1738,22 +1792,18 @@
         cfgIntEl.value = config.candle_interval;
       }
 
-      // Advanced Tabs setup
+      // Advanced Tab dropdown setups
       const selectVal = document.getElementById('symbolSelect');
-      const current = selectVal.value;
-      selectVal.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
-      if (config.symbols.includes(current)) selectVal.value = current;
+      if (selectVal) {
+        const current = selectVal.value;
+        selectVal.innerHTML = config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
+        if (config.symbols.includes(current)) selectVal.value = current;
 
-      const renderSelectedTabCode = () => {
         const sym = selectVal.value || config.symbols[0];
-        const s = lastSnapshotCache.snap[sym] || {};
-        document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
         document.getElementById('validationView').textContent = JSON.stringify(validation[sym] || {}, null, 2);
         document.getElementById('validatorView').textContent = JSON.stringify(validator, null, 2);
         document.getElementById('backtestsView').textContent = JSON.stringify(backtests, null, 2);
-      };
-      selectVal.onchange = renderSelectedTabCode;
-      renderSelectedTabCode();
+      }
 
       // Render ranking
       if (ranking && ranking.ranked_strategies) {
@@ -1779,13 +1829,8 @@
         });
         document.getElementById('rankingTable').innerHTML = rankingRows.join('') || '<tr><td colspan="9"><div class="empty-state">No rankings calculated.</div></td></tr>';
       }
-
     } catch (e) {
-      console.error("Dashboard presenter poller error:", e);
-      document.getElementById('topRefreshLabel').textContent = 'Disconnected';
-      document.getElementById('topRefreshPulse').className = 'pulse-dot';
-      document.getElementById('topRefreshPulse').style.backgroundColor = 'var(--error)';
-      document.getElementById('topRefreshPulse').style.boxShadow = '0 0 0 4px var(--error-glow)';
+      console.error("Slow metadata polling error:", e);
     }
   }
 
@@ -1958,8 +2003,12 @@
 
   // Init
   bindTabs();
-  tick();
-  setInterval(tick, 2000);
+  (async () => {
+    await slowTick();
+    await tick();
+    setInterval(tick, 2000);
+    setInterval(slowTick, 10000);
+  })();
 </script>
 <script src="/static/js/tour.js"></script>
 <script src="/static/js/presets.js"></script>
