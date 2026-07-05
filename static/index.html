@@ -441,6 +441,21 @@
       display: block;
     }
 
+    .spinner {
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top: 2px solid var(--primary);
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     /* Factor categories grid */
     .factor-groups-grid {
       display: grid;
@@ -1123,7 +1138,7 @@
   function fmtCurrency(v) { return typeof v === 'number' ? '$' + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(v ?? '—'); }
 
   // API Requests
-  async function loadDashboard() { const r = await fetch('/api/dashboard'); return await r.json(); }
+  async function loadDashboard() { const r = await fetch('/api/dashboard/overview'); return await r.json(); }
   async function loadConfig() { const r = await fetch('/api/config'); return await r.json(); }
   async function loadSnapshot() { const r = await fetch('/api/snapshot'); return await r.json(); }
   async function loadValidation() { const r = await fetch('/api/validation'); return await r.json(); }
@@ -1135,11 +1150,40 @@
   async function loadTelemetry() { const r = await fetch('/api/telemetry'); return await r.json(); }
   async function loadRanking() { const r = await fetch('/api/ranking'); return await r.json(); }
 
-  // Collapse controllers
+  // Collapse controllers & Lazy Load Factors
+  let factorInspectorOpen = false;
+  let factorRefreshTimer = null;
+
+  async function fetchAndRenderFactors() {
+    try {
+      const snap = await loadSnapshot();
+      if (lastSnapshotCache) {
+        lastSnapshotCache.snap = snap;
+      }
+      renderInspectors();
+    } catch (e) {
+      console.error("Error lazy loading factors:", e);
+    }
+  }
+
   function toggleFactorInspector() {
     const el = document.getElementById('factorInspectorContent');
+    if (!el) return;
     el.classList.toggle('open');
+    factorInspectorOpen = el.classList.contains('open');
+    if (factorInspectorOpen) {
+      fetchAndRenderFactors();
+      if (!factorRefreshTimer) {
+        factorRefreshTimer = setInterval(fetchAndRenderFactors, 5000);
+      }
+    } else {
+      if (factorRefreshTimer) {
+        clearInterval(factorRefreshTimer);
+        factorRefreshTimer = null;
+      }
+    }
   }
+
   function toggleAdvancedTools() {
     const el = document.getElementById('advancedToolsContent');
     el.classList.toggle('open');
@@ -1153,6 +1197,8 @@
     }
   };
 
+  let filterDebounce = null;
+
   window.onExplorerFilterChange = function() {
     activeFilters.explorerSymbol = document.getElementById('filterSymbol').value;
     activeFilters.explorerFamily = document.getElementById('filterFamily').value;
@@ -1160,20 +1206,55 @@
     activeFilters.explorerQuality = document.getElementById('filterQuality').value;
     activeFilters.explorerExecReady = document.getElementById('filterExecReady').value;
     activeFilters.explorerSearchName = document.getElementById('searchSignalName').value.toLowerCase().trim();
-    if (lastDashboardCache) {
-      renderSignalsExplorer(lastDashboardCache.signals);
-    }
+
+    clearTimeout(filterDebounce);
+    filterDebounce = setTimeout(() => {
+      lastSignalsFingerprint = '';
+      if (lastSignalsCache) {
+        renderSignalsExplorer(lastSignalsCache);
+      }
+    }, 150);
   };
 
-  // Toggle signal row expansion
+  // Toggle signal row expansion & detail cache
+  const signalDetailCache = {};
+
+  async function fetchSignalDetail(symbol, signalId) {
+    const cacheKey = `${symbol}:${signalId}`;
+    const now = Date.now();
+    if (signalDetailCache[cacheKey] && (now - signalDetailCache[cacheKey].ts < 3000)) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/signal/${symbol}/${signalId}`);
+      const detail = await response.json();
+      signalDetailCache[cacheKey] = { data: detail, ts: now };
+      lastSignalsFingerprint = '';
+      if (lastSignalsCache) {
+        renderSignalsExplorer(lastSignalsCache);
+      }
+    } catch (e) {
+      console.error(`Error loading signal detail for ${cacheKey}:`, e);
+      const loadingEl = document.getElementById(`row-loading-${symbol}-${signalId}`);
+      if (loadingEl) {
+        loadingEl.innerHTML = `<td colspan="12" style="padding:20px; text-align:center; color:var(--error); font-size:0.8rem;">Failed to load details.</td>`;
+      }
+    }
+  }
+
   window.toggleSignalExpansion = function(key) {
     if (expandedSignals.has(key)) {
       expandedSignals.delete(key);
     } else {
       expandedSignals.add(key);
+      const parts = key.split('_');
+      const symbol = parts[0];
+      const signalId = parts.slice(1).join('_');
+      fetchSignalDetail(symbol, signalId);
     }
-    if (lastDashboardCache) {
-      renderSignalsExplorer(lastDashboardCache.signals);
+    lastSignalsFingerprint = '';
+    if (lastSignalsCache) {
+      renderSignalsExplorer(lastSignalsCache);
     }
   };
 
@@ -1263,9 +1344,23 @@
   }
 
   // SECTION B: Signal Explorer Table
+  let lastSignalsFingerprint = '';
+  let lastSignalsCache = null;
+
   function renderSignalsExplorer(signals) {
     const tableBody = document.getElementById('sectionB-signalTable');
     if (!tableBody) return;
+
+    lastSignalsCache = signals;
+
+    // Build unique fingerprint containing current filter state + signals fields
+    const filterKey = activeFilters.explorerSymbol + '|' + activeFilters.explorerFamily + '|' + activeFilters.explorerStatus + '|' + activeFilters.explorerQuality + '|' + activeFilters.explorerExecReady + '|' + activeFilters.explorerSearchName;
+    const fingerprint = filterKey + '||' + signals.map(s =>
+        s.symbol + s.signal_id + s.active + s.triggered + s.confirmed + s.invalidated + (expandedSignals.has(`${s.symbol}_${s.signal_id}`) ? '_exp' : '') + '_' + ((signalDetailCache[`${s.symbol}:${s.signal_id}`]) ? 'loaded' : 'loading')
+    ).join('|');
+
+    if (fingerprint === lastSignalsFingerprint) return;
+    lastSignalsFingerprint = fingerprint;
 
     // Apply Client filters
     let filtered = signals.slice();
@@ -1349,69 +1444,86 @@
       `);
 
       if (isExpanded) {
-        // Detailed reasons and rules checks
-        let whyNot = '';
-        if (!sig.active) {
-          whyNot = `
-            <div class="expanded-section" style="grid-column: span 2; border-color:var(--error-glow);">
-              <h4 style="color:var(--error);">Why Not Active Details</h4>
-              <p style="font-family:var(--font-mono); font-size:0.8rem; line-height:1.5;">
-                • Triggered: ${sig.triggered ? '<span class="text-success">Passed</span>' : '<span class="text-error">Failed</span>'} (Logic: <code>${sig.why.trigger_expression}</code>)<br>
-                • Confirmed: ${sig.confirmed ? '<span class="text-success">Passed</span>' : '<span class="text-error">Failed</span>'} (Logic: <code>${sig.why.confirmation_expression}</code>)<br>
-                • Invalidated: ${sig.invalidated ? '<span class="text-error">True (Signal Dead)</span>' : '<span class="text-success">False</span>'} (Logic: <code>${sig.why.invalidation_expression}</code>)<br>
-                • Regime Fit: ${sig.regime_fit ? '<span class="text-success">Match</span>' : '<span class="text-error">Mismatch</span>'} (Current: <code>${sig.why.current_regime}</code> | Preferred: <code>${JSON.stringify(sig.why.preferred_regimes)}</code>)
-              </p>
-            </div>
-          `;
-        }
+        const cacheKey = `${sig.symbol}:${sig.signal_id}`;
+        const cacheEntry = signalDetailCache[cacheKey];
+        const now = Date.now();
+        
+        if (cacheEntry && (now - cacheEntry.ts < 3000)) {
+          const detail = cacheEntry.data;
+          let whyNot = '';
+          if (!detail.active) {
+            whyNot = `
+              <div class="expanded-section" style="grid-column: span 2; border-color:var(--error-glow);">
+                <h4 style="color:var(--error);">Why Not Active Details</h4>
+                <p style="font-family:var(--font-mono); font-size:0.8rem; line-height:1.5;">
+                  • Triggered: ${detail.triggered ? '<span class="text-success">Passed</span>' : '<span class="text-error">Failed</span>'} (Logic: <code>${detail.why.trigger_expression || ''}</code>)<br>
+                  • Confirmed: ${detail.confirmed ? '<span class="text-success">Passed</span>' : '<span class="text-error">Failed</span>'} (Logic: <code>${detail.why.confirmation_expression || ''}</code>)<br>
+                  • Invalidated: ${detail.invalidated ? '<span class="text-error">True (Signal Dead)</span>' : '<span class="text-success">False</span>'} (Logic: <code>${detail.why.invalidation_expression || ''}</code>)<br>
+                  • Regime Fit: ${detail.regime_fit ? '<span class="text-success">Match</span>' : '<span class="text-error">Mismatch</span>'} (Current: <code>${detail.why.current_regime || ''}</code> | Preferred: <code>${JSON.stringify(detail.why.preferred_regimes || [])}</code>)
+                </p>
+              </div>
+            `;
+          }
 
-        rows.push(`
-          <tr style="background:rgba(255,255,255,0.005);">
-            <td colspan="12" style="padding:0;">
-              <div class="expanded-panel">
-                <div class="expanded-grid">
-                  <div class="expanded-section">
-                    <h4>Thesis Summary</h4>
-                    <p>${sig.thesis || '—'}</p>
-                    <div style="margin-top:8px; font-size:0.72rem; color:var(--muted);">
-                      Preferred Regimes: <code>${JSON.stringify(sig.why.preferred_regimes || [])}</code><br>
-                      Avoid Regimes: <code>${JSON.stringify(sig.why.avoid_regimes || [])}</code>
+          rows.push(`
+            <tr style="background:rgba(255,255,255,0.005);">
+              <td colspan="12" style="padding:0;">
+                <div class="expanded-panel">
+                  <div class="expanded-grid">
+                    <div class="expanded-section">
+                      <h4>Thesis Summary</h4>
+                      <p>${detail.thesis || '—'}</p>
+                      <div style="margin-top:8px; font-size:0.72rem; color:var(--muted);">
+                        Preferred Regimes: <code>${JSON.stringify(detail.why.preferred_regimes || [])}</code><br>
+                        Avoid Regimes: <code>${JSON.stringify(detail.why.avoid_regimes || [])}</code>
+                      </div>
                     </div>
-                  </div>
-                  <div class="expanded-section">
-                    <h4>Entry Logic Summary</h4>
-                    <p>${sig.entry_logic_summary || '—'}</p>
-                    <div style="margin-top:4px; font-family:var(--font-mono); font-size:0.75rem; color:var(--muted);">
-                      Trigger Expr: <code>${sig.why.trigger_expression || ''}</code>
+                    <div class="expanded-section">
+                      <h4>Entry Logic Summary</h4>
+                      <p>${detail.entry_logic_summary || '—'}</p>
+                      <div style="margin-top:4px; font-family:var(--font-mono); font-size:0.75rem; color:var(--muted);">
+                        Trigger Expr: <code>${detail.why.trigger_expression || ''}</code>
+                      </div>
                     </div>
-                  </div>
-                  <div class="expanded-section">
-                    <h4>Confirmation Details</h4>
-                    <p>${sig.confirmation_summary || '—'}</p>
-                    <div style="margin-top:4px; display:flex; justify-content:space-between; font-size:0.75rem;">
-                      <span>Score: <strong style="color:var(--success);">${(sig.confirmation_score || 0).toFixed(2)}</strong></span>
-                      <span>Expr: <code>${sig.why.confirmation_expression || ''}</code></span>
+                    <div class="expanded-section">
+                      <h4>Confirmation Details</h4>
+                      <p>${detail.confirmation_summary || '—'}</p>
+                      <div style="margin-top:4px; display:flex; justify-content:space-between; font-size:0.75rem;">
+                        <span>Score: <strong style="color:var(--success);">${(detail.confirmation_score || 0).toFixed(2)}</strong></span>
+                        <span>Expr: <code>${detail.why.confirmation_expression || ''}</code></span>
+                      </div>
                     </div>
-                  </div>
-                  <div class="expanded-section">
-                    <h4>Invalidation Details</h4>
-                    <p>${sig.invalidation_summary || '—'}</p>
-                    <div style="margin-top:4px; display:flex; justify-content:space-between; font-size:0.75rem;">
-                      <span>Score: <strong style="color:var(--error);">${(sig.invalidation_score || 0).toFixed(2)}</strong></span>
-                      <span>Expr: <code>${sig.why.invalidation_expression || ''}</code></span>
+                    <div class="expanded-section">
+                      <h4>Invalidation Details</h4>
+                      <p>${detail.invalidation_summary || '—'}</p>
+                      <div style="margin-top:4px; display:flex; justify-content:space-between; font-size:0.75rem;">
+                        <span>Score: <strong style="color:var(--error);">${(detail.invalidation_score || 0).toFixed(2)}</strong></span>
+                        <span>Expr: <code>${detail.why.invalidation_expression || ''}</code></span>
+                      </div>
                     </div>
-                  </div>
-                  ${whyNot}
-                  <div style="grid-column: span 2; display:flex; justify-content:flex-end; gap:8px;">
-                    <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.7rem;" onclick="event.stopPropagation(); openDrilldown('${sig.symbol}', '${sig.signal_id}')">
-                      📝 Review & Submit Decision
-                    </button>
+                    ${whyNot}
+                    <div style="grid-column: span 2; display:flex; justify-content:flex-end; gap:8px;">
+                      <button class="btn btn-secondary" style="padding:4px 8px; font-size:0.7rem;" onclick="event.stopPropagation(); openDrilldown('${detail.symbol}', '${detail.signal_id}')">
+                        📝 Review & Submit Decision
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </td>
-          </tr>
-        `);
+              </td>
+            </tr>
+          `);
+        } else {
+          rows.push(`
+            <tr style="background:rgba(255,255,255,0.005);" id="row-loading-${sig.symbol}-${sig.signal_id}">
+              <td colspan="12" style="padding:20px; text-align:center;">
+                <div style="display:inline-flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--muted);">
+                  <div class="spinner"></div>
+                  Loading Signal details...
+                </div>
+              </td>
+            </tr>
+          `);
+        }
       }
     });
 
@@ -1641,28 +1753,27 @@
       };
       lastSnapshotCache.telemetry = dashboard.telemetry;
       
-      lastSnapshotCache.snap = dashboard.symbols.reduce((acc, curr) => {
-        const rawSym = dashboard.signals.filter(x => x.symbol === curr.symbol);
-        acc[curr.symbol] = {
-          last_trade: curr.last_trade,
-          mid: curr.mid,
-          updated_at: curr.updated_at,
-          regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
-          bars: Array(curr.bars_loaded).fill({}),
-          factors: {},
-          indicators: {},
-          signals: rawSym.reduce((sigAcc, s) => {
-            sigAcc[s.signal_id] = { active: s.active, triggered: s.triggered, confirmed: s.confirmed, invalidated: s.invalidated, quality_tier: s.quality_tier, template_family: s.family, why: s.why };
-            return sigAcc;
-          }, {}),
-          strategies: rawSym.reduce((stratAcc, s) => {
-            const matchesSpec = lastSnapshotCache.specs && lastSnapshotCache.specs.strategy_specs && lastSnapshotCache.specs.strategy_specs.find(spec => spec.symbol === curr.symbol && spec.signal_name === s.signal_id);
-            stratAcc[s.signal_id] = { status: s.active ? "candidate" : "standby", execution_ready: !!matchesSpec };
-            return stratAcc;
-          }, {})
-        };
-        return acc;
-      }, {});
+      dashboard.symbols.forEach(curr => {
+        if (!lastSnapshotCache.snap[curr.symbol]) {
+          lastSnapshotCache.snap[curr.symbol] = {
+            last_trade: curr.last_trade,
+            mid: curr.mid,
+            updated_at: curr.updated_at,
+            regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
+            bars: Array(curr.bars_loaded).fill({}),
+            factors: {},
+            indicators: {},
+            signals: {},
+            strategies: {}
+          };
+        } else {
+          const s = lastSnapshotCache.snap[curr.symbol];
+          s.last_trade = curr.last_trade;
+          s.mid = curr.mid;
+          s.updated_at = curr.updated_at;
+          s.regime_state = { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable };
+        }
+      });
 
       // 1. RENDER TOP BAR & TELEMETRY
       const topMode = document.getElementById('topModeBadge');
@@ -1728,22 +1839,8 @@
       // 4. RENDER REDESIGNED SECTION A
       renderSymbolOverview(dashboard.symbols);
 
-      // 5. RENDER REDESIGNED SECTION B
-      renderSignalsExplorer(dashboard.signals);
-
       // 6. RENDER REDESIGNED SECTION C
       renderPaperBroker(dashboard.paper_positions);
-
-      // 7. SYMBOL SELECTOR & FACTOR CATEGORIES (SECTION D)
-      const inspectSelect = document.getElementById('inspectSelectSymbol');
-      if (inspectSelect) {
-        const prev = inspectSelect.value;
-        inspectSelect.innerHTML = lastSnapshotCache.config.symbols.map(s => `<option value="${s}">${s}</option>`).join('');
-        if (lastSnapshotCache.config.symbols.includes(prev)) {
-          inspectSelect.value = prev;
-        }
-      }
-      renderInspectors();
 
       // Update selected tab raw code view
       const selectVal = document.getElementById('symbolSelect');
@@ -1767,8 +1864,163 @@
     }
   }
 
-  // Slow metadata polling (every 10 seconds)
+  // FAST LOOP (every 2 seconds)
+  async function fastTick() {
+    try {
+      const dashboard = await loadDashboard();
+      lastDashboardCache = dashboard;
+      
+      const ov = dashboard.overview;
+
+      if (!lastSnapshotCache) {
+        lastSnapshotCache = {
+          config: { symbols: ov.symbols, candle_interval: ov.candle_interval },
+          snap: {},
+          validation: {},
+          specs: {},
+          replay: {},
+          validator: {},
+          backtests: {},
+          broker: {},
+          telemetry: {},
+          ranking: {}
+        };
+      }
+
+      // Re-create snapshot structure to keep compatibility with other scripts
+      lastSnapshotCache.broker = {
+        balance: dashboard.paper_positions.balance,
+        equity: dashboard.paper_positions.equity,
+        active_positions_count: dashboard.overview.open_positions_count,
+        positions: dashboard.paper_positions.positions,
+        trade_history: dashboard.paper_positions.history
+      };
+      lastSnapshotCache.telemetry = dashboard.telemetry;
+      
+      dashboard.symbols.forEach(curr => {
+        if (!lastSnapshotCache.snap[curr.symbol]) {
+          lastSnapshotCache.snap[curr.symbol] = {
+            last_trade: curr.last_trade,
+            mid: curr.mid,
+            updated_at: curr.updated_at,
+            regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
+            bars: Array(curr.bars_loaded).fill({}),
+            factors: {},
+            indicators: {},
+            signals: {},
+            strategies: {}
+          };
+        } else {
+          const s = lastSnapshotCache.snap[curr.symbol];
+          s.last_trade = curr.last_trade;
+          s.mid = curr.mid;
+          s.updated_at = curr.updated_at;
+          s.regime_state = { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable };
+        }
+      });
+
+      // 1. RENDER TOP BAR & TELEMETRY
+      const topMode = document.getElementById('topModeBadge');
+      if (topMode) {
+        topMode.textContent = ov.mode.toUpperCase();
+        topMode.className = 'badge ' + (ov.mode === 'live' ? 'badge-error' : 'badge-success');
+      }
+
+      const topLat = document.getElementById('topLatencyVal');
+      if (topLat) {
+        topLat.textContent = ov.latency_ms.toFixed(2) + ' ms';
+        topLat.style.color = ov.latency_ms < 10.0 ? 'var(--success)' : (ov.latency_ms < 50.0 ? 'var(--warn)' : 'var(--error)');
+      }
+      
+      const topErr = document.getElementById('topErrorRate');
+      if (topErr) {
+        topErr.textContent = ov.error_rate.toFixed(2) + '%';
+        topErr.style.color = ov.error_rate > 0.0 ? 'var(--error)' : 'var(--muted)';
+      }
+
+      const topUp = document.getElementById('topUptime');
+      if (topUp) {
+        const uptimeSec = ov.uptime_seconds;
+        const h = Math.floor(uptimeSec / 3600).toString().padStart(2, '0');
+        const m = Math.floor((uptimeSec % 3600) / 60).toString().padStart(2, '0');
+        topUp.textContent = `${h}h ${m}m`;
+      }
+
+      const killBtn = document.getElementById('topKillSwitch');
+      const resetBtn = document.getElementById('topResetKillSwitch');
+      if (killBtn) {
+        if (ov.kill_switch_active) {
+          killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
+          killBtn.style.background = '#991b1b';
+          if (resetBtn) resetBtn.style.display = 'inline-flex';
+        } else {
+          killBtn.textContent = '🚨 KILL SWITCH';
+          killBtn.style.background = 'var(--error)';
+          if (resetBtn) resetBtn.style.display = 'none';
+        }
+      }
+
+      // 2. RENDER FEED DETAILS (Sidebar)
+      const feedMeta = document.getElementById('sbAssets');
+      if (feedMeta) feedMeta.textContent = ov.symbols.join(', ');
+      
+      const sbInt = document.getElementById('sbInterval');
+      if (sbInt) sbInt.textContent = ov.candle_interval;
+
+      // 3. RENDER TELEMETRY Details (Sidebar)
+      const sbThru = document.getElementById('sbThroughput');
+      if (sbThru) sbThru.textContent = dashboard.telemetry.msg_rate_fps.toFixed(1) + ' msg/s';
+      
+      const sbLat = document.getElementById('sbLatency');
+      if (sbLat) sbLat.textContent = dashboard.telemetry.avg_latency_ms.toFixed(2) + ' ms';
+      
+      const sbErr = document.getElementById('sbErrors');
+      if (sbErr) sbErr.textContent = dashboard.telemetry.error_rate_pct.toFixed(2) + '%';
+      
+      const sbAct = document.getElementById('sbActiveSpecs');
+      if (sbAct) sbAct.textContent = ov.execution_ready_count + ' ready';
+
+      // 4. RENDER REDESIGNED SECTION A
+      renderSymbolOverview(dashboard.symbols);
+
+      // 6. RENDER REDESIGNED SECTION C
+      renderPaperBroker(dashboard.paper_positions);
+
+      // Update selected tab raw code view
+      const selectVal = document.getElementById('symbolSelect');
+      if (selectVal) {
+        const sym = selectVal.value || lastSnapshotCache.config.symbols[0];
+        const s = lastSnapshotCache.snap[sym] || {};
+        document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
+      }
+
+      // Reset auto-refresh indicator to success status
+      document.getElementById('topRefreshLabel').textContent = 'Auto-refreshing';
+      document.getElementById('topRefreshPulse').className = 'pulse-dot pulse-green';
+      document.getElementById('topRefreshPulse').style.backgroundColor = '';
+
+    } catch (e) {
+      console.error("Dashboard presenter poller error:", e);
+      document.getElementById('topRefreshLabel').textContent = 'Disconnected';
+      document.getElementById('topRefreshPulse').className = 'pulse-dot';
+      document.getElementById('topRefreshPulse').style.backgroundColor = 'var(--error)';
+      document.getElementById('topRefreshPulse').style.boxShadow = '0 0 0 4px var(--error-glow)';
+    }
+  }
+
+  // SLOW LOOP (every 5 seconds)
   async function slowTick() {
+    try {
+      const data = await fetch('/api/dashboard/signals').then(r => r.json());
+      lastSignalsCache = data.signals;
+      renderSignalsExplorer(data.signals);
+    } catch (e) {
+      console.error("Signals polling error:", e);
+    }
+  }
+
+  // Metadata polling (every 15 seconds)
+  async function metadataTick() {
     try {
       const [config, validation, specs, replay, validator, backtests, ranking] = await Promise.all([
         loadConfig(),
@@ -1955,7 +2207,7 @@
       });
       const data = await response.json();
       if (data.status === 'success') {
-        tick();
+        fastTick();
         document.getElementById('drilldownPanel').classList.remove('open');
         document.getElementById('drilldownOverlay').classList.remove('active');
       } else {
@@ -1988,7 +2240,7 @@
         feedback.style.color = 'var(--success)';
         feedback.textContent = data.message;
         setTimeout(() => { feedback.style.display = 'none'; }, 5000);
-        tick();
+        fastTick();
       } else {
         feedback.style.background = 'var(--error-glow)';
         feedback.style.color = 'var(--error)';
@@ -2017,10 +2269,12 @@
   // Init
   bindTabs();
   (async () => {
+    await fastTick();
     await slowTick();
-    await tick();
-    setInterval(tick, 2000);
-    setInterval(slowTick, 10000);
+    await metadataTick();
+    setInterval(fastTick, 2000);
+    setInterval(slowTick, 5000);
+    setInterval(metadataTick, 15000);
   })();
 </script>
 <script src="/static/js/tour.js"></script>

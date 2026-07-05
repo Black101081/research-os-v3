@@ -3,7 +3,12 @@ from __future__ import annotations
 import pytest
 import json
 from pathlib import Path
-from dashboard_presenter import get_dashboard_payload
+from dashboard_presenter import (
+    get_dashboard_payload,
+    get_overview_payload,
+    get_signals_payload,
+    get_signal_detail
+)
 
 def test_get_dashboard_payload():
     """Verify that get_dashboard_payload returns all expected fields with the correct structure."""
@@ -80,3 +85,51 @@ def test_get_dashboard_payload():
     assert 'history' in paper
     assert 'balance' in paper
     assert 'equity' in paper
+
+
+def test_get_overview_payload():
+    payload = get_overview_payload()
+    assert 'overview' in payload
+    assert 'symbols' in payload
+    assert 'paper_positions' in payload
+    assert 'telemetry' in payload
+    assert 'signals' not in payload
+
+
+def test_get_signals_payload():
+    payload = get_signals_payload()
+    assert 'signals' in payload
+    for s in payload['signals']:
+        assert 'why' not in s
+
+
+def test_get_signal_detail():
+    sigs = get_signals_payload()['signals']
+    if sigs:
+        target = sigs[0]
+        detail = get_signal_detail(target['symbol'], target['signal_id'])
+        assert detail is not None
+        assert detail['symbol'] == target['symbol']
+        assert detail['signal_id'] == target['signal_id']
+        assert 'why' in detail
+    
+    assert get_signal_detail('INVALID_SYM', 'invalid_sig') is None
+
+
+def test_signal_detail_route():
+    from fastapi.testclient import TestClient
+    from app import app
+    client = TestClient(app)
+    
+    sigs = get_signals_payload()['signals']
+    if sigs:
+        target = sigs[0]
+        response = client.get(f"/api/signal/{target['symbol']}/{target['signal_id']}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data['symbol'] == target['symbol']
+        assert 'why' in data
+        
+    response = client.get("/api/signal/INVALID_SYM/invalid_sig")
+    assert response.status_code == 404
+    assert response.json()['status'] == 'error'

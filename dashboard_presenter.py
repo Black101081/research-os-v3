@@ -3,7 +3,7 @@ from __future__ import annotations
 import globals
 from typing import Dict, Any, List
 
-def get_dashboard_payload() -> Dict[str, Any]:
+def get_overview_payload() -> Dict[str, Any]:
     snap = globals.engine.snapshot()
     summary = globals.broker.get_summary()
     telemetry_metrics = globals.telemetry.get_metrics()
@@ -83,33 +83,6 @@ def get_dashboard_payload() -> Dict[str, Any]:
             "top_signals": top_signals
         })
 
-    # 3. Flattened signals
-    signals_list = []
-    for symbol, state in snap.items():
-        signals = state.get('signals', {})
-        for name, sig in signals.items():
-            signals_list.append({
-                "symbol": symbol,
-                "signal_id": name,
-                "family": sig.get('template_family'),
-                "direction": sig.get('direction', 'both'),
-                "triggered": bool(sig.get('triggered')),
-                "confirmed": bool(sig.get('confirmed')),
-                "invalidated": bool(sig.get('invalidated')),
-                "active": bool(sig.get('active')),
-                "confirmation_score": sig.get('confirmation_score', 0.0),
-                "invalidation_score": sig.get('invalidation_score', 0.0),
-                "quality_tier": sig.get('quality_tier', 'A'),
-                "regime_fit": bool(sig.get('why', {}).get('regime_ok')),
-                "entry_side": state.get('strategies', {}).get(name, {}).get('entry_side') if sig.get('active') else None,
-                "thesis": sig.get('thesis'),
-                "entry_logic_summary": sig.get('entry_logic_summary'),
-                "confirmation_summary": sig.get('confirmation_summary'),
-                "invalidation_summary": sig.get('invalidation_summary'),
-                "why": sig.get('why', {}),
-                "updated_at": state.get('updated_at')
-            })
-
     # 4. Positions & Trade History
     formatted_positions = []
     for pos in summary.get('positions', []):
@@ -146,7 +119,6 @@ def get_dashboard_payload() -> Dict[str, Any]:
     return {
         "overview": overview,
         "symbols": symbols_list,
-        "signals": signals_list,
         "paper_positions": {
             "positions": formatted_positions,
             "history": formatted_history,
@@ -155,3 +127,82 @@ def get_dashboard_payload() -> Dict[str, Any]:
         },
         "telemetry": telemetry_metrics
     }
+
+def get_signals_payload() -> Dict[str, Any]:
+    snap = globals.engine.snapshot()
+    signals_list = []
+    for symbol, state in snap.items():
+        signals = state.get('signals', {})
+        for name, sig in signals.items():
+            signals_list.append({
+                "symbol": symbol,
+                "signal_id": name,
+                "family": sig.get('template_family'),
+                "direction": sig.get('direction', 'both'),
+                "triggered": bool(sig.get('triggered')),
+                "confirmed": bool(sig.get('confirmed')),
+                "invalidated": bool(sig.get('invalidated')),
+                "active": bool(sig.get('active')),
+                "confirmation_score": sig.get('confirmation_score', 0.0),
+                "invalidation_score": sig.get('invalidation_score', 0.0),
+                "quality_tier": sig.get('quality_tier', 'A'),
+                "regime_fit": bool(sig.get('why', {}).get('regime_ok')),
+                "entry_side": state.get('strategies', {}).get(name, {}).get('entry_side') if sig.get('active') else None,
+                "thesis": sig.get('thesis'),
+                "entry_logic_summary": sig.get('entry_logic_summary'),
+                "confirmation_summary": sig.get('confirmation_summary'),
+                "invalidation_summary": sig.get('invalidation_summary'),
+                "updated_at": state.get('updated_at')
+            })
+    return {"signals": signals_list}
+
+def get_signal_detail(symbol: str, signal_id: str) -> Dict[str, Any] | None:
+    snap = globals.engine.snapshot()
+    state = snap.get(symbol)
+    if not state:
+        return None
+    signals = state.get('signals', {})
+    sig = signals.get(signal_id)
+    if not sig:
+        return None
+    return {
+        "symbol": symbol,
+        "signal_id": signal_id,
+        "family": sig.get('template_family'),
+        "direction": sig.get('direction', 'both'),
+        "triggered": bool(sig.get('triggered')),
+        "confirmed": bool(sig.get('confirmed')),
+        "invalidated": bool(sig.get('invalidated')),
+        "active": bool(sig.get('active')),
+        "confirmation_score": sig.get('confirmation_score', 0.0),
+        "invalidation_score": sig.get('invalidation_score', 0.0),
+        "quality_tier": sig.get('quality_tier', 'A'),
+        "regime_fit": bool(sig.get('why', {}).get('regime_ok')),
+        "entry_side": state.get('strategies', {}).get(signal_id, {}).get('entry_side') if sig.get('active') else None,
+        "thesis": sig.get('thesis'),
+        "entry_logic_summary": sig.get('entry_logic_summary'),
+        "confirmation_summary": sig.get('confirmation_summary'),
+        "invalidation_summary": sig.get('invalidation_summary'),
+        "why": sig.get('why', {}),
+        "updated_at": state.get('updated_at')
+    }
+
+def get_dashboard_payload() -> Dict[str, Any]:
+    # Maintain the old endpoint compatibility
+    ov = get_overview_payload()
+    sigs = get_signals_payload()
+    
+    # Merge signals and add why back for backward compatibility
+    snap = globals.engine.snapshot()
+    full_signals = []
+    for s in sigs['signals']:
+        symbol = s['symbol']
+        sig_id = s['signal_id']
+        sig_data = snap.get(symbol, {}).get('signals', {}).get(sig_id, {})
+        s_copy = dict(s)
+        s_copy['why'] = sig_data.get('why', {})
+        full_signals.append(s_copy)
+
+    payload = dict(ov)
+    payload['signals'] = full_signals
+    return payload

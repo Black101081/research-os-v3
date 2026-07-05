@@ -24,7 +24,7 @@ from baseline_backtest_runner import run_backtest_runner_demo
 
 from globals import CONFIG, engine, registry, telemetry, broker, BASE
 from routers import presets, brief, playbook, live_control
-from dashboard_presenter import get_dashboard_payload
+from dashboard_presenter import get_dashboard_payload, get_overview_payload, get_signals_payload, get_signal_detail
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -226,6 +226,24 @@ async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
 @app.get('/api/dashboard')
 def get_dashboard() -> JSONResponse:
     return JSONResponse(get_dashboard_payload())
+
+
+@app.get('/api/dashboard/overview')
+def get_dashboard_overview() -> JSONResponse:
+    return JSONResponse(get_overview_payload())
+
+
+@app.get('/api/dashboard/signals')
+def get_dashboard_signals() -> JSONResponse:
+    return JSONResponse(get_signals_payload())
+
+
+@app.get('/api/signal/{symbol}/{signal_id}')
+def get_signal_route_detail(symbol: str, signal_id: str) -> JSONResponse:
+    detail = get_signal_detail(symbol, signal_id)
+    if detail is None:
+        return JSONResponse({'status': 'error', 'message': f'Signal {signal_id} for symbol {symbol} not found'}, status_code=404)
+    return JSONResponse(detail)
 
 
 @app.get('/snapshot')
