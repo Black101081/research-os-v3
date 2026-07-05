@@ -218,7 +218,7 @@ class MultiTFEngine:
             return
 
         symbol = candle.get("s") or candle.get("coin") or candle.get("symbol")
-        interval = candle.get("i") or candle.get("interval")
+        interval = candle.get("i") or candle.get("interval") or "1m"
         state = self.states.get(symbol)
         if not state or not interval:
             return
