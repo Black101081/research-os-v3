@@ -173,7 +173,6 @@ def _infer_entry_side(signal_name: str, last_price: float, indicators: dict, tem
         macd = indicators.get('MACD', 0.0)
         sig = indicators.get('MACD_signal', 0.0)
         return 'long' if macd > sig else 'short'
-    # breakout / bollinger:
     mid = indicators.get('BBANDS_mid', 0.0)
     return 'long' if last_price > mid else 'short'
 
@@ -310,7 +309,6 @@ class ResearchEngine:
         closes = state.closes(include_current=include_current)
         volumes = state.volumes(include_current=include_current)
         
-        # Ingest highs and lows
         highs = [b.high for b in list(state.bars)]
         lows = [b.low for b in list(state.bars)]
         if include_current and state.current_bar is not None:
@@ -329,12 +327,10 @@ class ResearchEngine:
         base_indicators = compute_indicators_np(closes, state.factors)
         state.indicators.update(base_indicators)
         
-        # 1. trade_flow_imbalance_50
         sizes = list(state.trade_sizes)
         sides = list(state.trade_sides)
         state.factors['trade_flow_imbalance_50'] = flow_imbalance_np(sizes, sides, 50)
         
-        # 2. large_trade_ratio
         if sizes:
             mean_sz = mean(sizes[-20:]) if len(sizes) >= 20 else mean(sizes)
             large_trades_sum = sum(sz for sz in sizes[-20:] if sz > 1.5 * mean_sz)
@@ -343,7 +339,6 @@ class ResearchEngine:
         else:
             state.factors['large_trade_ratio'] = 0.0
             
-        # 3. btc_ret_1 & market_correlation_20
         btc_state = self.states.get('BTC')
         if btc_state:
             state.factors['btc_ret_1'] = btc_state.factors.get('ret_1', 0.0)
@@ -366,7 +361,6 @@ class ResearchEngine:
             state.factors['btc_ret_1'] = 0.0
             state.factors['market_correlation_20'] = 0.0
             
-        # 4. Advanced Indicators
         upper = state.indicators.get('BBANDS_upper', 0.0)
         lower = state.indicators.get('BBANDS_lower', 0.0)
         close = closes[-1] if closes else 0.0
@@ -387,21 +381,14 @@ class ResearchEngine:
         atr_val = atr_np(highs, lows, closes, 14)
         state.indicators['atr_pct_14'] = atr_val / close if close else 0.0
         
-        # Compute actual MACD & RSI history for divergence metrics
         macd_history = list(macd_history_np(closes)) if len(closes) >= 35 else [state.indicators.get('MACD', 0.0)] * len(closes)
         rsi_history = list(rsi_history_np(closes)) if len(closes) > 14 else [state.indicators.get('rsi_14', 50.0)] * len(closes)
 
         state.indicators['momentum_divergence'] = compute_divergence(
-            closes,
-            macd_history,
-            fractal_window=2,
-            max_lookback=30
+            closes, macd_history, fractal_window=2, max_lookback=30
         )
         state.indicators['rsi_divergence'] = compute_divergence(
-            closes,
-            rsi_history,
-            fractal_window=2,
-            max_lookback=30
+            closes, rsi_history, fractal_window=2, max_lookback=30
         )
         
         state.indicators['trade_flow_imbalance_20'] = state.factors.get('trade_flow_imbalance_20', 0.0)
@@ -419,51 +406,62 @@ class ResearchEngine:
         self._compute_validation(state, full=(mode == 'bar_close' or not state.validation_packet))
 
     def _dispatch_paper_trades(self, state: SymbolState):
-        """Dispatch paper trades for all execution_ready strategies."""
+        """Update PnL tick + SL/TP checks, then dispatch new paper trades."""
         if not hasattr(self, '_paper_broker') or self._paper_broker is None:
             return
-        
+
         last_price = state.latest_price()
         if not last_price:
             return
-        
+
+        # ── FIX 1: Always call process_tick so PnL updates in real-time ──
+        self._paper_broker.process_tick(state.symbol, last_price, state.updated_at)
+
         for strategy_name, strategy_state in state.strategies.items():
             if not strategy_state.get('execution_ready'):
                 continue
-            
+
             symbol = state.symbol
-            
+
             # Skip if already in position for this symbol
             if symbol in self._paper_broker.positions:
                 continue
-            
+
             direction = strategy_state.get('entry_side', 'long')
-            
-            # Skip signal_only
+
             signal_info = state.signals.get(strategy_name, {})
             if signal_info.get('direction') == 'signal_only':
                 continue
-            
-            # Position sizing: default to 10% of equity, or override by risk_packet's target_quantity if available
+
             risk_packet = state.risk_packets.get(strategy_name, {})
             quantity = risk_packet.get('target_quantity', 0.0)
             if quantity <= 0:
                 equity = self._paper_broker.equity
                 position_value = equity * 0.10
                 quantity = round(position_value / last_price, 6)
-            
+
             if quantity <= 0:
                 continue
-            
-            # SL/TP từ risk packet nếu có
+
+            # SL từ risk packet
             stop_loss = risk_packet.get('stop_policy', {}).get('initial_stop_price')
+
+            # ── FIX 2: ATR-based SL fallback khi risk packet không có SL ──
+            if stop_loss is None:
+                atr_pct = state.indicators.get('atr_pct_14', 0.02)
+                sl_pct = max(0.01, atr_pct * 1.5)
+                if direction == 'long':
+                    stop_loss = round(last_price * (1 - sl_pct), 6)
+                else:
+                    stop_loss = round(last_price * (1 + sl_pct), 6)
+
+            # TP từ risk packet hoặc fallback Bollinger Width
             take_profit = risk_packet.get('take_profit_price')
-            
             if take_profit is None:
                 bb_width = state.indicators.get('BollingerWidth', 0.03)
                 tp_pct = max(0.01, bb_width)
                 take_profit = last_price * (1 + tp_pct) if direction == 'long' else last_price * (1 - tp_pct)
-            
+
             success = self._paper_broker.execute_order(
                 symbol=symbol,
                 direction=direction,
@@ -474,12 +472,12 @@ class ResearchEngine:
                 time_str=state.updated_at,
                 signal_source=strategy_name,
             )
-            
+
             if success:
                 import logging
                 logging.getLogger(__name__).info(
                     f"[PaperTrade] OPENED {direction.upper()} {symbol} "
-                    f"qty={quantity} price={last_price} via {strategy_name}"
+                    f"qty={quantity} price={last_price} SL={stop_loss} TP={take_profit} via {strategy_name}"
                 )
 
     def _compute_micro_factors(self, state: SymbolState):
@@ -517,8 +515,6 @@ class ResearchEngine:
             prev_close = state.bars[-1].close
             if prev_close:
                 state.factors['live_ret_from_last_close'] = (latest_close / prev_close) - 1
-
-
 
     def _compute_regime(self, state: SymbolState):
         state.regime_state = classify_regime(state.factors, state.indicators)
