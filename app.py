@@ -23,6 +23,7 @@ from backtest_bridge import build_bridge_demo
 from baseline_backtest_runner import run_backtest_runner_demo
 
 from globals import CONFIG, engine, registry, telemetry, broker, BASE
+engine._paper_broker = broker
 from routers import presets, brief, playbook, live_control
 from dashboard_presenter import get_dashboard_payload, get_overview_payload, get_signals_payload, get_signal_detail
 

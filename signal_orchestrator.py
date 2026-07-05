@@ -6,13 +6,33 @@ from typing import Dict, Any, List
 from indicator_keys import BOLLINGER_SQUEEZE_THRESHOLD
 from promoted_signal_bridge import PromotedSignalBridge
 
-# Load template families from catalog
+import time
+
+# Path to template library
 TEMPLATE_LIBRARY_PATH = Path(__file__).resolve().parent / 'signal_template_library_v1.json'
-LIBRARY_DATA = json.loads(TEMPLATE_LIBRARY_PATH.read_text(encoding='utf-8')) if TEMPLATE_LIBRARY_PATH.exists() else {}
-TEMPLATES = LIBRARY_DATA.get('template_families', [])
-TEMPLATE_BY_FAMILY = {t['family']: t for t in TEMPLATES}
-CATALOG = LIBRARY_DATA.get('signal_catalog', [])
-CATALOG_BY_ID = {s['signal_id']: s for s in CATALOG}
+
+_catalog_cache = None
+_catalog_cache_time = 0.0
+CATALOG_CACHE_TTL = 30.0
+
+def _load_catalog():
+    global _catalog_cache, _catalog_cache_time
+    now = time.time()
+    if _catalog_cache is None or now - _catalog_cache_time > CATALOG_CACHE_TTL:
+        if TEMPLATE_LIBRARY_PATH.exists():
+            try:
+                data = json.loads(TEMPLATE_LIBRARY_PATH.read_text(encoding='utf-8'))
+            except Exception:
+                data = {}
+        else:
+            data = {}
+        templates = data.get('template_families', [])
+        templates_by_family = {t['family']: t for t in templates}
+        catalog = data.get('signal_catalog', [])
+        catalog_by_id = {s['signal_id']: s for s in catalog}
+        _catalog_cache = (templates_by_family, catalog, catalog_by_id)
+        _catalog_cache_time = now
+    return _catalog_cache
 
 # Initialize bridge
 bridge = PromotedSignalBridge()
@@ -71,6 +91,8 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
     out: Dict[str, Dict[str, Any]] = {}
     context = {**factors, **indicators}
     
+    templates_by_family, catalog, catalog_by_id = _load_catalog()
+    
     if promoted:
         for alpha in promoted:
             name = alpha.get('alpha_name', alpha['alpha_id'])
@@ -83,7 +105,16 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
             confirmed = safe_eval_expression(confirm_expr, context) if confirm_expr else True
             invalidated = safe_eval_expression(invalidate_expr, context) if invalidate_expr else False
             
-            regime_ok = (regime_state.get('regime') in alpha.get('regime_scope', []))
+            preferred = alpha.get('preferred_regimes') or alpha.get('regime_scope') or []
+            avoid = alpha.get('avoid_regimes', [])
+            current_regime = regime_state.get('regime')
+            if avoid and current_regime in avoid:
+                regime_ok = False
+            elif preferred and current_regime not in preferred:
+                regime_ok = False
+            else:
+                regime_ok = True
+            
             active = bool(triggered and confirmed and not invalidated and regime_ok and regime_state.get('tradable', False))
             
             confirmation_score = compute_expr_score(confirm_expr, context, is_invalidation=False)
@@ -120,10 +151,10 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
             }
     else:
         # Fallback to catalog signals
-        for sig in CATALOG:
+        for sig in catalog:
             name = sig['signal_id']
             family = sig.get('family', 'unknown')
-            template = TEMPLATE_BY_FAMILY.get(family, {})
+            template = templates_by_family.get(family, {})
             regime_ok = _regime_allowed(sig, regime_state)
             
             trigger_expr = sig.get('trigger_definition', '')

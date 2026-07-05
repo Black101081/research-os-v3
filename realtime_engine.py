@@ -182,6 +182,7 @@ class ResearchEngine:
     def __init__(self, symbols: List[str], max_bars: int = 500, thresholds: Optional[Dict[str, Any]] = None):
         self.thresholds = thresholds or {}
         self.states: Dict[str, SymbolState] = {s: SymbolState(symbol=s, bars=deque(maxlen=max_bars)) for s in symbols}
+        self._paper_broker = None  # Set externally after init
 
     def process_message(self, msg: Dict[str, Any]):
         channel = msg.get('channel')
@@ -414,7 +415,65 @@ class ResearchEngine:
         state.prev_bollinger_width = state.indicators.get('BollingerWidth')
         self._compute_strategies(state)
         self._compute_risk(state)
+        self._dispatch_paper_trades(state)
         self._compute_validation(state, full=(mode == 'bar_close' or not state.validation_packet))
+
+    def _dispatch_paper_trades(self, state: SymbolState):
+        """Dispatch paper trades for all execution_ready strategies."""
+        if not hasattr(self, '_paper_broker') or self._paper_broker is None:
+            return
+        
+        last_price = state.latest_price()
+        if not last_price:
+            return
+        
+        for strategy_name, strategy_state in state.strategies.items():
+            if not strategy_state.get('execution_ready'):
+                continue
+            
+            symbol = state.symbol
+            
+            # Skip if already in position for this symbol
+            if symbol in self._paper_broker.positions:
+                continue
+            
+            direction = strategy_state.get('entry_side', 'long')
+            
+            # Skip signal_only
+            signal_info = state.signals.get(strategy_name, {})
+            if signal_info.get('direction') == 'signal_only':
+                continue
+            
+            # Position sizing: 10% of equity per trade
+            equity = self._paper_broker.equity
+            position_value = equity * 0.10
+            quantity = round(position_value / last_price, 6)
+            
+            if quantity <= 0:
+                continue
+            
+            # SL/TP từ risk packet nếu có
+            risk_packet = state.risk_packets.get(strategy_name, {})
+            stop_loss = risk_packet.get('stop_loss_price')
+            take_profit = risk_packet.get('take_profit_price')
+            
+            success = self._paper_broker.execute_order(
+                symbol=symbol,
+                direction=direction,
+                quantity=quantity,
+                price=last_price,
+                stop_loss=stop_loss,
+                take_profit=take_profit,
+                time_str=state.updated_at,
+                signal_source=strategy_name,
+            )
+            
+            if success:
+                import logging
+                logging.getLogger(__name__).info(
+                    f"[PaperTrade] OPENED {direction.upper()} {symbol} "
+                    f"qty={quantity} price={last_price} via {strategy_name}"
+                )
 
     def _compute_micro_factors(self, state: SymbolState):
         prices = list(state.trade_prices)
@@ -470,7 +529,7 @@ class ResearchEngine:
             is_signal_only = (direction == 'signal_only')
             
             status = 'candidate' if (active and not is_signal_only) else 'standby'
-            logic_ready = bool(active and not is_signal_only and close_count >= 35 and state.regime_state.get('tradable', False))
+            logic_ready = bool(active and not is_signal_only and close_count >= 10 and state.regime_state.get('tradable', False))
             
             last_price = state.latest_price() or 0.0
             entry_side = _infer_entry_side(signal_name, last_price, state.indicators, signal_state.get('template_family'))
