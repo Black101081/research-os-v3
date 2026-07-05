@@ -12,6 +12,7 @@ from validation_bridge import build_validation_packet
 from risk_engine import build_risk_packet_v1
 from reactivity_diff import build_reactivity_diff_v1
 from factor_math import compute_factors_np, compute_indicators_np
+from indicator_keys import ZSCORE_ENTRY_LONG_THRESHOLD, ZSCORE_ENTRY_SHORT_THRESHOLD
 
 
 def now_iso() -> str:
@@ -155,19 +156,6 @@ class SymbolState:
         return self.last_trade or self.latest_close() or self.mid
 
 
-def _infer_entry_side(signal_name: str, last_price: float, indicators: dict) -> str:
-    if signal_name == 'zscore_recenter':
-        z = indicators.get('ZScore_Close', 0.0)
-        return 'short' if z >= 1.5 else 'long'
-    if signal_name == 'macd_trend_continuation':
-        macd = indicators.get('MACD', 0.0)
-        sig = indicators.get('MACD_signal', 0.0)
-        return 'long' if macd > sig else 'short'
-    # bollinger_squeeze_breakout: direction from price vs midband
-    mid = indicators.get('BBANDS_mid', 0.0)
-    return 'long' if last_price > mid else 'short'
-
-
 class ResearchEngine:
     def __init__(self, symbols: List[str], max_bars: int = 500, thresholds: Optional[Dict[str, Any]] = None):
         self.thresholds = thresholds or {}
@@ -303,11 +291,11 @@ class ResearchEngine:
         state.factors.update(base_factors)
         
         base_indicators = compute_indicators_np(closes, state.factors)
+        state.prev_bollinger_width = state.indicators.get('BollingerWidth')
         state.indicators.update(base_indicators)
         
         self._compute_regime(state)
         self._compute_signals(state)
-        state.prev_bollinger_width = state.indicators.get('BollingerWidth')
         self._compute_strategies(state)
         self._compute_risk(state)
         self._compute_validation(state, full=(mode == 'bar_close' or not state.validation_packet))
@@ -355,7 +343,27 @@ class ResearchEngine:
 
     def _compute_signals(self, state: SymbolState):
         last_close = state.latest_close()
-        state.signals = evaluate_supported_signals(state.symbol, state.factors, state.indicators, state.regime_state, last_close, state.prev_bollinger_width)
+        state.signals = evaluate_supported_signals(
+            state.symbol,
+            state.factors,
+            state.indicators,
+            state.regime_state,
+            last_close,
+            prev_bollinger_width=state.prev_bollinger_width,
+        )
+
+    def _infer_entry_side(self, signal_name: str, indicators: Dict[str, float], last_price: Optional[float]) -> str:
+        if signal_name == 'zscore_recenter':
+            z = indicators.get('ZScore_Close', 0.0)
+            if z >= ZSCORE_ENTRY_SHORT_THRESHOLD:
+                return 'short'
+            return 'long' if z <= ZSCORE_ENTRY_LONG_THRESHOLD else 'long'
+        if signal_name == 'macd_trend_continuation':
+            macd = indicators.get('MACD', 0.0)
+            sig = indicators.get('MACD_signal', 0.0)
+            return 'long' if macd > sig else 'short'
+        mid = indicators.get('BBANDS_mid', 0.0)
+        return 'long' if (last_price or 0.0) >= mid else 'short'
 
     def _compute_strategies(self, state: SymbolState):
         strategies = {}
@@ -364,7 +372,7 @@ class ResearchEngine:
             active = bool(signal_state.get('active'))
             logic_ready = bool(active and close_count >= 35 and state.regime_state.get('tradable', False))
             last_price = state.latest_price() or 0.0
-            entry_side = _infer_entry_side(signal_name, last_price, state.indicators)
+            entry_side = self._infer_entry_side(signal_name, state.indicators, last_price)
             strategies[signal_name] = {
                 'status': 'candidate' if active else 'standby',
                 'signal_name': signal_name,

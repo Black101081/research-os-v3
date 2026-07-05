@@ -62,6 +62,15 @@ def build_specs_and_packets(snapshot: Dict[str, Any]) -> tuple[list[Dict[str, An
     return specs, packets
 
 
+def _resolve_take_profit(current_price: float, side: str, risk: Dict[str, Any], state: Dict[str, Any]) -> float:
+    tp = risk.get('take_profit_price')
+    if tp is not None:
+        return tp
+    bb_width = state.get('indicators', {}).get('BollingerWidth', 0.03)
+    tp_pct = max(0.01, min(0.10, bb_width))
+    return current_price * (1 + tp_pct) if side == 'long' else current_price * (1 - tp_pct)
+
+
 async def writer_loop() -> None:
     while True:
         snapshot = engine.snapshot()
@@ -80,12 +89,7 @@ async def writer_loop() -> None:
                     side = strategy_state.get('entry_side', 'long')
                     stop_policy = risk.get('stop_policy', {})
                     sl = stop_policy.get('initial_stop_price')
-                    # Lấy từ risk packet trước
-                    tp = risk.get('take_profit_price')
-                    if tp is None:
-                        bb_width = state.get('indicators', {}).get('BollingerWidth', 0.03)
-                        tp_pct = max(0.01, bb_width)  # ít nhất 1%, scale theo vol
-                        tp = current_price * (1 + tp_pct) if side == 'long' else current_price * (1 - tp_pct)
+                    tp = _resolve_take_profit(current_price, side, risk, state)
                     
                     broker.execute_order(
                         symbol=symbol,

@@ -3,7 +3,10 @@ from __future__ import annotations
 from pathlib import Path
 import json
 from typing import Dict, Any
-from indicator_keys import BOLLINGER_SQUEEZE_THRESHOLD
+from indicator_keys import (
+    BOLLINGER_SQUEEZE_THRESHOLD,
+    ZSCORE_ENTRY_LONG_THRESHOLD,
+)
 
 TOOLKIT_PATH = Path(__file__).resolve().parent.parent / 'signal_toolkit_v2' / 'signal_toolkit_v2.json'
 SIGNALS = json.loads(TOOLKIT_PATH.read_text()) if TOOLKIT_PATH.exists() else []
@@ -23,7 +26,7 @@ def _regime_allowed(template: Dict[str, Any], regime_state: Dict[str, Any]) -> b
     return True
 
 
-def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicators: Dict[str, float], regime_state: Dict[str, Any], last_close: float | None, prev_bollinger_width: float | None) -> Dict[str, Dict[str, Any]]:
+def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicators: Dict[str, float], regime_state: Dict[str, Any], last_close: float | None, prev_bollinger_width: float | None = None) -> Dict[str, Dict[str, Any]]:
     out: Dict[str, Dict[str, Any]] = {}
     for name in SUPPORTED:
         spec = SIGNAL_INDEX.get(name, {})
@@ -34,11 +37,17 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
             breakout = (last_close is not None) and last_close > indicators.get('BBANDS_upper', float('inf'))
             rel_vol_ok = indicators.get('RelativeVolume', 0.0) >= 1.0
             active = bool(was_squeezing and breakout and rel_vol_ok and regime_ok and regime_state.get('tradable', False))
-            why = {'squeeze': was_squeezing, 'breakout': breakout, 'relative_volume': rel_vol_ok, 'regime_ok': regime_ok}
+            why = {
+                'was_squeezing': was_squeezing,
+                'prev_bollinger_width': prev_bollinger_width,
+                'breakout': breakout,
+                'relative_volume': rel_vol_ok,
+                'regime_ok': regime_ok,
+            }
         elif name == 'zscore_recenter':
             z = indicators.get('ZScore_Close', 0.0)
-            active = bool(z <= -1.5 and regime_ok and regime_state.get('tradable', False))
-            why = {'zscore': z, 'zscore_entry_condition': z <= -1.5, 'regime_ok': regime_ok}
+            active = bool(z <= ZSCORE_ENTRY_LONG_THRESHOLD and regime_ok and regime_state.get('tradable', False))
+            why = {'zscore': z, 'zscore_entry_condition': z <= ZSCORE_ENTRY_LONG_THRESHOLD, 'regime_ok': regime_ok}
         else:
             macd = indicators.get('MACD', 0.0)
             macd_signal = indicators.get('MACD_signal', 0.0)
