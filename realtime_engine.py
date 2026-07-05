@@ -94,6 +94,7 @@ class SymbolState:
     reactivity_events: Deque[Dict[str, Any]] = field(default_factory=lambda: deque(maxlen=100))
     updated_at: Optional[str] = None
     last_bar_ts: Optional[str] = None
+    prev_bollinger_width: Optional[float] = None
 
     def __post_init__(self):
         self._cache = {}
@@ -152,6 +153,19 @@ class SymbolState:
 
     def latest_price(self) -> Optional[float]:
         return self.last_trade or self.latest_close() or self.mid
+
+
+def _infer_entry_side(signal_name: str, last_price: float, indicators: dict) -> str:
+    if signal_name == 'zscore_recenter':
+        z = indicators.get('ZScore_Close', 0.0)
+        return 'short' if z >= 1.5 else 'long'
+    if signal_name == 'macd_trend_continuation':
+        macd = indicators.get('MACD', 0.0)
+        sig = indicators.get('MACD_signal', 0.0)
+        return 'long' if macd > sig else 'short'
+    # bollinger_squeeze_breakout: direction from price vs midband
+    mid = indicators.get('BBANDS_mid', 0.0)
+    return 'long' if last_price > mid else 'short'
 
 
 class ResearchEngine:
@@ -293,6 +307,7 @@ class ResearchEngine:
         
         self._compute_regime(state)
         self._compute_signals(state)
+        state.prev_bollinger_width = state.indicators.get('BollingerWidth')
         self._compute_strategies(state)
         self._compute_risk(state)
         self._compute_validation(state, full=(mode == 'bar_close' or not state.validation_packet))
@@ -340,7 +355,7 @@ class ResearchEngine:
 
     def _compute_signals(self, state: SymbolState):
         last_close = state.latest_close()
-        state.signals = evaluate_supported_signals(state.symbol, state.factors, state.indicators, state.regime_state, last_close)
+        state.signals = evaluate_supported_signals(state.symbol, state.factors, state.indicators, state.regime_state, last_close, state.prev_bollinger_width)
 
     def _compute_strategies(self, state: SymbolState):
         strategies = {}
@@ -348,11 +363,13 @@ class ResearchEngine:
         for signal_name, signal_state in state.signals.items():
             active = bool(signal_state.get('active'))
             logic_ready = bool(active and close_count >= 35 and state.regime_state.get('tradable', False))
+            last_price = state.latest_price() or 0.0
+            entry_side = _infer_entry_side(signal_name, last_price, state.indicators)
             strategies[signal_name] = {
                 'status': 'candidate' if active else 'standby',
                 'signal_name': signal_name,
                 'symbol': state.symbol,
-                'entry_side': 'long',
+                'entry_side': entry_side,
                 'thesis_state': 'aligned' if active else 'not_triggered',
                 'logic_ready': logic_ready,
                 'execution_ready': False,

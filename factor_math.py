@@ -12,19 +12,18 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 
-# ── EMA ───────────────────────────────────────────────────────────
 def ema_np(values: List[float] | np.ndarray, period: int) -> Optional[float]:
-    """Exponential moving average via numpy — matches pure-Python exactly and is vectorized."""
+    """Exponential moving average via numpy/scipy — normalized and vectorized."""
+    from scipy.signal import lfilter, lfilter_zi
     arr = np.asarray(values, dtype=np.float64)
     if arr.size == 0:
         return None
-    if arr.size == 1:
-        return float(arr[0])
     alpha = 2.0 / (period + 1)
-    weights = alpha * (1 - alpha) ** np.arange(arr.size - 1, -1, -1)
-    weights[0] = (1 - alpha) ** (arr.size - 1)
-    result = float(np.dot(arr, weights))
-    return result
+    b = [alpha]
+    a = [1, -(1 - alpha)]
+    zi = lfilter_zi(b, a) * arr[0]
+    out, _ = lfilter(b, a, arr, zi=zi)
+    return float(out[-1])
 
 
 def macd_np(closes: List[float], fast: int = 12, slow: int = 26, signal: int = 9) -> Dict[str, float]:

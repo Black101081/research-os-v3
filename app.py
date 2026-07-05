@@ -80,7 +80,12 @@ async def writer_loop() -> None:
                     side = strategy_state.get('entry_side', 'long')
                     stop_policy = risk.get('stop_policy', {})
                     sl = stop_policy.get('initial_stop_price')
-                    tp = current_price * (1 + 0.03) if side == 'long' else current_price * (1 - 0.03)
+                    # Lấy từ risk packet trước
+                    tp = risk.get('take_profit_price')
+                    if tp is None:
+                        bb_width = state.get('indicators', {}).get('BollingerWidth', 0.03)
+                        tp_pct = max(0.01, bb_width)  # ít nhất 1%, scale theo vol
+                        tp = current_price * (1 + tp_pct) if side == 'long' else current_price * (1 - tp_pct)
                     
                     broker.execute_order(
                         symbol=symbol,

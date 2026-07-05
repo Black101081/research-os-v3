@@ -26,7 +26,7 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
         regime = 'transition_ambiguous'
         confidence = 0.51
 
-    tradable = regime not in {'transition_ambiguous'}
+    tradable = regime in {'uptrend', 'downtrend', 'range_chop'}
     return {
         'regime': regime,
         'confidence': confidence,

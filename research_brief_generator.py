@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 import json
+from indicator_keys import BOLLINGER_SQUEEZE_THRESHOLD
 
 
 def now_iso() -> str:
@@ -144,7 +145,7 @@ def generate_playbook_code(symbol: str, strategy_name: str, parameters: dict, ri
         mid = indicators.get("BBANDS_mid", 0.0)
         
         # Check squeeze threshold
-        width_threshold = getattr(self, "width_threshold", 0.015)
+        width_threshold = getattr(self, "width_threshold", {BOLLINGER_SQUEEZE_THRESHOLD})
         if width < width_threshold:
             # Squeeze is active, trigger on breakout
             if close > mid:
