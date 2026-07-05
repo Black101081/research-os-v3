@@ -355,15 +355,14 @@ class ResearchEngine:
     def _infer_entry_side(self, signal_name: str, indicators: Dict[str, float], last_price: Optional[float]) -> str:
         if signal_name == 'zscore_recenter':
             z = indicators.get('ZScore_Close', 0.0)
-            if z >= ZSCORE_ENTRY_SHORT_THRESHOLD:
-                return 'short'
-            return 'long' if z <= ZSCORE_ENTRY_LONG_THRESHOLD else 'long'
+            return 'short' if z >= ZSCORE_ENTRY_SHORT_THRESHOLD else 'long'
         if signal_name == 'macd_trend_continuation':
             macd = indicators.get('MACD', 0.0)
             sig = indicators.get('MACD_signal', 0.0)
             return 'long' if macd > sig else 'short'
         mid = indicators.get('BBANDS_mid', 0.0)
-        return 'long' if (last_price or 0.0) >= mid else 'short'
+        price_reference = last_price if last_price is not None else 0.0
+        return 'long' if price_reference >= mid else 'short'
 
     def _compute_strategies(self, state: SymbolState):
         strategies = {}
