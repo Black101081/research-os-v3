@@ -452,4 +452,515 @@
             <h3 style="font-size: 1.15rem; font-weight: 700;">Signal Explorer</h3>
             <p style="font-size: 0.78rem; color: var(--muted); margin-top: 2px;">Danh sách toàn bộ các tín hiệu được tính toán và theo dõi thời gian thực.</p>
           </div>
-          <span class="
+          <span class="badge badge-primary" id="sectionB-signalCount">0 signals</span>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filters-bar">
+          <select class="filter-select" id="filterSymbol" onchange="applyFilters()">
+            <option value="ALL">All Coins</option>
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="SOL">SOL</option>
+          </select>
+          <select class="filter-select" id="filterFamily" onchange="applyFilters()">
+            <option value="ALL">All Families</option>
+            <option value="breakout">Breakout</option>
+            <option value="mean_reversion">Mean Reversion</option>
+            <option value="trend_continuation">Trend Continuation</option>
+            <option value="volatility_transition">Volatility Transition</option>
+            <option value="microstructure">Microstructure</option>
+          </select>
+          <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+            <option value="ALL">All Status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="TRIGGERED">Triggered</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="STANDBY">Standby</option>
+            <option value="INVALIDATED">Invalidated</option>
+          </select>
+          <select class="filter-select" id="filterQuality" onchange="applyFilters()">
+            <option value="ALL">All Tiers</option>
+            <option value="A">Tier A</option>
+            <option value="B">Tier B</option>
+            <option value="C">Tier C</option>
+          </select>
+          <input class="search-box" type="text" id="searchSignalName" placeholder="Search signal name…" oninput="applyFilters()">
+        </div>
+
+        <!-- Coin Tabs -->
+        <div class="signal-coin-tabs">
+          <button class="signal-coin-tab active" data-coin="BTC">BTC</button>
+          <button class="signal-coin-tab" data-coin="ETH">ETH</button>
+          <button class="signal-coin-tab" data-coin="SOL">SOL</button>
+        </div>
+        <!-- Coin Panels -->
+        <div id="signal-panel-BTC" class="signal-coin-panel active"><div class="signal-cards-grid" id="signal-cards-BTC"></div></div>
+        <div id="signal-panel-ETH" class="signal-coin-panel"><div class="signal-cards-grid" id="signal-cards-ETH"></div></div>
+        <div id="signal-panel-SOL" class="signal-coin-panel"><div class="signal-cards-grid" id="signal-cards-SOL"></div></div>
+      </section>
+
+      <!-- SECTION C: Paper Trading -->
+      <section class="dashboard-card">
+        <div class="card-header" style="margin-bottom:16px;">
+          <h3 style="font-size:1.15rem; font-weight:700;">Paper Trading</h3>
+          <span class="badge badge-primary" id="sectionC-posCount">0 positions</span>
+        </div>
+
+        <!-- Open Positions -->
+        <h4 style="font-size:0.8rem; text-transform:uppercase; color:var(--muted); letter-spacing:0.04em; margin-bottom:8px;">Open Positions</h4>
+        <div class="table-container" style="margin-bottom:20px;">
+          <table class="ui-table" id="sectionC-positionsTable">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Signal</th>
+                <th>Direction</th>
+                <th>Qty</th>
+                <th>Entry</th>
+                <th>Current</th>
+                <th>Unrealized P&L</th>
+                <th>Stop Loss</th>
+                <th>Take Profit</th>
+                <th>Entry Time</th>
+              </tr>
+            </thead>
+            <tbody id="sectionC-positionsBody">
+              <tr><td colspan="10" style="text-align:center; color:var(--muted); padding:24px;">No open positions</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Trade History -->
+        <h4 style="font-size:0.8rem; text-transform:uppercase; color:var(--muted); letter-spacing:0.04em; margin-bottom:8px;">Trade History</h4>
+        <div class="table-container">
+          <table class="ui-table" id="sectionC-historyTable">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Signal</th>
+                <th>Direction</th>
+                <th>Qty</th>
+                <th>Entry</th>
+                <th>Exit</th>
+                <th>P&L</th>
+                <th>Reason</th>
+                <th>Entry Time</th>
+                <th>Exit Time</th>
+              </tr>
+            </thead>
+            <tbody id="sectionC-historyBody">
+              <tr><td colspan="10" style="text-align:center; color:var(--muted); padding:24px;">No trade history</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Drilldown Cockpit -->
+<div class="drilldown-overlay" id="drilldownOverlay" onclick="closeDrilldown()"></div>
+<div class="cockpit-drilldown" id="drilldownPanel">
+  <div class="drilldown-header">
+    <div>
+      <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em;">Signal Detail</div>
+      <div style="font-size:1.1rem; font-weight:700; font-family:var(--font-mono);" id="drilldownTitle">—</div>
+    </div>
+    <button class="drilldown-close" onclick="closeDrilldown()">✕</button>
+  </div>
+  <div class="drilldown-body" id="drilldownBody">
+    <div style="color:var(--muted); font-size:0.85rem;">Select a signal to review.</div>
+  </div>
+</div>
+
+<!-- Tour Modal -->
+<div class="tour-overlay" id="tourOverlay" onclick="closeGuidedTour()"></div>
+<div class="guided-tour-modal" id="tourModal">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <strong id="tourStepTitle" style="font-size:1rem;">—</strong>
+    <span id="tourStepIndicator" style="font-size:0.75rem; color:var(--muted);">1/5</span>
+  </div>
+  <div id="tourStepContent" style="font-size:0.85rem; line-height:1.6; color:var(--muted);"></div>
+  <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+    <button class="btn btn-secondary" id="tourPrevBtn" onclick="prevTourStep()">Back</button>
+    <button class="btn btn-secondary" id="tourNextBtn" onclick="nextTourStep()">Next</button>
+  </div>
+</div>
+
+<script src="/static/js/kill_switch.js"></script>
+<script src="/static/js/tour.js"></script>
+<script src="/static/js/presets.js"></script>
+<script src="/static/js/playbook.js"></script>
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let lastSignalsCache = [];
+let expandedSignals = new Set();
+let signalDetailCache = {};
+let activeFilters = {
+  explorerSymbol: 'ALL',
+  explorerFamily: 'ALL',
+  explorerStatus: 'ALL',
+  explorerQuality: 'ALL',
+  explorerSearchName: ''
+};
+
+// ── Tab Switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.signal-coin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.signal-coin-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.signal-coin-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = document.getElementById('signal-panel-' + tab.dataset.coin);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+// ── Filter Helpers ────────────────────────────────────────────────────────────
+function applyFilters() {
+  activeFilters.explorerSymbol = document.getElementById('filterSymbol').value;
+  activeFilters.explorerFamily = document.getElementById('filterFamily').value;
+  activeFilters.explorerStatus = document.getElementById('filterStatus').value;
+  activeFilters.explorerQuality = document.getElementById('filterQuality').value;
+  activeFilters.explorerSearchName = (document.getElementById('searchSignalName').value || '').toLowerCase().trim();
+  renderSignalsExplorer(lastSignalsCache);
+}
+
+// ── Signal Explorer Renderer ──────────────────────────────────────────────────
+function renderSignalsExplorer(signals) {
+  lastSignalsCache = signals;
+
+  let filtered = signals.slice();
+  if (activeFilters.explorerSymbol !== 'ALL') filtered = filtered.filter(x => x.symbol === activeFilters.explorerSymbol);
+  if (activeFilters.explorerFamily !== 'ALL') filtered = filtered.filter(x => x.family === activeFilters.explorerFamily);
+  if (activeFilters.explorerStatus !== 'ALL') {
+    const st = activeFilters.explorerStatus;
+    if (st === 'ACTIVE') filtered = filtered.filter(x => x.active);
+    else if (st === 'TRIGGERED') filtered = filtered.filter(x => x.triggered);
+    else if (st === 'CONFIRMED') filtered = filtered.filter(x => x.confirmed);
+    else if (st === 'STANDBY') filtered = filtered.filter(x => !x.active && !x.invalidated);
+    else if (st === 'INVALIDATED') filtered = filtered.filter(x => x.invalidated);
+  }
+  if (activeFilters.explorerQuality !== 'ALL') filtered = filtered.filter(x => x.quality_tier === activeFilters.explorerQuality);
+  if (activeFilters.explorerSearchName) filtered = filtered.filter(x => x.signal_id.toLowerCase().includes(activeFilters.explorerSearchName));
+
+  filtered.sort((a, b) => {
+    if (a.active !== b.active) return a.active ? -1 : 1;
+    if (a.triggered !== b.triggered) return a.triggered ? -1 : 1;
+    return a.signal_id.localeCompare(b.signal_id);
+  });
+
+  const countEl = document.getElementById('sectionB-signalCount');
+  if (countEl) countEl.textContent = filtered.length + ' signal' + (filtered.length !== 1 ? 's' : '');
+
+  ['BTC', 'ETH', 'SOL'].forEach(coin => {
+    const grid = document.getElementById('signal-cards-' + coin);
+    if (!grid) return;
+    const coinSignals = filtered.filter(s => s.symbol === coin);
+    if (coinSignals.length === 0) {
+      grid.innerHTML = '<div style="padding:20px; color:var(--muted); font-size:0.8rem;">No signals match filters.</div>';
+      return;
+    }
+    grid.innerHTML = coinSignals.map(sig => {
+      const key = sig.symbol + '_' + sig.signal_id;
+      const isExpanded = expandedSignals.has(key);
+      const isActive = sig.active;
+      const isInvalid = sig.invalidated;
+      const statusLabel = isActive
+        ? '<span class="badge badge-success">ACTIVE</span>'
+        : (isInvalid ? '<span class="badge badge-error">INVALID</span>' : '<span class="badge badge-primary">STANDBY</span>');
+      let qBadge = 'badge-primary';
+      if (sig.quality_tier === 'A') qBadge = 'badge-success';
+      else if (sig.quality_tier === 'B') qBadge = 'badge-blue';
+      const trig = sig.triggered ? '<span class="text-success">✓</span>' : '<span class="text-muted">—</span>';
+      const conf = sig.confirmed ? '<span class="text-success">✓</span>' : '<span class="text-muted">—</span>';
+      const inv = sig.invalidated ? '<span class="text-error">✗</span>' : '<span class="text-muted">—</span>';
+      const regime = sig.regime_fit ? '<span class="text-success">✓</span>' : '<span class="text-error">✗</span>';
+      const entry = sig.entry_side
+        ? '<span class="badge ' + (sig.entry_side === 'long' ? 'badge-success' : 'badge-error') + '">' + sig.entry_side + '</span>'
+        : '<span class="text-muted">—</span>';
+      const updTime = sig.updated_at ? sig.updated_at.split('T')[1].substring(0, 8) : '—';
+      const cardClass = 'signal-card' + (isActive ? ' is-active' : '') + (isInvalid ? ' is-invalidated' : '');
+
+      let detailHtml = '';
+      const cacheKey = sig.symbol + ':' + sig.signal_id;
+      const cacheEntry = signalDetailCache[cacheKey];
+      if (isExpanded) {
+        if (cacheEntry && (Date.now() - cacheEntry.ts < 10000)) {
+          const d = cacheEntry.data;
+          detailHtml = '<div class="signal-card-detail open">' +
+            '<div style="margin-bottom:6px;"><strong style="color:var(--primary);">Thesis:</strong> ' + (d.thesis || '—') + '</div>' +
+            '<div style="margin-bottom:6px;"><strong style="color:var(--primary);">Entry Logic:</strong> ' + (d.entry_logic_summary || '—') + '</div>' +
+            '<div><strong style="color:var(--primary);">Why:</strong><br>' +
+            'Trigger: <code>' + ((d.why && d.why.trigger_expression) || '') + '</code><br>' +
+            'Confirm: <code>' + ((d.why && d.why.confirmation_expression) || '') + '</code><br>' +
+            'Regime: <code>' + ((d.why && d.why.current_regime) || '') + '</code>' +
+            '</div>' +
+            '<div style="margin-top:8px; text-align:right;">' +
+            '<button class="btn btn-secondary" style="font-size:0.7rem; padding:3px 8px;" onclick="event.stopPropagation(); openDrilldown(\'' + sig.symbol + '\',\'' + sig.signal_id + '\')">📝 Review</button>' +
+            '</div></div>';
+        } else {
+          detailHtml = '<div class="signal-card-detail open" style="text-align:center;"><div class="spinner" style="margin:auto;"></div></div>';
+          fetchSignalDetail(sig.symbol, sig.signal_id);
+        }
+      }
+
+      return '<div class="' + cardClass + '">' +
+        '<div class="signal-card-header">' +
+        '<span class="signal-card-name" title="' + sig.signal_id + '">' + sig.signal_id + '</span>' +
+        statusLabel +
+        '<span class="badge ' + qBadge + '" style="font-size:0.62rem;">T-' + sig.quality_tier + '</span>' +
+        '</div>' +
+        '<div class="signal-card-body">' +
+        '<div class="signal-row"><span class="signal-label">Family</span><span class="signal-value">' + (sig.family || '—') + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Direction</span><span class="signal-value">' + (sig.direction || '—') + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Triggered</span><span class="signal-value">' + trig + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Confirmed</span><span class="signal-value">' + conf + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Invalidated</span><span class="signal-value">' + inv + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Regime Fit</span><span class="signal-value">' + regime + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Entry Side</span><span class="signal-value">' + entry + '</span></div>' +
+        '<div class="signal-row"><span class="signal-label">Updated</span><span class="signal-value" style="color:var(--muted);">' + updTime + '</span></div>' +
+        '</div>' +
+        detailHtml +
+        '<button class="signal-card-expand-btn" onclick="toggleSignalExpansion(\'' + key + '\')">' + (isExpanded ? '▲ Collapse' : '▼ Details') + '</button>' +
+        '</div>';
+    }).join('');
+  });
+}
+
+// ── Signal Expansion ──────────────────────────────────────────────────────────
+function toggleSignalExpansion(key) {
+  if (expandedSignals.has(key)) {
+    expandedSignals.delete(key);
+  } else {
+    expandedSignals.add(key);
+  }
+  renderSignalsExplorer(lastSignalsCache);
+}
+
+async function fetchSignalDetail(symbol, signalId) {
+  const cacheKey = symbol + ':' + signalId;
+  try {
+    const res = await fetch('/api/signal/' + symbol + '/' + signalId);
+    if (!res.ok) return;
+    const data = await res.json();
+    signalDetailCache[cacheKey] = { data, ts: Date.now() };
+    renderSignalsExplorer(lastSignalsCache);
+  } catch (e) {
+    // silently ignore fetch errors
+  }
+}
+
+// ── Drilldown ─────────────────────────────────────────────────────────────────
+function openDrilldown(symbol, signalId) {
+  document.getElementById('drilldownTitle').textContent = symbol + ' / ' + signalId;
+  document.getElementById('drilldownBody').innerHTML = '<div style="text-align:center;"><div class="spinner" style="margin:auto;"></div></div>';
+  document.getElementById('drilldownOverlay').classList.add('active');
+  document.getElementById('drilldownPanel').classList.add('open');
+
+  fetch('/api/signal/' + symbol + '/' + signalId)
+    .then(r => r.json())
+    .then(d => {
+      const pnl = typeof d.pnl === 'number' ? (d.pnl >= 0 ? '+' : '') + d.pnl.toFixed(2) + '%' : '—';
+      document.getElementById('drilldownBody').innerHTML =
+        '<div class="expanded-section"><h4>Overview</h4>' +
+        '<p><strong>Family:</strong> ' + (d.family || '—') + '</p>' +
+        '<p><strong>Direction:</strong> ' + (d.direction || '—') + '</p>' +
+        '<p><strong>Quality Tier:</strong> ' + (d.quality_tier || '—') + '</p>' +
+        '<p><strong>Active:</strong> ' + (d.active ? '✓ Yes' : 'No') + '</p>' +
+        '<p><strong>Triggered:</strong> ' + (d.triggered ? '✓ Yes' : 'No') + '</p>' +
+        '<p><strong>Confirmed:</strong> ' + (d.confirmed ? '✓ Yes' : 'No') + '</p>' +
+        '<p><strong>Invalidated:</strong> ' + (d.invalidated ? '✗ Yes' : 'No') + '</p>' +
+        '</div>' +
+        '<div class="expanded-section"><h4>Thesis</h4><p>' + (d.thesis || '—') + '</p></div>' +
+        '<div class="expanded-section"><h4>Entry Logic</h4><p>' + (d.entry_logic_summary || '—') + '</p></div>' +
+        '<div class="expanded-section"><h4>Why</h4>' +
+        '<p><strong>Trigger:</strong> <code>' + ((d.why && d.why.trigger_expression) || '—') + '</code></p>' +
+        '<p><strong>Confirm:</strong> <code>' + ((d.why && d.why.confirmation_expression) || '—') + '</code></p>' +
+        '<p><strong>Regime:</strong> <code>' + ((d.why && d.why.current_regime) || '—') + '</code></p>' +
+        '</div>';
+    })
+    .catch(() => {
+      document.getElementById('drilldownBody').innerHTML = '<p style="color:var(--error);">Failed to load signal detail.</p>';
+    });
+}
+
+function closeDrilldown() {
+  document.getElementById('drilldownOverlay').classList.remove('active');
+  document.getElementById('drilldownPanel').classList.remove('open');
+}
+
+// ── Symbol Overview Cards (Section A) ─────────────────────────────────────────
+function renderSymbolCards(symbols) {
+  const container = document.getElementById('sectionA-symbols');
+  if (!container) return;
+  if (!symbols || symbols.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);">No symbol data available.</div>';
+    return;
+  }
+  container.innerHTML = symbols.map(sym => {
+    const price = sym.last_trade ? parseFloat(sym.last_trade).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—';
+    const regime = sym.regime || '—';
+    const conf = sym.regime_confidence ? (sym.regime_confidence * 100).toFixed(0) + '%' : '—';
+    const tradable = sym.tradable
+      ? '<span class="badge badge-success">Tradable</span>'
+      : '<span class="badge badge-warn">Non-Tradable</span>';
+    const ss = sym.signal_summary || {};
+    return '<div class="dashboard-card">' +
+      '<div class="card-header"><span class="card-title">' + sym.symbol + '</span>' + tradable + '</div>' +
+      '<div class="card-price-row"><span class="card-price-main">$' + price + '</span></div>' +
+      '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.8rem;">' +
+      '<div><span style="color:var(--muted);">Regime</span><br><strong class="mono">' + regime + '</strong></div>' +
+      '<div><span style="color:var(--muted);">Confidence</span><br><strong class="mono">' + conf + '</strong></div>' +
+      '<div><span style="color:var(--muted);">Active Signals</span><br><strong class="mono text-success">' + (ss.active || 0) + '</strong></div>' +
+      '<div><span style="color:var(--muted);">Confirmed</span><br><strong class="mono text-success">' + (ss.confirmed || 0) + '</strong></div>' +
+      '<div><span style="color:var(--muted);">Triggered</span><br><strong class="mono">' + (ss.triggered || 0) + '</strong></div>' +
+      '<div><span style="color:var(--muted);">Total</span><br><strong class="mono">' + (ss.total || 0) + '</strong></div>' +
+      '</div></div>';
+  }).join('');
+}
+
+// ── Paper Trading Renderer (Section C) ────────────────────────────────────────
+function renderPaperPositions(data) {
+  const posBody = document.getElementById('sectionC-positionsBody');
+  const histBody = document.getElementById('sectionC-historyBody');
+  const posCount = document.getElementById('sectionC-posCount');
+
+  const positions = (data && data.positions) || [];
+  const history = (data && data.history) || [];
+
+  if (posCount) posCount.textContent = positions.length + ' position' + (positions.length !== 1 ? 's' : '');
+
+  if (posBody) {
+    if (positions.length === 0) {
+      posBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--muted); padding:24px;">No open positions</td></tr>';
+    } else {
+      posBody.innerHTML = positions.map(p => {
+        const pnl = p.unrealized_pnl || 0;
+        const pnlClass = pnl >= 0 ? 'text-success' : 'text-error';
+        const pnlStr = (pnl >= 0 ? '+' : '') + pnl.toFixed(2);
+        return '<tr>' +
+          '<td><strong class="mono">' + (p.symbol || '—') + '</strong></td>' +
+          '<td style="font-size:0.75rem; color:var(--muted);">' + (p.signal_source || '—') + '</td>' +
+          '<td><span class="badge ' + (p.direction === 'long' ? 'badge-success' : 'badge-error') + '">' + (p.direction || '—') + '</span></td>' +
+          '<td class="mono">' + (p.quantity || '—') + '</td>' +
+          '<td class="mono">$' + (p.entry_price ? p.entry_price.toFixed(2) : '—') + '</td>' +
+          '<td class="mono">$' + (p.current_price ? p.current_price.toFixed(2) : '—') + '</td>' +
+          '<td class="mono ' + pnlClass + '">' + pnlStr + '</td>' +
+          '<td class="mono">' + (p.stop_loss ? '$' + p.stop_loss.toFixed(2) : '—') + '</td>' +
+          '<td class="mono">' + (p.take_profit ? '$' + p.take_profit.toFixed(2) : '—') + '</td>' +
+          '<td style="font-size:0.75rem; color:var(--muted);">' + (p.entry_time ? p.entry_time.split('T')[0] : '—') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+  }
+
+  if (histBody) {
+    if (history.length === 0) {
+      histBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--muted); padding:24px;">No trade history</td></tr>';
+    } else {
+      histBody.innerHTML = history.map(t => {
+        const pnl = t.pnl || 0;
+        const pnlClass = pnl >= 0 ? 'text-success' : 'text-error';
+        const pnlStr = (pnl >= 0 ? '+' : '') + pnl.toFixed(2);
+        return '<tr>' +
+          '<td><strong class="mono">' + (t.symbol || '—') + '</strong></td>' +
+          '<td style="font-size:0.75rem; color:var(--muted);">' + (t.signal_source || '—') + '</td>' +
+          '<td><span class="badge ' + (t.direction === 'long' ? 'badge-success' : 'badge-error') + '">' + (t.direction || '—') + '</span></td>' +
+          '<td class="mono">' + (t.quantity || '—') + '</td>' +
+          '<td class="mono">$' + (t.entry_price ? t.entry_price.toFixed(2) : '—') + '</td>' +
+          '<td class="mono">$' + (t.exit_price ? t.exit_price.toFixed(2) : '—') + '</td>' +
+          '<td class="mono ' + pnlClass + '">' + pnlStr + '</td>' +
+          '<td style="font-size:0.75rem;">' + (t.reason || '—') + '</td>' +
+          '<td style="font-size:0.75rem; color:var(--muted);">' + (t.entry_time ? t.entry_time.split('T')[0] : '—') + '</td>' +
+          '<td style="font-size:0.75rem; color:var(--muted);">' + (t.exit_time ? t.exit_time.split('T')[0] : '—') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+  }
+}
+
+// ── Top Bar Updates ───────────────────────────────────────────────────────────
+function updateTopBar(overview) {
+  const mode = (overview.mode || 'paper').toUpperCase();
+  const el = document.getElementById('topModeBadge');
+  if (el) {
+    el.textContent = mode;
+    el.className = 'badge ' + (mode === 'LIVE' ? 'badge-error' : 'badge-primary');
+  }
+  const lat = document.getElementById('topLatencyVal');
+  if (lat) lat.textContent = (overview.latency_ms || 0) + ' ms';
+  const er = document.getElementById('topErrorRate');
+  if (er) er.textContent = (overview.error_rate || 0) + '%';
+  const ut = document.getElementById('topUptime');
+  if (ut) {
+    const secs = overview.uptime_seconds || 0;
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    ut.textContent = h + 'h ' + m + 'm';
+  }
+  const ks = overview.kill_switch_active;
+  const killBtn = document.getElementById('topKillSwitch');
+  const resetBtn = document.getElementById('topResetKillSwitch');
+  if (killBtn) killBtn.style.display = ks ? 'none' : '';
+  if (resetBtn) resetBtn.style.display = ks ? '' : 'none';
+}
+
+function updateSidebar(data) {
+  const ov = data.overview || {};
+  const pp = data.paper_positions || {};
+  const tel = data.telemetry || {};
+
+  const bal = document.getElementById('sbBalance');
+  if (bal && pp.balance != null) bal.textContent = '$' + parseFloat(pp.balance).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const eq = document.getElementById('sbEquity');
+  if (eq && pp.equity != null) eq.textContent = '$' + parseFloat(pp.equity).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  const oc = document.getElementById('sbOpenCount');
+  if (oc) oc.textContent = ov.open_positions_count || 0;
+  const pnl = (pp.positions || []).reduce((sum, p) => sum + (p.unrealized_pnl || 0), 0);
+  const totalPnl = document.getElementById('sbTotalPnl');
+  if (totalPnl) {
+    totalPnl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(2);
+    totalPnl.className = pnl >= 0 ? 'text-success' : 'text-error';
+  }
+  const assets = document.getElementById('sbAssets');
+  if (assets) assets.textContent = (ov.symbols || []).join(', ') || '—';
+  const interval = document.getElementById('sbInterval');
+  if (interval) interval.textContent = ov.candle_interval || '1m';
+  const throughput = document.getElementById('sbThroughput');
+  if (throughput) throughput.textContent = (tel.msg_per_sec || '—') + (tel.msg_per_sec != null ? ' msg/s' : '');
+  const latency = document.getElementById('sbLatency');
+  if (latency) latency.textContent = (tel.avg_latency_ms != null ? tel.avg_latency_ms.toFixed(1) + ' ms' : '—');
+  const errors = document.getElementById('sbErrors');
+  if (errors) errors.textContent = (tel.error_rate_pct != null ? tel.error_rate_pct.toFixed(2) + '%' : '—');
+  const specs = document.getElementById('sbActiveSpecs');
+  if (specs) specs.textContent = ov.execution_ready_count || '—';
+}
+
+// ── Main Polling Loop ─────────────────────────────────────────────────────────
+async function tick() {
+  try {
+    const [overviewRes, signalsRes] = await Promise.all([
+      fetch('/api/dashboard/overview'),
+      fetch('/api/dashboard/signals')
+    ]);
+    const overviewData = await overviewRes.json();
+    const signalsData = await signalsRes.json();
+
+    updateTopBar(overviewData.overview || {});
+    updateSidebar(overviewData);
+    renderSymbolCards(overviewData.symbols || []);
+    renderSignalsExplorer(signalsData.signals || []);
+    renderPaperPositions(overviewData.paper_positions || {});
+  } catch (e) {
+    // connection may not be available in offline mode
+  }
+}
+
+// Initial load + polling
+tick();
+setInterval(tick, 5000);
+</script>
+</body>
+</html>
