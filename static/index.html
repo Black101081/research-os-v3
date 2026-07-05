@@ -980,6 +980,7 @@
           <button class="tab-btn" data-tab="trades">Closed Trades</button>
           <button class="tab-btn" data-tab="validation">Validation Details</button>
           <button class="tab-btn" data-tab="backtests">Backtests (High-Fidelity)</button>
+          <button class="tab-btn" data-tab="ranking">Ranking & Promotion</button>
           <button class="tab-btn" data-tab="validator">Code Validator</button>
           <button class="tab-btn" data-tab="raw-state">Raw State</button>
         </div>
@@ -1077,6 +1078,37 @@
           <pre id="backtestsView" class="json-code"></pre>
         </div>
 
+        <!-- Ranking & Promotion Panel -->
+        <div class="tab-panel" id="panel-ranking">
+          <div style="margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="font-size:0.85rem; color:var(--muted);">
+              Weights: Performance (35%) | Robustness (25%) | Decay (20%) | Complexity (20%)
+            </div>
+            <div>
+              <span class="badge badge-success">Promote: &gt;= 0.75</span>
+              <span class="badge badge-warn">Revise: &lt; 0.50</span>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="ui-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Symbol</th>
+                  <th>Strategy</th>
+                  <th>Composite Score</th>
+                  <th>Performance</th>
+                  <th>Robustness</th>
+                  <th>Decay</th>
+                  <th>Complexity</th>
+                  <th>Auto Action</th>
+                </tr>
+              </thead>
+              <tbody id="rankingTable"></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Code Validator Panel -->
         <div class="tab-panel" id="panel-validator">
           <pre id="validatorView" class="json-code"></pre>
@@ -1103,7 +1135,7 @@
     activeFilters.workspaceSearch = document.getElementById('workspaceSearch').value.toLowerCase().trim();
     if (lastSnapshotCache) {
       const c = lastSnapshotCache;
-      render(c.config, c.snap, c.validation, c.specs, c.replay, c.validator, c.backtests, c.broker, c.telemetry);
+      render(c.config, c.snap, c.validation, c.specs, c.replay, c.validator, c.backtests, c.broker, c.telemetry, c.ranking);
     }
   };
 
@@ -1117,6 +1149,7 @@
   async function loadBacktests() { const r = await fetch('/api/backtest-runner-demo'); return await r.json(); }
   async function loadPositions() { const r = await fetch('/api/positions'); return await r.json(); }
   async function loadTelemetry() { const r = await fetch('/api/telemetry'); return await r.json(); }
+  async function loadRanking() { const r = await fetch('/api/ranking'); return await r.json(); }
 
   function fmt(v) { return typeof v === 'number' ? v.toFixed(4) : String(v ?? '—'); }
   function fmtCurrency(v) { return typeof v === 'number' ? '$' + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(v ?? '—'); }
@@ -1222,7 +1255,7 @@
     }).join('');
   }
 
-  function render(config, snap, validation, specs, replay, validator, backtests, broker, telemetryData) {
+  function render(config, snap, validation, specs, replay, validator, backtests, broker, telemetryData, ranking) {
     // Update mobile wallet sum
     const mobSum = document.getElementById('mobileWalletSum');
     if (mobSum) {
@@ -1429,6 +1462,33 @@
     });
     document.getElementById('closedTradesTable').innerHTML = closedTradesRows.join('') || '<tr><td colspan="9"><div class="empty-state">No trades executed matching search.</div></td></tr>';
 
+    // 9.5 Render Ranking Table
+    if (ranking && ranking.ranked_strategies) {
+      const rankingRows = [];
+      ranking.ranked_strategies.forEach(item => {
+        if (matchesSearch(item.symbol, item.strategy_name, item.decision)) {
+          let actBadge = 'badge-primary';
+          if (item.decision === 'AUTO_PROMOTE') actBadge = 'badge-success';
+          if (item.decision === 'AUTO_REVISE') actBadge = 'badge-error';
+          
+          rankingRows.push(`
+            <tr onclick="openDrilldown('${item.symbol}', '${item.strategy_name}')">
+              <td class="mono" style="font-weight:700;">#${item.rank}</td>
+              <td style="font-weight:700;">${item.symbol}</td>
+              <td class="mono">${item.strategy_name}</td>
+              <td class="mono" style="font-weight:700; color:var(--primary);">${item.composite_score.toFixed(3)}</td>
+              <td class="mono">${item.perf_score.toFixed(3)}</td>
+              <td class="mono">${item.robust_score.toFixed(3)}</td>
+              <td class="mono">${item.decay_score.toFixed(3)}</td>
+              <td class="mono">${item.complexity_score.toFixed(3)}</td>
+              <td><span class="badge ${actBadge}">${item.decision}</span></td>
+            </tr>
+          `);
+        }
+      });
+      document.getElementById('rankingTable').innerHTML = rankingRows.join('') || '<tr><td colspan="9"><div class="empty-state">No strategy specs matching search.</div></td></tr>';
+    }
+
     // 10. Dropdowns & Selection-based Views
     const select = document.getElementById('symbolSelect');
     const current = select.value;
@@ -1449,7 +1509,7 @@
 
   async function tick() {
     try {
-      const [config, snap, validation, specs, replay, validator, backtests, broker, telemetry] = await Promise.all([
+      const [config, snap, validation, specs, replay, validator, backtests, broker, telemetry, ranking] = await Promise.all([
         loadConfig(),
         loadSnapshot(),
         loadValidation(),
@@ -1458,10 +1518,11 @@
         loadResearchValidator(),
         loadBacktests(),
         loadPositions(),
-        loadTelemetry()
+        loadTelemetry(),
+        loadRanking()
       ]);
-      lastSnapshotCache = { config, snap, validation, specs, replay, validator, backtests, broker, telemetry };
-      render(config, snap, validation, specs, replay, validator, backtests, broker, telemetry);
+      lastSnapshotCache = { config, snap, validation, specs, replay, validator, backtests, broker, telemetry, ranking };
+      render(config, snap, validation, specs, replay, validator, backtests, broker, telemetry, ranking);
     } catch (e) {
       console.error("Poller error:", e);
     }

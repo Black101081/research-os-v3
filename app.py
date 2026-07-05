@@ -225,6 +225,91 @@ def get_positions() -> Dict[str, Any]:
     return broker.get_summary()
 
 
+@app.get('/api/ranking')
+def get_ranking() -> Dict[str, Any]:
+    snap = engine.snapshot()
+    backtest_data = {}
+    
+    backtest_file = Path('data/backtest_runner_demo.json')
+    if backtest_file.exists():
+        try:
+            bt_results = json.loads(backtest_file.read_text())
+            for res in bt_results.get('results', []):
+                backtest_data[res.get('strategy_family')] = res.get('runner_metrics', {})
+        except Exception:
+            pass
+
+    ranked = []
+    for symbol, state in snap.items():
+        validation = state.get('validation_packet', {})
+        decay_detected = validation.get('decay_detected', False)
+        code_valid = validation.get('code_valid', True)
+        
+        for name, strat in state.get('strategies', {}).items():
+            metrics = backtest_data.get(name, {})
+            net_pnl = metrics.get('net_pnl', 0.0)
+            win_rate = metrics.get('win_rate', 0.5)
+            
+            pnl_norm = min(1.0, max(0.0, net_pnl / 100.0)) if net_pnl > 0 else 0.0
+            perf_score = 0.5 * pnl_norm + 0.5 * win_rate
+            
+            r_state = state.get('regime_state', {})
+            confidence = r_state.get('confidence', 0.5)
+            tradable = r_state.get('tradable', False)
+            robust_score = confidence * 0.8 + 0.2 if tradable else 0.0
+            
+            decay_score = 0.0 if decay_detected else 1.0
+            complexity_score = 1.0 if code_valid else 0.0
+            
+            comp_score = (
+                0.35 * perf_score +
+                0.25 * robust_score +
+                0.20 * decay_score +
+                0.20 * complexity_score
+            )
+            
+            if comp_score >= 0.75 and not decay_detected and code_valid:
+                decision = "AUTO_PROMOTE"
+            elif comp_score < 0.50 or decay_detected or not code_valid:
+                decision = "AUTO_REVISE"
+            else:
+                decision = "STANDBY"
+                
+            ranked.append({
+                'symbol': symbol,
+                'strategy_name': name,
+                'composite_score': round(comp_score, 3),
+                'perf_score': round(perf_score, 3),
+                'robust_score': round(robust_score, 3),
+                'decay_score': round(decay_score, 3),
+                'complexity_score': round(complexity_score, 3),
+                'decay_detected': decay_detected,
+                'code_valid': code_valid,
+                'decision': decision,
+                'net_pnl': net_pnl,
+                'win_rate': win_rate,
+                'status': strat.get('status')
+            })
+            
+    ranked.sort(key=lambda x: x['composite_score'], reverse=True)
+    for i, item in enumerate(ranked):
+        item['rank'] = i + 1
+        
+    return {
+        'ranked_strategies': ranked,
+        'rules': {
+            'promote_threshold': 0.75,
+            'revise_threshold': 0.50,
+            'metrics_weights': {
+                'performance': 0.35,
+                'robustness': 0.25,
+                'decay': 0.20,
+                'complexity': 0.20
+            }
+        }
+    }
+
+
 @app.get('/api/telemetry')
 def get_telemetry() -> Dict[str, Any]:
     snap = engine.snapshot()
