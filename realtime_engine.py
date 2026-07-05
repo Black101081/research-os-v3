@@ -444,18 +444,25 @@ class ResearchEngine:
             if signal_info.get('direction') == 'signal_only':
                 continue
             
-            # Position sizing: 10% of equity per trade
-            equity = self._paper_broker.equity
-            position_value = equity * 0.10
-            quantity = round(position_value / last_price, 6)
+            # Position sizing: default to 10% of equity, or override by risk_packet's target_quantity if available
+            risk_packet = state.risk_packets.get(strategy_name, {})
+            quantity = risk_packet.get('target_quantity', 0.0)
+            if quantity <= 0:
+                equity = self._paper_broker.equity
+                position_value = equity * 0.10
+                quantity = round(position_value / last_price, 6)
             
             if quantity <= 0:
                 continue
             
             # SL/TP từ risk packet nếu có
-            risk_packet = state.risk_packets.get(strategy_name, {})
-            stop_loss = risk_packet.get('stop_loss_price')
+            stop_loss = risk_packet.get('stop_policy', {}).get('initial_stop_price')
             take_profit = risk_packet.get('take_profit_price')
+            
+            if take_profit is None:
+                bb_width = state.indicators.get('BollingerWidth', 0.03)
+                tp_pct = max(0.01, bb_width)
+                take_profit = last_price * (1 + tp_pct) if direction == 'long' else last_price * (1 - tp_pct)
             
             success = self._paper_broker.execute_order(
                 symbol=symbol,
