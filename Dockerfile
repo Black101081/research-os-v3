@@ -15,8 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the code
 COPY . /app/
 
-# Expose port 8000 and 7860
-EXPOSE 8000
+# Expose port 7860 (Hugging Face Space default port)
 EXPOSE 7860
 
 # Start application dynamically using PORT env var (defaults to 8000 for local docker compose)
