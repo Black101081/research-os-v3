@@ -17,7 +17,30 @@
         "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
         "ideal_regime": "Pre-breakout: range_chop or transition; Post-trigger: uptrend or downtrend",
         "hold_duration_bars": "3-12"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Check that RelativeVolume is significantly above 1.0 to ensure participation",
+        "Confirm that order flow imbalance is in the direction of the breakout"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if the price closes back inside the Bollinger Bands mid-channel",
+        "Invalidate if bid/ask spread expands beyond limits during the breakout"
+      ],
+      "default_confirmation_inputs": ["RelativeVolume", "TradeFlowImbalance"],
+      "default_invalidation_inputs": ["bb_pct_b", "SpreadBps"],
+      "signal_quality_notes": [
+        "Highly sensitive to low-liquidity spikes. Always check spread.",
+        "Breakouts without volume support have a 70% failure rate."
+      ],
+      "expected_trade_shape": "Sharp expansion impulse followed by high-volume consolidation",
+      "false_positive_patterns": [
+        "Stop-runs near key levels that immediately reverse",
+        "Intrabar spikes during rollover hours with wide spreads"
+      ],
+      "exit_hints": [
+        "Exit if BollingerWidth begins to contract again after breakout",
+        "Trailing stop below the breakout bar low"
+      ]
     },
     {
       "template_id": "breakout_volume_confirm_v1",
@@ -34,7 +57,30 @@
         "execution_sensitivities": ["spread_bps"],
         "ideal_regime": "uptrend or downtrend with increasing volume",
         "hold_duration_bars": "5-20"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Confirm that large trade ratio is above 15% (institutional presence)",
+        "Ensure the direction matches the overall daily trend bias"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if price closes back inside the opposite band within 2 bars",
+        "Invalidate if relative volume drops below average on the next bar"
+      ],
+      "default_confirmation_inputs": ["large_trade_ratio", "ema_spread_8_21"],
+      "default_invalidation_inputs": ["bb_pct_b", "rel_volume_20"],
+      "signal_quality_notes": [
+        "Very high conviction. False positives are rare but costly.",
+        "Ensure the volume surge is not an isolated block trade."
+      ],
+      "expected_trade_shape": "Long-bodied trend bars with rising volume and clean follow-through",
+      "false_positive_patterns": [
+        "Wash trading or order book manipulation spikes",
+        "Macro news spikes that mean-revert instantly"
+      ],
+      "exit_hints": [
+        "Exit on volume exhaustion sign",
+        "Exit if price crosses the 20 SMA line"
+      ]
     },
     {
       "template_id": "mean_reversion_basic_v1",
@@ -51,7 +97,30 @@
         "execution_sensitivities": ["micro_volatility_20", "trade_flow_imbalance_20"],
         "ideal_regime": "range_chop with low BollingerWidth",
         "hold_duration_bars": "2-8"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "RSI should confirm extreme overbought/oversold levels",
+        "Flow imbalance should start returning to neutral"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if a strong trend develops (ema_spread expands)",
+        "Invalidate if the price moves further out of bounds (zscore continues expanding)"
+      ],
+      "default_confirmation_inputs": ["rsi_14", "TradeFlowImbalance"],
+      "default_invalidation_inputs": ["ema_spread_8_21", "zscore_close_20"],
+      "signal_quality_notes": [
+        "Do not trade during high-volatility regime. Reversion fails in trends.",
+        "Look for divergence signs to improve win-rate."
+      ],
+      "expected_trade_shape": "V-shaped reversal with quick re-centering to SMA20",
+      "false_positive_patterns": [
+        "Strong breakout continuation looking like overextension",
+        "Cascading liquidations driving price down continuously"
+      ],
+      "exit_hints": [
+        "Exit near the SMA20 line (mean)",
+        "Time stop after 8 bars if reversion hasn't occurred"
+      ]
     },
     {
       "template_id": "mean_reversion_bb_v1",
@@ -68,7 +137,30 @@
         "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
         "ideal_regime": "range_chop",
         "hold_duration_bars": "2-6"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Flow imbalance should cross back to positive for longs",
+        "Volatility ratio should be low (no momentum breakout)"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if price walks the band (bb_pct_b remains close to 0 or 1)",
+        "Invalidate if ATR expands rapidly during entry"
+      ],
+      "default_confirmation_inputs": ["TradeFlowImbalance", "volatility_ratio_5_20"],
+      "default_invalidation_inputs": ["bb_pct_b", "atr_pct_14"],
+      "signal_quality_notes": [
+        "Band walking is the biggest risk. Tight stop is mandatory.",
+        "Check for support/resistance levels."
+      ],
+      "expected_trade_shape": "Sharp reversal wick rejecting the band edge",
+      "false_positive_patterns": [
+        "News-driven trend expansion hugging the band",
+        "Low-volume creep where price slowly moves against you"
+      ],
+      "exit_hints": [
+        "Exit when price reaches the opposite band",
+        "Exit if RSI crosses back to 50"
+      ]
     },
     {
       "template_id": "continuation_basic_v1",
@@ -85,7 +177,30 @@
         "execution_sensitivities": ["spread_bps"],
         "ideal_regime": "uptrend (long) or downtrend (short) with increasing MACD_hist",
         "hold_duration_bars": "5-30"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Confirm that MACD histogram is expanding in trend direction",
+        "Confirm that volume is rising to validate the move"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if MACD crosses back over the signal line",
+        "Invalidate if price falls below the SMA20 line"
+      ],
+      "default_confirmation_inputs": ["MACD_hist", "rel_volume_20"],
+      "default_invalidation_inputs": ["MACD", "price_vs_sma20"],
+      "signal_quality_notes": [
+        "Rely on trend stability metrics. Avoid late trends.",
+        "Works best when entering near the beginning of a regime transition."
+      ],
+      "expected_trade_shape": "Steady stair-stepping price path with shallow pullbacks",
+      "false_positive_patterns": [
+        "Sideways consolidation showing MACD crosses without trend",
+        "V-shaped spikes that revert instantly"
+      ],
+      "exit_hints": [
+        "Exit on MACD histogram sign reversal",
+        "Exit on crossing the EMA21 line"
+      ]
     },
     {
       "template_id": "continuation_pullback_v1",
@@ -102,7 +217,30 @@
         "execution_sensitivities": ["spread_bps", "trade_flow_imbalance_20"],
         "ideal_regime": "uptrend or downtrend, medium BollingerWidth",
         "hold_duration_bars": "8-30"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Confirm that order flow imbalance returns to positive (buying support)",
+        "Confirm that price rejects the SMA20 with a rejection tail"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if price breaks and closes below the SMA20 by more than 1%",
+        "Invalidate if ema_spread turns negative (trend shift)"
+      ],
+      "default_confirmation_inputs": ["TradeFlowImbalance", "rel_volume_20"],
+      "default_invalidation_inputs": ["price_vs_sma20", "ema_spread_8_21"],
+      "signal_quality_notes": [
+        "Pullback should occur on lower volume. Volume expansion on pullback indicates breakdown.",
+        "Verify regime support."
+      ],
+      "expected_trade_shape": "Orderly pullback to SMA20 followed by sharp acceleration in trend direction",
+      "false_positive_patterns": [
+        "Head-and-shoulders patterns building at the top",
+        "Deep pullbacks that break structure and go sideways"
+      ],
+      "exit_hints": [
+        "Exit near the previous swing high",
+        "Trailing stop below the pullback low pivot"
+      ]
     },
     {
       "template_id": "volatility_event_basic_v1",
@@ -119,7 +257,30 @@
         "execution_sensitivities": ["spread_bps", "trade_flow_imbalance_20"],
         "ideal_regime": "transition_ambiguous — early detection before regime flip",
         "hold_duration_bars": "1-5"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Check that relative volume confirms the presence of liquidity",
+        "Ensure volatility expansion ratio is high"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if the volatility spike collapses back to average immediately",
+        "Invalidate if spread expands too wide to execute safely"
+      ],
+      "default_confirmation_inputs": ["rel_volume_20", "volatility_ratio_5_20"],
+      "default_invalidation_inputs": ["micro_volatility_20", "SpreadBps"],
+      "signal_quality_notes": [
+        "Extremely short-term. Avoid holding overnight.",
+        "Spread wide is the main hazard. Do not enter if spread > 10 bps."
+      ],
+      "expected_trade_shape": "Burst of ticks and rapid price movements",
+      "false_positive_patterns": [
+        "Isolated block trade causing transient volatility spike",
+        "EndOfDay execution re-balancing wicks"
+      ],
+      "exit_hints": [
+        "Time stop of 3 bars",
+        "Exit if spread expands significantly"
+      ]
     },
     {
       "template_id": "volatility_contraction_v1",
@@ -136,7 +297,29 @@
         "execution_sensitivities": ["spread_bps"],
         "ideal_regime": "Post high_volatility transitioning to range_chop",
         "hold_duration_bars": "N/A — this is a setup detector, not a trade entry"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Check that spreads are extremely tight (liquidity returning)",
+        "Verify volume drops to a minimum"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if a sudden volatility expansion occurs prematurely",
+        "Invalidate if price breaks the range edges before squeeze completes"
+      ],
+      "default_confirmation_inputs": ["SpreadBps", "rel_volume_20"],
+      "default_invalidation_inputs": ["volatility_ratio_5_20", "bb_pct_b"],
+      "signal_quality_notes": [
+        "This is a monitoring signal. Never convert directly to trades.",
+        "Squeeze can last for hours."
+      ],
+      "expected_trade_shape": "Sideways range contraction with low candles and tight spreads",
+      "false_positive_patterns": [
+        "Temporary drop in activity during holiday hours",
+        "Range-bound creep with wide spreads"
+      ],
+      "exit_hints": [
+        "N/A - signal only"
+      ]
     },
     {
       "template_id": "regime_transition_basic_v1",
@@ -153,7 +336,30 @@
         "execution_sensitivities": ["micro_volatility_20", "spread_bps"],
         "ideal_regime": "transition_ambiguous — bet on regime direction before it's confirmed",
         "hold_duration_bars": "1-3"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "BTC should confirm the same directional move (beta support)",
+        "Relative volume should expand"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if flow imbalance collapses to neutral",
+        "Invalidate if price reverses back into old regime levels"
+      ],
+      "default_confirmation_inputs": ["btc_ret_1", "rel_volume_20"],
+      "default_invalidation_inputs": ["TradeFlowImbalance", "LiveReturnFromClose"],
+      "signal_quality_notes": [
+        "High risk of whipsaw. Use very tight validation parameters.",
+        "Do not hold past the bar close if trend does not materialize."
+      ],
+      "expected_trade_shape": "Explosion of buying or selling that flips the regime",
+      "false_positive_patterns": [
+        "Brief spoofing spikes on orderbook with no actual transaction depth",
+        "Liquidation wicks that get absorbed instantly"
+      ],
+      "exit_hints": [
+        "Exit if the target regime is not established within 2 bars",
+        "Exit on reverse flow signals"
+      ]
     },
     {
       "template_id": "momentum_divergence_v1",
@@ -170,7 +376,30 @@
         "execution_sensitivities": ["spread_bps", "atr_pct_14"],
         "ideal_regime": "Late stage uptrend or downtrend with decreasing MACD_hist",
         "hold_duration_bars": "5-20"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Confirm that flow imbalance starts to align with divergence direction",
+        "Verify volume drops on the final price peak (exhaustion)"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if price breaks above the divergence peak by more than 0.5%",
+        "Invalidate if MACD histogram makes a fresh peak in the trend direction"
+      ],
+      "default_confirmation_inputs": ["TradeFlowImbalance", "rel_volume_20"],
+      "default_invalidation_inputs": ["bb_pct_b", "MACD_hist"],
+      "signal_quality_notes": [
+        "Divergence needs time to play out. Patience is key.",
+        "Look for multiple divergences (double or triple) to improve win-rate."
+      ],
+      "expected_trade_shape": "Slow round-topping pattern followed by sharp collapse/bounce",
+      "false_positive_patterns": [
+        "Strong momentum trends resetting MACD over multiple wicks",
+        "Sideways consolidation where indicators reset without price movement"
+      ],
+      "exit_hints": [
+        "Exit if momentum turns back in trend direction",
+        "Time stop of 15 bars"
+      ]
     },
     {
       "template_id": "flow_imbalance_entry_v1",
@@ -187,7 +416,30 @@
         "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
         "ideal_regime": "uptrend or transition with accelerating flow",
         "hold_duration_bars": "2-8"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Confirm that relative volume is expanding",
+        "Verify that price is drifting in the direction of the flow"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if flow imbalance collapses below neutral within 10 trades",
+        "Invalidate if spread expands and halts executions"
+      ],
+      "default_confirmation_inputs": ["rel_volume_20", "LiveReturnFromClose"],
+      "default_invalidation_inputs": ["TradeFlowImbalance", "SpreadBps"],
+      "signal_quality_notes": [
+        "Highly reactive. Keep execution slippage tight.",
+        "Institutional block trades are positive but avoid retail clustering."
+      ],
+      "expected_trade_shape": "Swift price rise/fall with heavy tape activity",
+      "false_positive_patterns": [
+        "Rebalancing trades by market makers",
+        "Arbitrage bots execution loops"
+      ],
+      "exit_hints": [
+        "Exit when tape slows down",
+        "Exit if large trade ratio drops to zero"
+      ]
     },
     {
       "template_id": "cross_asset_beta_v1",
@@ -204,7 +456,30 @@
         "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
         "ideal_regime": "uptrend or downtrend with high correlation to BTC",
         "hold_duration_bars": "1-5"
-      }
+      },
+      "confirmation_logic_guidelines": [
+        "Confirm that flow imbalance on target asset aligns with BTC direction",
+        "Verify target asset's relative volume expands"
+      ],
+      "invalidation_logic_guidelines": [
+        "Invalidate if target asset moves opposite to BTC (decorrelation)",
+        "Invalidate if BTC's move collapses or reverses"
+      ],
+      "default_confirmation_inputs": ["TradeFlowImbalance", "rel_volume_20"],
+      "default_invalidation_inputs": ["market_correlation_20", "btc_ret_1"],
+      "signal_quality_notes": [
+        "Only trade when correlation is established. Watch news feeds.",
+        "Look for lagging assets with cleanest setups."
+      ],
+      "expected_trade_shape": "Delayed matching impulse bar on the target asset",
+      "false_positive_patterns": [
+        "BTC moves on spot ETF inflows that do not impact Altcoins",
+        "Altcoin-specific negative news overriding BTC correlation"
+      ],
+      "exit_hints": [
+        "Exit when BTC impulse completes",
+        "Exit if correlation drops below 0.5"
+      ]
     }
   ],
   "signal_catalog": [
@@ -217,7 +492,18 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["range_chop"],
       "direction": "both",
-      "min_bars": 35
+      "min_bars": 35,
+      "trigger_definition": "BollingerWidth <= 0.15",
+      "confirmation_definition": "RelativeVolume >= 1.2 and abs(TradeFlowImbalance) >= 0.2",
+      "invalidation_definition": "BollingerWidth > 0.3 or SpreadBps > 10.0",
+      "thesis_summary": "Exploit volatility contraction followed by volume-confirmed directional breakout",
+      "entry_logic_summary": "Bollinger Bands width contracts below 15%, expecting imminent breakout",
+      "confirmation_summary": "Breakout is confirmed when relative volume is above 1.2 and tape aligns",
+      "invalidation_summary": "Breakout fails if bands expand too wide without trend or spread widens",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Highly sensitive to bid-ask spread and execution latency"
     },
     {
       "signal_id": "zscore_recenter",
@@ -228,7 +514,18 @@
       "preferred_regimes": ["range_chop"],
       "avoid_regimes": ["high_volatility", "uptrend", "downtrend"],
       "direction": "both",
-      "min_bars": 20
+      "min_bars": 20,
+      "trigger_definition": "abs(zscore_close_20) >= 1.5",
+      "confirmation_definition": "rsi_14 <= 30 or rsi_14 >= 70",
+      "invalidation_definition": "abs(zscore_close_20) > 3.0 or volatility_ratio_5_20 > 1.5",
+      "thesis_summary": "Trade extreme statistical overextensions expecting quick mean reversion",
+      "entry_logic_summary": "Z-Score close reaches +/- 1.5, showing significant price displacement",
+      "confirmation_summary": "Reversion is confirmed when RSI reaches extreme bounds (30/70)",
+      "invalidation_summary": "Thesis fails if Z-score continues to expand beyond 3.0 or trend develops",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to micro-volatility and order flow imbalances"
     },
     {
       "signal_id": "macd_trend_continuation",
@@ -239,7 +536,18 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["range_chop", "high_volatility"],
       "direction": "both",
-      "min_bars": 35
+      "min_bars": 35,
+      "trigger_definition": "MACD > MACD_signal and ema_spread_8_21 > 0",
+      "confirmation_definition": "MACD_hist > 0 and RelativeVolume >= 1.0",
+      "invalidation_definition": "MACD <= MACD_signal or price_vs_sma20 < -0.02",
+      "thesis_summary": "Ride persistent trend momentum confirmed by MACD and EMA alignment",
+      "entry_logic_summary": "MACD line crosses above signal line with positive medium trend bias",
+      "confirmation_summary": "Continuation is confirmed by positive histogram and average volume support",
+      "invalidation_summary": "Trend is invalidated if MACD crosses back or price falls below 20 SMA",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Low sensitivity to short-term spread, relies on structural trend follow"
     },
     {
       "signal_id": "bb_reversion_rsi_confirm",
@@ -250,7 +558,18 @@
       "preferred_regimes": ["range_chop"],
       "avoid_regimes": ["high_volatility", "uptrend", "downtrend"],
       "direction": "both",
-      "min_bars": 20
+      "min_bars": 20,
+      "trigger_definition": "bb_pct_b <= 0.05 or bb_pct_b >= 0.95",
+      "confirmation_definition": "rsi_14 <= 35 or rsi_14 >= 65",
+      "invalidation_definition": "abs(trade_flow_imbalance_20) > 0.5 or atr_pct_14 > 0.02",
+      "thesis_summary": "Counter-trend entry when price touches band edge with RSI exhaustion",
+      "entry_logic_summary": "Price reaches Bollinger Band extremes (close to lower/upper band)",
+      "confirmation_summary": "Confirmed when RSI joins the overextended zone indicating exhaustion",
+      "invalidation_summary": "Invalidated if selling/buying pressure expands or volatility surges",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.7,
+      "min_invalidation_score": 0.6,
+      "execution_sensitivity_summary": "High sensitivity to order tape and spread width at band edge"
     },
     {
       "signal_id": "ema_pullback_continuation",
@@ -261,7 +580,18 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["range_chop", "high_volatility"],
       "direction": "both",
-      "min_bars": 50
+      "min_bars": 50,
+      "trigger_definition": "abs(price_vs_sma20) <= 0.01 and ema_spread_8_21 > 0",
+      "confirmation_definition": "rsi_14 > 45 and RelativeVolume >= 1.0",
+      "invalidation_definition": "price_vs_sma20 < -0.015 or ema_spread_8_21 <= 0",
+      "thesis_summary": "Re-enter the primary trend after a shallow pullback to the 20 SMA",
+      "entry_logic_summary": "Price retraces close to 20 SMA while long-term trend remains intact",
+      "confirmation_summary": "Pullback confirmed if RSI bounces from mid-zone with average volume",
+      "invalidation_summary": "Invalidated if price breaks significantly below 20 SMA or trend flips",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Low sensitivity to execution delay, requires structural level hold"
     },
     {
       "signal_id": "rsi_oversold_bounce",
@@ -272,7 +602,18 @@
       "preferred_regimes": ["range_chop", "downtrend"],
       "avoid_regimes": ["high_volatility"],
       "direction": "long",
-      "min_bars": 15
+      "min_bars": 15,
+      "trigger_definition": "rsi_14 <= 30",
+      "confirmation_definition": "trade_flow_imbalance_20 >= 0.1",
+      "invalidation_definition": "rsi_14 < 20 or price_vs_sma20 < -0.03",
+      "thesis_summary": "Trade oversold bounces in range-bound or early trend conditions",
+      "entry_logic_summary": "RSI(14) drops below 30, showing oversold conditions",
+      "confirmation_summary": "Bounce confirmed when trade flow imbalance turns positive",
+      "invalidation_summary": "Invalidated if RSI drops into extreme capitulation (<20) or structure breaks",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to execution slippage and trade size"
     },
     {
       "signal_id": "rsi_overbought_fade",
@@ -283,7 +624,18 @@
       "preferred_regimes": ["range_chop", "uptrend"],
       "avoid_regimes": ["high_volatility"],
       "direction": "short",
-      "min_bars": 15
+      "min_bars": 15,
+      "trigger_definition": "rsi_14 >= 70",
+      "confirmation_definition": "trade_flow_imbalance_20 <= -0.1",
+      "invalidation_definition": "rsi_14 > 80 or price_vs_sma20 > 0.03",
+      "thesis_summary": "Fade overbought price levels in range-bound or late trend conditions",
+      "entry_logic_summary": "RSI(14) climbs above 70, showing overbought conditions",
+      "confirmation_summary": "Fade confirmed when trade flow imbalance turns negative",
+      "invalidation_summary": "Invalidated if RSI climbs above 80 (parabolic expansion) or trend persists",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to liquidation wicks and spread spikes"
     },
     {
       "signal_id": "macd_histogram_reversal",
@@ -294,7 +646,18 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["range_chop"],
       "direction": "both",
-      "min_bars": 36
+      "min_bars": 36,
+      "trigger_definition": "momentum_divergence != 0",
+      "confirmation_definition": "rsi_14 < 35 or rsi_14 > 65",
+      "invalidation_definition": "macd_hist_slope == 0 or price_vs_sma20 < -0.025",
+      "thesis_summary": "Identify momentum exhaustion via divergence before price trend reverses",
+      "entry_logic_summary": "Price-momentum divergence occurs between close and MACD histogram",
+      "confirmation_summary": "Reversal confirmed if RSI joins the overextended zone",
+      "invalidation_summary": "Invalidated if price trend resumes with new peak or slope collapses",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Low sensitivity to latency, requires swing point validation"
     },
     {
       "signal_id": "volume_breakout_surge",
@@ -305,7 +668,18 @@
       "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
       "avoid_regimes": ["range_chop"],
       "direction": "both",
-      "min_bars": 20
+      "min_bars": 20,
+      "trigger_definition": "BollingerWidth <= 0.15",
+      "confirmation_definition": "rel_volume_20 >= 2.0 and large_trade_ratio > 0.15",
+      "invalidation_definition": "rel_volume_20 < 1.0 or SpreadBps > 10.0",
+      "thesis_summary": "Trade high-participation breakouts backed by institutional size volume",
+      "entry_logic_summary": "Bollinger squeeze occurs, expecting large directional expansion",
+      "confirmation_summary": "Confirmed when relative volume surges above 2x and large trades are present",
+      "invalidation_summary": "Invalidated if volume drops below average or bid/ask spread expands",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.7,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "High sensitivity to execution slips and liquidity depth at boundary"
     },
     {
       "signal_id": "flow_imbalance_momentum",
@@ -316,7 +690,18 @@
       "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
       "avoid_regimes": ["high_volatility"],
       "direction": "both",
-      "min_bars": 1
+      "min_bars": 1,
+      "trigger_definition": "trade_flow_imbalance_20 > 0.1 or trade_flow_imbalance_20 < -0.1",
+      "confirmation_definition": "trade_flow_imbalance_50 > 0.2 or trade_flow_imbalance_50 < -0.2",
+      "invalidation_definition": "large_trade_ratio < 0.05 or SpreadBps > 8.0",
+      "thesis_summary": "Follow aggressive market buying/selling tape flow imbalances",
+      "entry_logic_summary": "Short-term order flow imbalance exceeds +/- 0.1 threshold",
+      "confirmation_summary": "Sustained flow confirmed by 50-trade flow imbalance exceeding +/- 0.2",
+      "invalidation_summary": "Invalidated if large trades disappear or execution costs expand",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Extremely high sensitivity to tape delay and exchange execution limits"
     },
     {
       "signal_id": "volatility_squeeze_setup",
@@ -327,7 +712,18 @@
       "preferred_regimes": ["range_chop", "transition_ambiguous"],
       "avoid_regimes": [],
       "direction": "signal_only",
-      "min_bars": 20
+      "min_bars": 20,
+      "trigger_definition": "volatility_ratio_5_20 < 0.7",
+      "confirmation_definition": "BollingerWidth <= 0.15",
+      "invalidation_definition": "volatility_ratio_5_20 >= 1.2",
+      "thesis_summary": "Monitor extreme volatility compression for breakout preparation",
+      "entry_logic_summary": "Volatility ratio 5/20 drops below 0.7, indicating compression",
+      "confirmation_summary": "Setup confirmed if Bollinger Width contracts below 15%",
+      "invalidation_summary": "Invalidated if volatility expands prematurely above 1.2",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Low sensitivity, monitor-only signal with no execution candidate"
     },
     {
       "signal_id": "regime_early_warning",
@@ -338,7 +734,18 @@
       "preferred_regimes": ["transition_ambiguous"],
       "avoid_regimes": [],
       "direction": "both",
-      "min_bars": 1
+      "min_bars": 1,
+      "trigger_definition": "tick_ret_5 > 0 or tick_ret_5 < 0",
+      "confirmation_definition": "trade_flow_imbalance_20 > 0.1 or trade_flow_imbalance_20 < -0.1",
+      "invalidation_definition": "LiveReturnFromClose == 0 or SpreadBps > 10.0",
+      "thesis_summary": "Anticipate regime shifts via leading intrabar flow and tick returns",
+      "entry_logic_summary": "Directional tick return drift detected over last 5 ticks",
+      "confirmation_summary": "Shift confirmed by positive/negative order flow imbalances",
+      "invalidation_summary": "Thesis fails if price drift halts or spreads widen excessively",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "High sensitivity to execution queue and tick feed latency"
     },
     {
       "signal_id": "stochastic_oversold",
@@ -349,7 +756,18 @@
       "preferred_regimes": ["range_chop"],
       "avoid_regimes": ["high_volatility", "downtrend"],
       "direction": "long",
-      "min_bars": 14
+      "min_bars": 14,
+      "trigger_definition": "stoch_k_14 < 20",
+      "confirmation_definition": "rsi_14 < 30 and trade_flow_imbalance_20 > 0.0",
+      "invalidation_definition": "stoch_k_14 < 5 or price_vs_sma20 < -0.02",
+      "thesis_summary": "Trade short-term oversold bounces using stochastic and RSI confluence",
+      "entry_logic_summary": "Stochastic %K oscillator drops below 20, indicating oversold state",
+      "confirmation_summary": "Bounce confirmed when RSI matches oversold and buying tape starts",
+      "invalidation_summary": "Thesis fails if stochastic drops to absolute bottom or support fails",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to trade execution queue delays"
     },
     {
       "signal_id": "williams_r_extreme",
@@ -360,7 +778,18 @@
       "preferred_regimes": ["range_chop"],
       "avoid_regimes": ["high_volatility"],
       "direction": "both",
-      "min_bars": 14
+      "min_bars": 14,
+      "trigger_definition": "williams_r_14 < -80 or williams_r_14 > -20",
+      "confirmation_definition": "rsi_14 < 30 or rsi_14 > 70",
+      "invalidation_definition": "williams_r_14 < -98 or williams_r_14 > -2",
+      "thesis_summary": "Mean reversion entry on extreme price displacements via Williams %R",
+      "entry_logic_summary": "Williams %R crosses -80 (oversold) or -20 (overbought) boundary",
+      "confirmation_summary": "Reversion confirmed when RSI aligns with the overextended conditions",
+      "invalidation_summary": "Invalidated if Williams %R stays stuck at absolute boundaries (extreme trend)",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to stop run wicks and order slips"
     },
     {
       "signal_id": "pin_bar_rejection",
@@ -371,7 +800,18 @@
       "preferred_regimes": ["uptrend", "downtrend", "range_chop"],
       "avoid_regimes": ["high_volatility"],
       "direction": "both",
-      "min_bars": 2
+      "min_bars": 2,
+      "trigger_definition": "pin_bar_ratio >= 3.0",
+      "confirmation_definition": "RelativeVolume >= 1.0",
+      "invalidation_definition": "price_vs_sma20 < -0.02 or price_vs_sma20 > 0.02",
+      "thesis_summary": "Trade structural price reversals confirmed by pin bar wick wicks",
+      "entry_logic_summary": "Pin bar ratio is greater than 3.0, showing a strong wick rejection tail",
+      "confirmation_summary": "Confirmed if breakout occurs with average or expanding volume support",
+      "invalidation_summary": "Invalidated if price breaches the opposite side of the pin bar range",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity, execution near the wick midpoint is ideal"
     },
     {
       "signal_id": "inside_bar_breakout",
@@ -382,7 +822,40 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["range_chop"],
       "direction": "both",
-      "min_bars": 2
+      "min_bars": 2,
+      "trigger_definition": "inside_bar > 0",
+      "confirmation_definition": "RelativeVolume >= 1.0",
+      "invalidation_definition": "BollingerWidth > 0.2",
+      "thesis_summary": "Capture expansion break following temporary range compression inside parent bar",
+      "entry_logic_summary": "Inside bar indicator is triggered, showing compression pattern",
+      "confirmation_summary": "Confirmed if breakout bar volume exceeds average",
+      "invalidation_summary": "Thesis fails if price collapses back inside parent range or width expands",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to boundary stop slippages"
+    },
+    {
+      "signal_id": "inside_bar_breakout_dummy",
+      "family": "breakout",
+      "template_id": "breakout_basic_v1",
+      "description": "Dummy inside bar compression for regression testing",
+      "entry_factors": ["inside_bar", "BollingerWidth", "rel_volume_20"],
+      "preferred_regimes": ["uptrend", "downtrend"],
+      "avoid_regimes": ["range_chop"],
+      "direction": "both",
+      "min_bars": 2,
+      "trigger_definition": "inside_bar > 0",
+      "confirmation_definition": "RelativeVolume >= 1.0",
+      "invalidation_definition": "BollingerWidth > 0.2",
+      "thesis_summary": "Capture expansion break following temporary range compression inside parent bar",
+      "entry_logic_summary": "Inside bar indicator is triggered, showing compression pattern",
+      "confirmation_summary": "Confirmed if breakout bar volume exceeds average",
+      "invalidation_summary": "Thesis fails if price collapses back inside parent range or width expands",
+      "quality_tier": "B",
+      "min_confirmation_score": 0.5,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to boundary stop slippages"
     },
     {
       "signal_id": "consecutive_bars_exhaustion",
@@ -393,7 +866,18 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["high_volatility"],
       "direction": "both",
-      "min_bars": 5
+      "min_bars": 5,
+      "trigger_definition": "consecutive_up_bars >= 4 or consecutive_down_bars >= 4",
+      "confirmation_definition": "rsi_14 <= 30 or rsi_14 >= 70",
+      "invalidation_definition": "consecutive_up_bars >= 6 or consecutive_down_bars >= 6",
+      "thesis_summary": "Counter-trend trade expecting exhaustion after consecutive bars",
+      "entry_logic_summary": "Price builds 4 or more consecutive up/down bars, indicating overstretch",
+      "confirmation_summary": "Exhaustion confirmed when RSI reaches extreme bounds (30/70)",
+      "invalidation_summary": "Invalidated if price goes parabolic (6 or more bars) showing strong continuation",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to liquidation run wicks"
     },
     {
       "signal_id": "btc_beta_lag",
@@ -404,7 +888,18 @@
       "preferred_regimes": ["uptrend", "downtrend"],
       "avoid_regimes": ["high_volatility"],
       "direction": "both",
-      "min_bars": 20
+      "min_bars": 20,
+      "trigger_definition": "abs(btc_ret_1) >= 0.003",
+      "confirmation_definition": "market_correlation_20 >= 0.7",
+      "invalidation_definition": "market_correlation_20 < 0.5 or abs(btc_ret_1) < 0.001",
+      "thesis_summary": "Exploit delayed altcoin reaction to violent BTC price impulses",
+      "entry_logic_summary": "BTC executes a strong price impulse exceeding 0.3% in one bar",
+      "confirmation_summary": "Confirmed if the asset maintains high correlation with BTC (>0.7)",
+      "invalidation_summary": "Invalidated if the correlation breaks down or BTC move reverses",
+      "quality_tier": "A",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5,
+      "execution_sensitivity_summary": "Moderate sensitivity to altcoin lag latency"
     }
   ],
   "generation_defaults": {

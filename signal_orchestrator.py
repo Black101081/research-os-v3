@@ -8,8 +8,11 @@ from promoted_signal_bridge import PromotedSignalBridge
 
 # Load template families from catalog
 TEMPLATE_LIBRARY_PATH = Path(__file__).resolve().parent / 'signal_template_library_v1.json'
-TEMPLATES = json.loads(TEMPLATE_LIBRARY_PATH.read_text(encoding='utf-8')).get('template_families', []) if TEMPLATE_LIBRARY_PATH.exists() else []
+LIBRARY_DATA = json.loads(TEMPLATE_LIBRARY_PATH.read_text(encoding='utf-8')) if TEMPLATE_LIBRARY_PATH.exists() else {}
+TEMPLATES = LIBRARY_DATA.get('template_families', [])
 TEMPLATE_BY_FAMILY = {t['family']: t for t in TEMPLATES}
+CATALOG = LIBRARY_DATA.get('signal_catalog', [])
+CATALOG_BY_ID = {s['signal_id']: s for s in CATALOG}
 
 # Initialize bridge
 bridge = PromotedSignalBridge()
@@ -21,6 +24,7 @@ def safe_eval_expression(expr: str, context: Dict[str, float]) -> bool:
     safe_dict = {k: float(v) for k, v in context.items() if isinstance(v, (int, float))}
     safe_dict['True'] = True
     safe_dict['False'] = False
+    safe_dict['abs'] = abs
     allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.<>=!+-*/() \t")
     if not all(c in allowed_chars for c in expr):
         return False
@@ -30,10 +34,29 @@ def safe_eval_expression(expr: str, context: Dict[str, float]) -> bool:
         return False
 
 
-def _regime_allowed(template: Dict[str, Any], regime_state: Dict[str, Any]) -> bool:
+def compute_expr_score(expr: str, context: Dict[str, float], is_invalidation: bool = False) -> float:
+    if not expr:
+        return 0.0 if is_invalidation else 1.0
+    import re
+    parts = re.split(r'\s+(?:and|or)\s+', expr)
+    if not parts:
+        return 0.0 if is_invalidation else 1.0
+    passed = 0
+    total = 0
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        total += 1
+        if safe_eval_expression(p, context):
+            passed += 1
+    return float(passed) / total if total > 0 else (0.0 if is_invalidation else 1.0)
+
+
+def _regime_allowed(sig: Dict[str, Any], regime_state: Dict[str, Any]) -> bool:
     regime = regime_state.get('regime')
-    preferred = template.get('preferred_regimes') or template.get('default_regime_scope', [])
-    avoid = template.get('avoid_regimes', [])
+    preferred = sig.get('preferred_regimes') or sig.get('default_regime_scope', [])
+    avoid = sig.get('avoid_regimes', [])
     if regime in avoid:
         return False
     if preferred and regime not in preferred:
@@ -46,68 +69,121 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
     promoted = bridge.load_promoted_alphas()
     
     out: Dict[str, Dict[str, Any]] = {}
+    context = {**factors, **indicators}
     
     if promoted:
-        context = {**factors, **indicators}
         for alpha in promoted:
             name = alpha.get('alpha_name', alpha['alpha_id'])
-            expr = alpha.get('signal_expression', '')
-            family = alpha.get('signal_template_family', 'unknown')
+            
+            trigger_expr = alpha.get('trigger_definition') or alpha.get('signal_expression') or ''
+            confirm_expr = alpha.get('confirmation_definition') or ''
+            invalidate_expr = alpha.get('invalidation_definition') or ''
+            
+            triggered = safe_eval_expression(trigger_expr, context)
+            confirmed = safe_eval_expression(confirm_expr, context) if confirm_expr else True
+            invalidated = safe_eval_expression(invalidate_expr, context) if invalidate_expr else False
             
             regime_ok = (regime_state.get('regime') in alpha.get('regime_scope', []))
-            expr_val = safe_eval_expression(expr, context)
-            active = bool(expr_val and regime_ok and regime_state.get('tradable', False))
+            active = bool(triggered and confirmed and not invalidated and regime_ok and regime_state.get('tradable', False))
+            
+            confirmation_score = compute_expr_score(confirm_expr, context, is_invalidation=False)
+            invalidation_score = compute_expr_score(invalidate_expr, context, is_invalidation=True)
             
             why = {
-                'expression': expr,
-                'expr_val': expr_val,
+                'triggered': triggered,
+                'confirmed': confirmed,
+                'invalidated': invalidated,
                 'regime_ok': regime_ok,
+                'trigger_expression': trigger_expr,
+                'confirmation_expression': confirm_expr,
+                'invalidation_expression': invalidate_expr,
                 'alpha_id': alpha['alpha_id'],
             }
             
             out[name] = {
+                'triggered': triggered,
+                'confirmed': confirmed,
+                'invalidated': invalidated,
+                'confirmation_score': confirmation_score,
+                'invalidation_score': invalidation_score,
                 'active': active,
                 'why': why,
-                'template_family': family,
+                'template_family': alpha.get('signal_template_family', 'unknown'),
                 'preferred_regimes': alpha.get('regime_scope', []),
                 'avoid_regimes': [],
-                'thesis': alpha.get('thesis_summary'),
+                'direction': alpha.get('direction', 'both'),
+                'thesis': alpha.get('thesis_summary', 'Promoted Alpha'),
+                'entry_logic_summary': alpha.get('entry_logic_summary', 'Custom Promoted Entry'),
+                'confirmation_summary': alpha.get('confirmation_summary', 'Custom Promoted Confirmation'),
+                'invalidation_summary': alpha.get('invalidation_summary', 'Custom Promoted Invalidation'),
+                'quality_tier': alpha.get('quality_tier', 'A'),
             }
     else:
-        # Fallback to default 3 signals
-        for name in SUPPORTED:
-            family_map = {
-                'bollinger_squeeze_breakout': 'breakout',
-                'zscore_recenter': 'mean_reversion',
-                'macd_trend_continuation': 'continuation'
-            }
-            family = family_map.get(name, 'unknown')
+        # Fallback to catalog signals
+        for sig in CATALOG:
+            name = sig['signal_id']
+            family = sig.get('family', 'unknown')
             template = TEMPLATE_BY_FAMILY.get(family, {})
-            regime_ok = _regime_allowed(template, regime_state)
+            regime_ok = _regime_allowed(sig, regime_state)
             
+            trigger_expr = sig.get('trigger_definition', '')
+            confirm_expr = sig.get('confirmation_definition', '')
+            invalidate_expr = sig.get('invalidation_definition', '')
+            
+            triggered = safe_eval_expression(trigger_expr, context)
+            confirmed = safe_eval_expression(confirm_expr, context) if confirm_expr else True
+            invalidated = safe_eval_expression(invalidate_expr, context) if invalidate_expr else False
+            
+            # Special legacy evaluation for default bollinger_squeeze_breakout if needed
+            if name == 'bollinger_squeeze_breakout' and prev_bollinger_width is not None:
+                was_squeezing = prev_bollinger_width <= BOLLINGER_SQUEEZE_THRESHOLD
+                breakout = (last_close is not None) and (last_close > indicators.get('BBANDS_upper', float('inf')) or last_close < indicators.get('BBANDS_lower', float('-inf')))
+                triggered = was_squeezing and breakout
+                
+            active = bool(triggered and confirmed and not invalidated and regime_ok and regime_state.get('tradable', False))
+            
+            confirmation_score = compute_expr_score(confirm_expr, context, is_invalidation=False)
+            invalidation_score = compute_expr_score(invalidate_expr, context, is_invalidation=True)
+            
+            why = {
+                'triggered': triggered,
+                'confirmed': confirmed,
+                'invalidated': invalidated,
+                'regime_ok': regime_ok,
+                'trigger_expression': trigger_expr,
+                'confirmation_expression': confirm_expr,
+                'invalidation_expression': invalidate_expr,
+            }
+            # Preserve special fields for default 3 signals if expected by existing tests
             if name == 'bollinger_squeeze_breakout':
-                was_squeezing = (prev_bollinger_width is not None) and (prev_bollinger_width <= BOLLINGER_SQUEEZE_THRESHOLD)
-                breakout = (last_close is not None) and last_close > indicators.get('BBANDS_upper', float('inf'))
-                rel_vol_ok = indicators.get('RelativeVolume', 0.0) >= 1.0
-                active = bool(was_squeezing and breakout and rel_vol_ok and regime_ok and regime_state.get('tradable', False))
-                why = {'squeeze': was_squeezing, 'breakout': breakout, 'relative_volume': rel_vol_ok, 'regime_ok': regime_ok}
+                why['squeeze'] = (prev_bollinger_width is not None) and (prev_bollinger_width <= BOLLINGER_SQUEEZE_THRESHOLD)
+                why['breakout'] = (last_close is not None) and last_close > indicators.get('BBANDS_upper', float('inf'))
+                why['relative_volume'] = indicators.get('RelativeVolume', 0.0) >= 1.0
             elif name == 'zscore_recenter':
-                z = indicators.get('ZScore_Close', 0.0)
-                active = bool(z <= -1.5 and regime_ok and regime_state.get('tradable', False))
-                why = {'zscore': z, 'zscore_entry_condition': z <= -1.5, 'regime_ok': regime_ok}
-            else:
-                macd = indicators.get('MACD', 0.0)
-                macd_signal = indicators.get('MACD_signal', 0.0)
-                active = bool(macd > macd_signal and macd > 0 and regime_ok and regime_state.get('tradable', False))
-                why = {'macd': macd, 'macd_signal': macd_signal, 'macd_above_signal': macd > macd_signal, 'regime_ok': regime_ok}
+                why['zscore'] = indicators.get('ZScore_Close', 0.0)
+                why['zscore_entry_condition'] = why['zscore'] <= -1.5
+            elif name == 'macd_trend_continuation':
+                why['macd'] = indicators.get('MACD', 0.0)
+                why['macd_signal'] = indicators.get('MACD_signal', 0.0)
+                why['macd_above_signal'] = why['macd'] > why['macd_signal']
             
             out[name] = {
+                'triggered': triggered,
+                'confirmed': confirmed,
+                'invalidated': invalidated,
+                'confirmation_score': confirmation_score,
+                'invalidation_score': invalidation_score,
                 'active': active,
                 'why': why,
                 'template_family': family,
-                'preferred_regimes': template.get('default_regime_scope', []),
-                'avoid_regimes': [],
-                'thesis': template.get('thesis_template', {}).get('what_edge_it_targets'),
+                'preferred_regimes': sig.get('preferred_regimes', []),
+                'avoid_regimes': sig.get('avoid_regimes', []),
+                'direction': sig.get('direction', 'both'),
+                'thesis': sig.get('thesis_summary'),
+                'entry_logic_summary': sig.get('entry_logic_summary'),
+                'confirmation_summary': sig.get('confirmation_summary'),
+                'invalidation_summary': sig.get('invalidation_summary'),
+                'quality_tier': sig.get('quality_tier', 'A'),
             }
             
     return out

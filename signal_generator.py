@@ -79,6 +79,42 @@ class SignalGenerator:
                 parts.append(f"{factor_id} > 0")
         return " and ".join(parts)
 
+    def _build_confirmation(self, family: str) -> str:
+        if family == 'breakout':
+            return "RelativeVolume >= 1.2 and abs(TradeFlowImbalance) >= 0.2"
+        elif family == 'mean_reversion':
+            return "rsi_14 <= 30 or rsi_14 >= 70"
+        elif family == 'continuation':
+            return "MACD_hist > 0 and RelativeVolume >= 1.0"
+        elif family == 'volatility_event':
+            return "rel_volume_20 >= 2.0 and volatility_ratio_5_20 > 1.5"
+        elif family == 'order_flow':
+            return "trade_flow_imbalance_50 > 0.2 or trade_flow_imbalance_50 < -0.2"
+        elif family == 'cross_asset':
+            return "market_correlation_20 >= 0.7"
+        elif family == 'divergence':
+            return "rsi_14 <= 35 or rsi_14 >= 65"
+        else:
+            return "RelativeVolume >= 1.0"
+
+    def _build_invalidation(self, family: str) -> str:
+        if family == 'breakout':
+            return "BollingerWidth > 0.3 or SpreadBps > 10.0"
+        elif family == 'mean_reversion':
+            return "abs(zscore_close_20) > 3.0 or volatility_ratio_5_20 > 1.5"
+        elif family == 'continuation':
+            return "MACD <= MACD_signal or price_vs_sma20 < -0.02"
+        elif family == 'volatility_event':
+            return "SpreadBps > 10.0"
+        elif family == 'order_flow':
+            return "large_trade_ratio < 0.05 or SpreadBps > 8.0"
+        elif family == 'cross_asset':
+            return "market_correlation_20 < 0.5 or abs(btc_ret_1) < 0.001"
+        elif family == 'divergence':
+            return "price_vs_sma20 < -0.02 or price_vs_sma20 > 0.02"
+        else:
+            return "price_vs_sma20 < -0.02 or price_vs_sma20 > 0.02"
+
     def generate_candidates(self) -> List[Dict[str, Any]]:
         candidates: List[Dict[str, Any]] = []
         max_candidates = int(self.config.get('max_candidates_per_batch', 100))
@@ -89,7 +125,23 @@ class SignalGenerator:
                 continue
             family = template.get('family')
             expr = self._build_expression(required, family)
+            confirm_expr = self._build_confirmation(family)
+            invalidate_expr = self._build_invalidation(family)
             seed = f"{template['template_id']}|{expr}"
+            
+            thesis_template = template.get('thesis_template', {})
+            thesis_sum = thesis_template.get('what_edge_it_targets', 'Generated thesis')
+            entry_sum = thesis_template.get('entry_logic', 'Generated entry logic')
+            
+            confirm_guidelines = template.get('confirmation_logic_guidelines', [])
+            confirm_sum = confirm_guidelines[0] if confirm_guidelines else "Confirm signal via quality filters"
+            
+            invalidate_guidelines = template.get('invalidation_logic_guidelines', [])
+            invalidate_sum = invalidate_guidelines[0] if invalidate_guidelines else "Invalidate signal if structure fails"
+            
+            tier = "B" if family in ["pattern", "divergence"] else "A"
+            min_confirm = 0.6 if family in ["breakout", "continuation", "order_flow"] else 0.5
+            
             candidates.append({
                 'signal_candidate_id': _candidate_id(seed),
                 'signal_name': f"{family}_{len(candidates)+1}",
@@ -100,9 +152,16 @@ class SignalGenerator:
                 'timeframe': '1m',
                 'parameter_set': {'template_id': template['template_id']},
                 'trigger_definition': expr,
-                'confirmation_definition': None,
-                'invalidation_definition': None,
-                'thesis_summary': template.get('thesis_template', {}).get('what_edge_it_targets'),
+                'confirmation_definition': confirm_expr,
+                'invalidation_definition': invalidate_expr,
+                'thesis_summary': thesis_sum,
+                'entry_logic_summary': entry_sum,
+                'confirmation_summary': confirm_sum,
+                'invalidation_summary': invalidate_sum,
+                'quality_tier': tier,
+                'min_confirmation_score': min_confirm,
+                'min_invalidation_score': 0.5,
+                'execution_sensitivity_summary': "Highly sensitive to spreads" if family in ["breakout", "order_flow", "volatility_event"] else "Medium sensitivity",
                 'tags': [family, 'generated'],
                 'created_at': now_iso(),
                 'lineage_metadata': {

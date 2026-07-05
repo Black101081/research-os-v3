@@ -1,6 +1,6 @@
 # Research Brief v1
 
-Generated at: 2026-07-05T19:39:48.896057+00:00
+Generated at: 2026-07-05T19:58:09.337580+00:00
 Alpha count: 3
 Validation scorecards: 4
 Promoted: 0

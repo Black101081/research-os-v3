@@ -443,15 +443,24 @@ class ResearchEngine:
         close_count = len(state.closes(include_current=True))
         for signal_name, signal_state in state.signals.items():
             active = bool(signal_state.get('active'))
-            logic_ready = bool(active and close_count >= 35 and state.regime_state.get('tradable', False))
+            direction = signal_state.get('direction', 'both')
+            is_signal_only = (direction == 'signal_only')
+            
+            status = 'candidate' if (active and not is_signal_only) else 'standby'
+            logic_ready = bool(active and not is_signal_only and close_count >= 35 and state.regime_state.get('tradable', False))
+            
             last_price = state.latest_price() or 0.0
             entry_side = _infer_entry_side(signal_name, last_price, state.indicators, signal_state.get('template_family'))
+            
+            invalidated = bool(signal_state.get('invalidated'))
+            thesis_state = 'invalidated' if invalidated else ('aligned' if active else 'not_triggered')
+            
             strategies[signal_name] = {
-                'status': 'candidate' if active else 'standby',
+                'status': status,
                 'signal_name': signal_name,
                 'symbol': state.symbol,
                 'entry_side': entry_side,
-                'thesis_state': 'aligned' if active else 'not_triggered',
+                'thesis_state': thesis_state,
                 'logic_ready': logic_ready,
                 'execution_ready': False,
                 'last_price': state.latest_price(),
