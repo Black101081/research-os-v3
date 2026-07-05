@@ -1,0 +1,105 @@
+{
+  "version": "regime_registry_v1",
+  "description": "Canonical registry of market regime definitions used in Research OS v3.",
+  "regimes": [
+    {
+      "regime_id": "uptrend",
+      "label": "Uptrend",
+      "description": "Sustained positive price momentum with high regime confidence. MACD above signal, positive returns over multiple lookbacks.",
+      "tradability": "tradable",
+      "preferred_signal_families": [
+        "trend_continuation",
+        "momentum_breakout"
+      ],
+      "avoid_signal_families": [
+        "mean_reversion"
+      ],
+      "factor_conditions": {
+        "ret_5": "> 0",
+        "macd": "> macd_signal",
+        "zscore_close_20": "> 0.5"
+      }
+    },
+    {
+      "regime_id": "downtrend",
+      "label": "Downtrend",
+      "description": "Sustained negative price momentum. Signals biased to short side.",
+      "tradability": "tradable",
+      "preferred_signal_families": [
+        "trend_continuation"
+      ],
+      "avoid_signal_families": [
+        "mean_reversion"
+      ],
+      "factor_conditions": {
+        "ret_5": "< 0",
+        "macd": "< macd_signal",
+        "zscore_close_20": "< -0.5"
+      }
+    },
+    {
+      "regime_id": "range_chop",
+      "label": "Range / Chop",
+      "description": "Low directional momentum, mean-reverting price action. High bollinger width contraction or oscillating zscore.",
+      "tradability": "restricted",
+      "preferred_signal_families": [
+        "mean_reversion",
+        "range_fade"
+      ],
+      "avoid_signal_families": [
+        "trend_continuation",
+        "momentum_breakout"
+      ],
+      "factor_conditions": {
+        "ret_5": "near 0",
+        "bollinger_width": "< 0.03",
+        "zscore_close_20": "between -0.5 and 0.5"
+      }
+    },
+    {
+      "regime_id": "transition_ambiguous",
+      "label": "Transition / Ambiguous",
+      "description": "Regime is switching or unclear. Confidence below threshold. Most signals should be blocked.",
+      "tradability": "blocked",
+      "preferred_signal_families": [],
+      "avoid_signal_families": [
+        "trend_continuation",
+        "momentum_breakout",
+        "mean_reversion"
+      ],
+      "factor_conditions": {
+        "regime_confidence": "< 0.5"
+      }
+    },
+    {
+      "regime_id": "event_driven",
+      "label": "Event-Driven / Volatile",
+      "description": "Abnormal volatility spike, typically around macro events or liquidation cascades. Risk engine blocks entries.",
+      "tradability": "blocked",
+      "preferred_signal_families": [],
+      "avoid_signal_families": [
+        "trend_continuation",
+        "mean_reversion",
+        "momentum_breakout"
+      ],
+      "factor_conditions": {
+        "volatility_20": "> 2x rolling mean",
+        "rel_volume_20": "> 3.0"
+      }
+    }
+  ],
+  "classification_logic": {
+    "primary_factors": [
+      "ret_5",
+      "macd",
+      "macd_signal",
+      "zscore_close_20",
+      "volatility_20",
+      "rel_volume_20",
+      "bollinger_width"
+    ],
+    "confidence_threshold_tradable": 0.55,
+    "confidence_threshold_blocked": 0.4,
+    "engine_file": "regime_engine.py"
+  }
+}
