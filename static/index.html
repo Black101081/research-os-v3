@@ -1528,13 +1528,15 @@
     }
   }
 
-  window.openDrilldown = function(symbol, strategyName) {
+  window.openDrilldown = async function(symbol, strategyName) {
     if (!lastSnapshotCache) return;
     
     let targetSym = symbol;
     if (symbol === 'FACTOR' || symbol === 'INDICATOR' || symbol === 'SIGNAL' || symbol === 'STRATEGY' || symbol === 'BACKTEST') {
       targetSym = Object.keys(lastSnapshotCache.snap)[0] || 'BTC';
     }
+    
+    const targetStrat = strategyName || 'macd_trend_continuation';
     
     const snap = lastSnapshotCache.snap;
     const validation = lastSnapshotCache.validation;
@@ -1554,12 +1556,12 @@
     regimeEl.textContent = (r.regime || 'unknown').toUpperCase() + ' (' + (r.confidence || 0).toFixed(2) + ')';
     regimeEl.className = 'badge ' + badgeClass;
     
-    document.getElementById('drilldownTitle').textContent = strategyName ? strategyName : 'Symbol Overview';
+    document.getElementById('drilldownTitle').textContent = targetStrat.replace('_', ' ').toUpperCase();
 
-    let html = '';
-    
-    // 1. Factors & Indicators Grid
-    html += `
+    document.getElementById('drilldownPanel').classList.add('open');
+    document.getElementById('drilldownOverlay').classList.add('active');
+
+    let html = `
       <div class="trace-title">Factors & Indicators</div>
       <div class="trace-grid">
         <div class="trace-card">
@@ -1588,122 +1590,84 @@
           <span class="sym-label">Relative Volume</span>
           <span class="sym-val">${fmt((s.factors || {}).rel_volume_20)}</span>
         </div>
-        <div class="trace-card">
-          <span class="sym-label">EMA Spread (8/21)</span>
-          <span class="sym-val">${fmt((s.factors || {}).ema_spread_8_21)}</span>
-        </div>
-        <div class="trace-card">
-          <span class="sym-label">Spread (Bps)</span>
-          <span class="sym-val">${fmt((s.factors || {}).spread_bps)}</span>
-        </div>
       </div>
       
-      <div class="trace-grid" style="margin-top:-8px;">
-        <div class="trace-card" style="grid-column: span 2;">
-          <span class="sym-label">MACD Line / Signal / Histogram</span>
-          <span class="sym-val" style="font-size:0.8rem; line-height:1.4;">
-            MACD: <span class="mono" style="color:var(--primary);">${fmt((s.indicators || {}).MACD)}</span><br>
-            Signal: <span class="mono" style="color:var(--warn);">${fmt((s.indicators || {}).MACD_signal)}</span><br>
-            Hist: <span class="mono" style="color:${(s.indicators || {}).MACD_hist >= 0 ? 'var(--success)' : 'var(--error)'}; font-weight:700;">${fmt((s.indicators || {}).MACD_hist)}</span>
-          </span>
-        </div>
-        <div class="trace-card" style="grid-column: span 2;">
-          <span class="sym-label">Bollinger Bands (20, 2std)</span>
-          <span class="sym-val" style="font-size:0.8rem; line-height:1.4;">
-            Upper: <span class="mono">${fmt((s.indicators || {}).BBANDS_upper)}</span><br>
-            Mid: <span class="mono">${fmt((s.indicators || {}).BBANDS_mid)}</span><br>
-            Lower: <span class="mono">${fmt((s.indicators || {}).BBANDS_lower)}</span>
-          </span>
-        </div>
+      <div class="trace-title">Research Brief & Feedback Loop</div>
+      <div class="trace-card" id="briefLoadingSection" style="gap:10px;">
+        <div class="empty-state" style="padding:16px; border:none; font-size:0.8rem;">Loading Research Brief...</div>
       </div>
     `;
     
-    // 2. Validation Checks Checklist
-    html += `
-      <div class="trace-title">Validation Gating Status</div>
-      <div class="trace-card" style="gap:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:var(--muted); font-size:0.85rem;">Code Validated:</span>
-          <span class="badge ${v.code_valid === false ? 'badge-error' : 'badge-success'}">${v.code_valid === false ? 'failed' : 'passed'}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:var(--muted); font-size:0.85rem;">Decay Status:</span>
-          <span class="badge ${v.decay_detected ? 'badge-error' : 'badge-success'}">${v.decay_detected ? 'decayed' : 'stable'}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="color:var(--muted); font-size:0.85rem;">Execution Ready:</span>
-          <span class="badge ${v.execution_ready ? 'badge-success' : 'badge-primary'}">${v.execution_ready ? 'ready' : 'waiting'}</span>
-        </div>
-        <div style="font-size:0.7rem; color:var(--muted); margin-top:4px; font-family:var(--font-mono); word-break:break-all;">
-          Spec Hash: ${v.spec_hash || '—'}
-        </div>
-      </div>
-    `;
-    
-    // 3. Simulated Wallet Activity
-    const pos = broker.positions.find(x => x.symbol === targetSym);
-    const hist = broker.trade_history.filter(x => x.symbol === targetSym);
-    
-    html += `<div class="trace-title">Live Simulated Position</div>`;
-    if (pos) {
-      const isLong = pos.direction === 'long';
-      html += `
-        <div class="trace-card" style="gap:6px;">
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:var(--muted); font-size:0.85rem;">Direction:</span>
-            <span class="badge ${isLong ? 'badge-success' : 'badge-error'}">${pos.direction}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:var(--muted); font-size:0.85rem;">Entry Price:</span>
-            <span class="mono">${fmt(pos.entry_price)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:var(--muted); font-size:0.85rem;">Current Price:</span>
-            <span class="mono">${fmt(pos.current_price)}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between;">
-            <span style="color:var(--muted); font-size:0.85rem;">Unrealized PnL:</span>
-            <span class="mono" style="font-weight:700; color:${pos.unrealized_pnl >= 0 ? 'var(--success)' : 'var(--error)'};">
-              ${pos.unrealized_pnl >= 0 ? '+' : ''}${fmtCurrency(pos.unrealized_pnl)}
-            </span>
-          </div>
-        </div>
-      `;
-    } else {
-      html += `<div class="empty-state" style="padding:16px; font-size:0.75rem;">No active positions for ${targetSym}</div>`;
-    }
-    
-    if (hist.length) {
-      html += `
-        <div class="trace-title" style="margin-top:12px;">Trade History (${targetSym})</div>
-        <div class="table-container" style="max-height:150px; overflow-y:auto; border: 1px solid var(--border); border-radius:12px;">
-          <table class="ui-table" style="font-size:0.75rem;">
-            <thead>
-              <tr>
-                <th>Dir</th>
-                <th>Exit Price</th>
-                <th>PnL</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${hist.slice(-5).reverse().map(t => `
-                <tr>
-                  <td><span class="badge ${t.direction === 'long' ? 'badge-success' : 'badge-error'}" style="font-size:0.6rem; padding:1px 4px;">${t.direction}</span></td>
-                  <td class="mono">${fmt(t.exit_price)}</td>
-                  <td class="mono" style="font-weight:700; color:${t.pnl >= 0 ? 'var(--success)' : 'var(--error)'};">
-                    ${t.pnl >= 0 ? '+' : ''}${fmtCurrency(t.pnl)}
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
     document.getElementById('drilldownContent').innerHTML = html;
-    document.getElementById('drilldownPanel').classList.add('open');
-    document.getElementById('drilldownOverlay').classList.add('active');
+
+    try {
+      const response = await fetch(`/api/research-brief/${targetSym}/${targetStrat}`);
+      const data = await response.json();
+      
+      let briefHtml = '';
+      if (data.brief_md) {
+        const comments = (data.feedback && data.feedback.comments) || '';
+        const decision = (data.feedback && data.feedback.decision) || 'STANDBY';
+        
+        briefHtml = `
+          <div style="font-size:0.75rem; background-color:rgba(0,0,0,0.25); padding:10px; border-radius:8px; border:1px solid var(--border); overflow-y:auto; max-height:160px; white-space:pre-wrap; font-family:var(--font-body); color:var(--text); line-height:1.4;">${data.brief_md}</div>
+          
+          <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:0.7rem; font-weight:700; color:var(--muted);">RESEARCHER DECISION OVERRIDE:</label>
+            <select id="feedbackDecision" class="select-dropdown" style="font-size:0.75rem; padding:4px 8px;">
+              <option value="STANDBY" ${decision === 'STANDBY' ? 'selected' : ''}>STANDBY (Qualify)</option>
+              <option value="AUTO_PROMOTE" ${decision === 'AUTO_PROMOTE' ? 'selected' : ''}>AUTO_PROMOTE (Promote)</option>
+              <option value="AUTO_REVISE" ${decision === 'AUTO_REVISE' ? 'selected' : ''}>AUTO_REVISE (Revise)</option>
+            </select>
+            
+            <label style="font-size:0.7rem; font-weight:700; color:var(--muted); margin-top:2px;">RESEARCHER NOTES / COMMENTS:</label>
+            <textarea id="feedbackComments" class="search-input" style="width:100%; height:45px; font-family:var(--font-body); font-size:0.75rem; resize:none; padding:6px;" placeholder="Add hypothesis comments...">${comments}</textarea>
+            
+            <button class="tab-btn active" style="align-self:flex-end; padding:4px 8px; font-size:0.72rem; border-radius:4px; margin-top:2px;" onclick="submitFeedback('${targetSym}', '${targetStrat}')">
+              Submit Decision to OS
+            </button>
+          </div>
+        `;
+      } else {
+        briefHtml = `<div class="empty-state" style="padding:16px;">Failed to generate brief.</div>`;
+      }
+      
+      const targetSec = document.getElementById('briefLoadingSection');
+      if (targetSec) {
+        targetSec.innerHTML = briefHtml;
+      }
+    } catch (err) {
+      console.error("Error loading brief:", err);
+      const targetSec = document.getElementById('briefLoadingSection');
+      if (targetSec) {
+        targetSec.innerHTML = `<div class="empty-state" style="padding:16px; color:var(--error);">Error loading brief: ${err.message}</div>`;
+      }
+    }
+  };
+
+  window.submitFeedback = async function(symbol, strategyName) {
+    const comments = document.getElementById('feedbackComments').value;
+    const decision = document.getElementById('feedbackDecision').value;
+    
+    try {
+      const response = await fetch(`/api/research-brief/${symbol}/${strategyName}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ comments, decision })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        tick();
+        document.getElementById('drilldownPanel').classList.remove('open');
+        document.getElementById('drilldownOverlay').classList.remove('active');
+      } else {
+        alert("Failed to submit feedback: " + JSON.stringify(data));
+      }
+    } catch (err) {
+      alert("Error sending feedback: " + err.message);
+    }
   };
 
   // Handle sidebar toggle on mobile
