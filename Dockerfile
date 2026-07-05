@@ -18,5 +18,5 @@ COPY . /app/
 # Expose port 7860 (Hugging Face Space default port)
 EXPOSE 7860
 
-# Start application dynamically using PORT env var (defaults to 8000 for local docker compose)
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start application dynamically using PORT env var (defaults to 7860 for local docker compose)
+CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-7860}"]

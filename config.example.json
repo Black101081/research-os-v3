@@ -14,8 +14,6 @@
     "allMids"
   ],
   "runtime": {
-    "host": "0.0.0.0",
-    "port": 8080,
     "reconnect_seconds": 5,
     "max_bars": 500,
     "warmup_bars": 240
