@@ -322,7 +322,7 @@ class ResearchEngine:
         
         import numpy as np
         
-        base_factors = compute_factors_np(closes, volumes)
+        base_factors = compute_factors_np(closes, volumes[:-1] if include_current else volumes)
         state.factors.update(base_factors)
         
         base_indicators = compute_indicators_np(closes, state.factors)
