@@ -279,7 +279,7 @@ class ResearchEngine:
 
     def _refresh_state(self, symbol: str, mode: str = 'tick'):
         state = self.states[symbol]
-        include_current = mode in {'tick', 'intrabar', 'bar_close'}
+        include_current = mode in {'tick', 'intrabar'}
         self._compute_micro_factors(state)
         
         closes = state.closes(include_current=include_current)

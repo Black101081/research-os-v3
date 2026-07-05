@@ -7,16 +7,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict, List
 
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from datetime import datetime
 import time
 from hyperliquid_ws_client import HyperliquidWSClient
-from realtime_engine import ResearchEngine
-from async_registry_writer import AsyncRegistryWriter
 from strategy_spec_builder import build_strategy_spec_v1
 from playbook_bridge import build_playbook_packet
 from bootstrap_ohlcv import warmup_engine
@@ -24,20 +21,13 @@ from paper_replay import run_paper_replay_demo
 from validator_runner import run_validator
 from backtest_bridge import build_bridge_demo
 from baseline_backtest_runner import run_backtest_runner_demo
-from telemetry import TelemetryTracker
 
-from paper_broker import PaperBroker
+from globals import CONFIG, engine, registry, telemetry, broker, BASE
+from routers import presets, brief, playbook, live_control
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-BASE = Path(__file__).resolve().parent
-CONFIG = json.loads((BASE / 'config.example.json').read_text())
-
-engine = ResearchEngine(symbols=CONFIG['symbols'], max_bars=CONFIG['runtime']['max_bars'], thresholds=CONFIG['thresholds'])
-registry = AsyncRegistryWriter(BASE / 'runtime')
-telemetry = TelemetryTracker()
-broker = PaperBroker(initial_balance=10000.0)
 ws_client = None
 ws_task = None
 writer_task = None
@@ -151,6 +141,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title='Research OS V3', lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(BASE / 'static')), name='static')
 
+app.include_router(presets.router)
+app.include_router(brief.router)
+app.include_router(playbook.router)
+app.include_router(live_control.router)
+
 
 @app.get('/health')
 @app.get('/api/health')
@@ -226,280 +221,8 @@ def get_positions() -> Dict[str, Any]:
     return broker.get_summary()
 
 
-@app.get('/api/research-brief/{symbol}/{strategy_name}')
-def get_research_brief(symbol: str, strategy_name: str) -> Dict[str, Any]:
-    snap = engine.snapshot()
-    state = snap.get(symbol, {})
-    if not state:
-        return {'error': f'Symbol {symbol} not found'}
-        
-    validation = state.get('validation_packet', {})
-    decay_detected = validation.get('decay_detected', False)
-    code_valid = validation.get('code_valid', True)
-    
-    r_state = state.get('regime_state', {})
-    regime = r_state.get('regime', 'unknown')
-    confidence = r_state.get('confidence', 0.0)
-    
-    net_pnl = 0.0
-    win_rate = 50.0
-    backtest_file = Path('data/backtest_runner_demo.json')
-    if backtest_file.exists():
-        try:
-            bt_results = json.loads(backtest_file.read_text())
-            for res in bt_results.get('results', []):
-                if res.get('strategy_family') == strategy_name:
-                    metrics = res.get('runner_metrics', {})
-                    net_pnl = metrics.get('net_pnl', 0.0)
-                    win_rate = metrics.get('win_rate', 0.5) * 100
-        except Exception:
-            pass
-
-    factors = state.get('factors', {})
-    zscore = factors.get('zscore_close_20', 0.0)
-    volatility = factors.get('volatility_20', 0.0)
-    rel_volume = factors.get('rel_volume_20', 0.0)
-    
-    brief_md = f"""# Research Brief: {strategy_name.replace('_', ' ').title()} ({symbol})
-
-## 1. Thesis & Hypothesis
-- **Strategy Family**: {strategy_name}
-- **Asset class**: Crypto Perp ({symbol})
-- **Underlying Hypothesis**: Evaluates directional movement based on indicators. MACD indicates trend continuation; Bollinger bands signify breakout opportunities.
-
-## 2. Quantitative Evidence
-- **Historical Net PnL**: ${net_pnl:,.2f}
-- **Win Rate**: {win_rate:.1f}%
-- **Current Market Regime**: {regime} (confidence: {confidence:.2f})
-- **Active Indicators**: Z-Score ({zscore:.4f}), Volatility ({volatility:.4f}), Relative Volume ({rel_volume:.4f}).
-
-## 3. Risk & Guardrails Checklist
-- **Code Quality Check**: {"PASSED" if code_valid else "FAILED"}
-- **Decay Detection status**: {"DECAY DETECTED" if decay_detected else "STABLE"}
-- **Overall Gating status**: {"READY" if validation.get('execution_ready') else "WAITING"}
-
-## 4. GO/NOGO Decision Checklist
-- [ ] Are transaction fees (5 bps maker/taker) accurately modeled for current volume tier?
-- [ ] Is there structural divergence or high macro event risk (e.g. FOMC) within 4 hours?
-- [ ] Have parameter thresholds been calibrated within the last 30 days?
-"""
-    
-    feedback = None
-    fb_path = Path(f'data/research_briefs/{symbol}_{strategy_name}_feedback.json')
-    if fb_path.exists():
-        try:
-            feedback = json.loads(fb_path.read_text())
-        except Exception:
-            pass
-            
-    return {
-        'symbol': symbol,
-        'strategy_name': strategy_name,
-        'brief_md': brief_md,
-        'feedback': feedback
-    }
 
 
-@app.post('/api/research-brief/{symbol}/{strategy_name}/feedback')
-def post_research_brief_feedback(symbol: str, strategy_name: str, payload: Dict[str, Any] = Body(...)) -> Dict[str, Any]:
-    comments = payload.get('comments', '')
-    decision = payload.get('decision', 'STANDBY')
-    
-    fb_dir = Path('data/research_briefs')
-    fb_dir.mkdir(parents=True, exist_ok=True)
-    fb_path = fb_dir / f'{symbol}_{strategy_name}_feedback.json'
-    
-    fb_data = {
-        'symbol': symbol,
-        'strategy_name': strategy_name,
-        'comments': comments,
-        'decision': decision,
-        'updated_at': datetime.now().isoformat()
-    }
-    fb_path.write_text(json.dumps(fb_data, ensure_ascii=False, indent=2), encoding='utf-8')
-    
-    lane = 'pending_review'
-    if decision == 'AUTO_PROMOTE':
-        lane = 'promote'
-    elif decision == 'AUTO_REVISE':
-        lane = 'revise'
-    elif decision == 'STANDBY':
-        lane = 'qualify'
-        
-    try:
-        path = registry.playbook_file
-        if path.exists():
-            lines = []
-            updated = False
-            with path.open('r', encoding='utf-8') as fh:
-                for line in fh:
-                    if not line.strip():
-                        continue
-                    try:
-                        data = json.loads(line)
-                        if data.get('symbol') == symbol and data.get('signal_name') == strategy_name:
-                            data['research_status'] = lane
-                            data['current_stage'] = lane
-                            updated = True
-                        lines.append(data)
-                    except Exception:
-                        pass
-            
-            if not updated:
-                lines.append({
-                    'symbol': symbol,
-                    'signal_name': strategy_name,
-                    'current_stage': lane,
-                    'research_status': lane,
-                    'timestamp': datetime.now().isoformat()
-                })
-                
-            with path.open('w', encoding='utf-8') as fh:
-                for item in lines:
-                    fh.write(json.dumps(item) + '\n')
-    except Exception as e:
-        logger.error(f"Failed to update playbook packet stage: {e}")
-        
-    return {
-        'status': 'success',
-        'decision': decision,
-        'lane': lane,
-        'feedback': fb_data
-    }
-
-
-@app.get('/api/presets')
-def get_presets() -> List[Dict[str, Any]]:
-    return [
-        {
-            'name': 'Trend Following (MACD Trend Continuation)',
-            'description': 'Captures major directional moves by tracking MACD crossovers and EMA spread alignment under stable regimes.',
-            'category': 'Trend',
-            'spec': {
-                'symbol': 'BTC',
-                'strategy_family': 'macd_trend_continuation',
-                'parameters': {
-                    'fast_period': 12,
-                    'slow_period': 26,
-                    'signal_period': 9,
-                    'min_confidence': 0.65
-                },
-                'risk_limit': {
-                    'max_leverage': 2.0,
-                    'max_exposure_usd': 5000.0,
-                    'stop_loss_pct': 0.015,
-                    'take_profit_pct': 0.03
-                }
-            }
-        },
-        {
-            'name': 'Mean Reversion (Bollinger Bands Extreme)',
-            'description': 'Trades price deviations beyond 2 standard deviations, expecting reversion back to the Bollinger baseline.',
-            'category': 'Mean Reversion',
-            'spec': {
-                'symbol': 'BTC',
-                'strategy_family': 'bollinger_bands_reversion',
-                'parameters': {
-                    'period': 20,
-                    'std_dev': 2.0,
-                    'zscore_limit': 2.2,
-                    'min_volatility': 0.005
-                },
-                'risk_limit': {
-                    'max_leverage': 1.5,
-                    'max_exposure_usd': 3000.0,
-                    'stop_loss_pct': 0.01,
-                    'take_profit_pct': 0.02
-                }
-            }
-        },
-        {
-            'name': 'Volatility Breakout (Bollinger Squeeze)',
-            'description': 'Enters directional breakouts when Bollinger Band Width squeezes to historical lows, indicating imminent volatility expansion.',
-            'category': 'Breakout',
-            'spec': {
-                'symbol': 'BTC',
-                'strategy_family': 'bollinger_squeeze_breakout',
-                'parameters': {
-                    'period': 20,
-                    'width_threshold': 0.012,
-                    'volume_ratio_trigger': 1.5
-                },
-                'risk_limit': {
-                    'max_leverage': 2.5,
-                    'max_exposure_usd': 6000.0,
-                    'stop_loss_pct': 0.012,
-                    'take_profit_pct': 0.04
-                }
-            }
-        },
-        {
-            'name': 'Funding Arbitrage (Cross-Exchange Carry)',
-            'description': 'Captures low-risk yield by exploiting funding rate differentials on Hyperliquid vs. secondary venues with auto-hedging.',
-            'category': 'Arbitrage',
-            'spec': {
-                'symbol': 'BTC',
-                'strategy_family': 'funding_arbitrage_carry',
-                'parameters': {
-                    'min_rate_differential_bps': 8.0,
-                    'rebalance_hours': 8,
-                    'hedge_ratio': 1.0
-                },
-                'risk_limit': {
-                    'max_leverage': 3.0,
-                    'max_exposure_usd': 10000.0,
-                    'stop_loss_pct': 0.005,
-                    'take_profit_pct': 0.015
-                }
-            }
-        }
-    ]
-
-
-from research_brief_generator import generate_playbook_code
-
-@app.post('/api/export-playbook/{symbol}/{strategy_name}')
-def post_export_playbook(symbol: str, strategy_name: str, payload: Dict[str, Any] = Body(default={})) -> Dict[str, Any]:
-    parameters = payload.get('parameters', {})
-    risk_limit = payload.get('risk_limit', {})
-    
-    if not parameters or not risk_limit:
-        presets = get_presets()
-        for p in presets:
-            if p.get('spec', {}).get('strategy_family') == strategy_name:
-                if not parameters:
-                    parameters = p['spec'].get('parameters', {})
-                if not risk_limit:
-                    risk_limit = p['spec'].get('risk_limit', {})
-                    
-    if not parameters:
-        parameters = {'period': 20, 'std_dev': 2.0}
-    if not risk_limit:
-        risk_limit = {'max_leverage': 2.0, 'max_exposure_usd': 5000.0, 'stop_loss_pct': 0.015, 'take_profit_pct': 0.03}
-        
-    code = generate_playbook_code(symbol, strategy_name, parameters, risk_limit)
-    
-    playbook_dir = Path('data/playbooks')
-    playbook_dir.mkdir(parents=True, exist_ok=True)
-    playbook_path = playbook_dir / f'{symbol}_{strategy_name}_playbook.py'
-    playbook_path.write_text(code, encoding='utf-8')
-    
-    spec_path = playbook_dir / f'{symbol}_{strategy_name}_spec.json'
-    spec_data = {
-        'symbol': symbol,
-        'strategy_family': strategy_name,
-        'parameters': parameters,
-        'risk_limit': risk_limit,
-        'exported_at': datetime.now().isoformat()
-    }
-    spec_path.write_text(json.dumps(spec_data, ensure_ascii=False, indent=2), encoding='utf-8')
-    
-    return {
-        'status': 'success',
-        'file_path': str(playbook_path),
-        'spec_path': str(spec_path),
-        'code': code
-    }
 
 
 @app.get('/api/ranking')
@@ -587,34 +310,9 @@ def get_ranking() -> Dict[str, Any]:
     }
 
 
-kill_switch_active = False
-trading_mode = 'paper'
-
-
-@app.post('/api/kill-switch')
-def post_kill_switch() -> Dict[str, Any]:
-    global kill_switch_active
-    kill_switch_active = True
-    broker.positions.clear()
-    return {
-        'status': 'success',
-        'kill_switch_active': kill_switch_active,
-        'message': 'EMERGENCY KILL SWITCH ACTIVATED. Open positions closed.'
-    }
-
-
-@app.post('/api/toggle-trading-mode')
-def post_toggle_trading_mode() -> Dict[str, Any]:
-    global trading_mode
-    trading_mode = 'live_testnet' if trading_mode == 'paper' else 'paper'
-    return {
-        'status': 'success',
-        'trading_mode': trading_mode
-    }
-
-
 @app.get('/api/telemetry')
 def get_telemetry() -> Dict[str, Any]:
+    import globals
     snap = engine.snapshot()
     ready_count = 0
     for symbol, state in snap.items():
@@ -622,9 +320,10 @@ def get_telemetry() -> Dict[str, Any]:
             if strategy.get('execution_ready'):
                 ready_count += 1
     metrics = telemetry.get_metrics(active_candidates=ready_count)
-    metrics['kill_switch_active'] = kill_switch_active
-    metrics['trading_mode'] = trading_mode
+    metrics['kill_switch_active'] = globals.kill_switch_active
+    metrics['trading_mode'] = globals.trading_mode
     return metrics
+
 
 
 @app.get('/')
