@@ -13,15 +13,15 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
     if vol_20 > 0.03 and abs(ret_5) > 0.015:
         regime = 'high_volatility'
         confidence = 0.72
-    elif macd > 0 and ret_5 > 0:
-        regime = 'uptrend'
-        confidence = 0.68
-    elif macd < 0 and ret_5 < 0:
-        regime = 'downtrend'
-        confidence = 0.68
     elif bb_width < 0.025 and abs(z) < 0.5 and vol_20 < 0.015:
         regime = 'range_chop'
         confidence = 0.64
+    elif macd > 0 and ret_5 > 0.003:
+        regime = 'uptrend'
+        confidence = 0.68
+    elif macd < 0 and ret_5 < -0.003:
+        regime = 'downtrend'
+        confidence = 0.68
     elif vol_20 > 0.01 and abs(ret_5) < 0.005:
         regime = 'transition_ambiguous'
         confidence = 0.55

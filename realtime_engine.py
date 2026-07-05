@@ -328,6 +328,7 @@ class ResearchEngine:
         base_factors = compute_factors_np(closes, volumes[:-1] if include_current else volumes)
         state.factors.update(base_factors)
         
+        state.prev_bollinger_width = state.indicators.get('BollingerWidth')
         base_indicators = compute_indicators_np(closes, state.factors)
         state.indicators.update(base_indicators)
         
@@ -403,7 +404,6 @@ class ResearchEngine:
         
         self._compute_regime(state)
         self._compute_signals(state)
-        state.prev_bollinger_width = state.indicators.get('BollingerWidth')
         self._compute_strategies(state)
         self._compute_risk(state)
         self._dispatch_paper_trades(state)
@@ -569,7 +569,7 @@ class ResearchEngine:
             is_signal_only = (direction == 'signal_only')
             
             status = 'candidate' if (active and not is_signal_only) else 'standby'
-            logic_ready = bool(active and not is_signal_only and close_count >= 10 and state.regime_state.get('tradable', False))
+            logic_ready = bool(active and not is_signal_only and close_count >= 35 and state.regime_state.get('tradable', False))
             
             last_price = state.latest_price() or 0.0
             entry_side = _infer_entry_side(signal_name, last_price, state.indicators, signal_state.get('template_family'))
