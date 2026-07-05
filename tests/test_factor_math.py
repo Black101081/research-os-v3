@@ -13,7 +13,11 @@ from factor_math import (
     compute_indicators_np,
     rsi_np,
     atr_np,
-    compute_divergence
+    compute_divergence,
+    find_fractal_peaks,
+    find_fractal_troughs,
+    macd_history_np,
+    rsi_history_np
 )
 
 
@@ -107,10 +111,35 @@ class TestFactorMath(unittest.TestCase):
         self.assertAlmostEqual(res, 4.0) # True range is consistently 4
         
     def test_compute_divergence(self):
-        closes = [100.0 + i for i in range(10)]
-        macd = [10.0 - i for i in range(10)] # Diverging
-        res = compute_divergence(closes, macd)
-        self.assertEqual(res, -1.0) # Bearish divergence
+        # 1. Bearish Divergence
+        closes = [10.0, 11.0, 12.0, 11.0, 10.0, 11.0, 13.0, 11.0, 10.0]
+        indicator = [5.0, 6.0, 7.0, 6.0, 5.0, 5.5, 6.5, 5.5, 4.0]
+        score = compute_divergence(closes, indicator, fractal_window=2, max_lookback=30)
+        self.assertTrue(score > 0.0)
+        self.assertAlmostEqual(score, 0.595238, places=4)
+
+        # 2. Bullish Divergence
+        closes_bull = [20.0, 19.0, 18.0, 19.0, 20.0, 18.0, 17.0, 18.0, 20.0]
+        indicator_bull = [5.0, 4.0, 3.0, 4.0, 5.0, 4.5, 3.5, 4.5, 6.0]
+        score_bull = compute_divergence(closes_bull, indicator_bull, fractal_window=2, max_lookback=30)
+        self.assertTrue(score_bull < 0.0)
+        self.assertAlmostEqual(score_bull, -0.925925, places=4)
+
+        # 3. Staleness Check
+        stale_score = compute_divergence(closes, indicator, fractal_window=2, max_lookback=1)
+        self.assertEqual(stale_score, 0.0)
+
+        # 4. Low Data Check
+        low_data_score = compute_divergence([1.0, 2.0], [1.0, 2.0])
+        self.assertEqual(low_data_score, 0.0)
+
+    def test_find_fractal_peaks_troughs(self):
+        values = [10.0, 11.0, 12.0, 11.0, 10.0, 9.0, 8.0, 9.0, 10.0]
+        peaks = find_fractal_peaks(values, window=2)
+        self.assertEqual(peaks, [2])
+        
+        troughs = find_fractal_troughs(values, window=2)
+        self.assertEqual(troughs, [6])
 
     def test_latency_benchmark(self):
         import time

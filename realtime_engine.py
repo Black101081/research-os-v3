@@ -11,7 +11,16 @@ from signal_orchestrator import evaluate_supported_signals
 from validation_bridge import build_validation_packet
 from risk_engine import build_risk_packet_v1
 from reactivity_diff import build_reactivity_diff_v1
-from factor_math import compute_factors_np, compute_indicators_np, rsi_np, atr_np, compute_divergence, flow_imbalance_np
+from factor_math import (
+    compute_factors_np,
+    compute_indicators_np,
+    rsi_np,
+    atr_np,
+    compute_divergence,
+    flow_imbalance_np,
+    macd_history_np,
+    rsi_history_np
+)
 
 
 def now_iso() -> str:
@@ -377,8 +386,22 @@ class ResearchEngine:
         atr_val = atr_np(highs, lows, closes, 14)
         state.indicators['atr_pct_14'] = atr_val / close if close else 0.0
         
-        macd_val = state.indicators.get('MACD', 0.0)
-        state.indicators['momentum_divergence'] = compute_divergence(closes, [macd_val] * len(closes))
+        # Compute actual MACD & RSI history for divergence metrics
+        macd_history = list(macd_history_np(closes)) if len(closes) >= 35 else [state.indicators.get('MACD', 0.0)] * len(closes)
+        rsi_history = list(rsi_history_np(closes)) if len(closes) > 14 else [state.indicators.get('rsi_14', 50.0)] * len(closes)
+
+        state.indicators['momentum_divergence'] = compute_divergence(
+            closes,
+            macd_history,
+            fractal_window=2,
+            max_lookback=30
+        )
+        state.indicators['rsi_divergence'] = compute_divergence(
+            closes,
+            rsi_history,
+            fractal_window=2,
+            max_lookback=30
+        )
         
         state.indicators['trade_flow_imbalance_20'] = state.factors.get('trade_flow_imbalance_20', 0.0)
         state.indicators['trade_flow_imbalance_50'] = state.factors.get('trade_flow_imbalance_50', 0.0)

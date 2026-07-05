@@ -15,6 +15,151 @@ def _strategy_limit(config: Dict[str, Any], mapping_key: str, strategy_name: str
     return float(mapping.get(strategy_name, mapping.get(default_key, 0.0)))
 
 
+def compute_position_size(
+    symbol: str,
+    last_price: float,
+    indicators: dict,
+    risk_config: dict,
+    portfolio_state: dict
+) -> dict:
+    """
+    Computes target_quantity using one of the configured sizing models.
+    Supports ATR, Kelly Criterion, and Fixed sizing.
+    """
+    balance = float(portfolio_state.get('balance', risk_config.get('account_equity', 10000.0)))
+    
+    sizing_model = risk_config.get('sizing_model', 'atr')
+    risk_pct_per_trade = float(risk_config.get('risk_pct_per_trade', 0.01))
+    atr_stop_multiplier = float(risk_config.get('atr_stop_multiplier', 1.5))
+    min_quantity = float(risk_config.get('min_quantity', 0.001))
+    max_quantity = float(risk_config.get('max_quantity', 0.5))
+    max_position_pct = float(risk_config.get('max_position_pct', 0.10))
+    kelly_fraction = float(risk_config.get('kelly_fraction', 0.25))
+    max_kelly_pct = float(risk_config.get('max_kelly_pct', 0.05))
+    min_trades_for_kelly = int(risk_config.get('min_trades_for_kelly', 10))
+    fixed_quantity = float(risk_config.get('fixed_quantity', 0.01))
+
+    sizing_model_used = sizing_model
+    risk_amount_usd = 0.0
+    stop_distance_usd = None
+    atr_pct_14 = None
+    kelly_f = None
+    notes = ""
+
+    if last_price <= 0:
+        sizing_model_used = 'fixed'
+        notes = "last_price <= 0; fallback to fixed sizing."
+        target_quantity = fixed_quantity
+    else:
+        if sizing_model == 'atr':
+            atr_pct_14 = indicators.get('atr_pct_14')
+            if atr_pct_14 is None or atr_pct_14 <= 0:
+                sizing_model_used = 'fixed'
+                notes = "atr_pct_14 <= 0 or None; fallback to fixed sizing."
+                target_quantity = fixed_quantity
+            else:
+                risk_amount_usd = balance * risk_pct_per_trade
+                atr_distance = atr_pct_14 * last_price
+                stop_distance_usd = atr_distance * atr_stop_multiplier
+                if stop_distance_usd <= 0:
+                    sizing_model_used = 'fixed'
+                    notes = "stop_distance_usd <= 0; fallback to fixed sizing."
+                    target_quantity = fixed_quantity
+                else:
+                    target_quantity = risk_amount_usd / stop_distance_usd
+                    notes = f"ATR sizing. Risk amount: {risk_amount_usd:.2f}, Stop distance: {stop_distance_usd:.4f}"
+
+        elif sizing_model == 'kelly':
+            # Default stats
+            trade_count = 0
+            win_rate = 0.5
+            avg_win_pct = 0.015
+            avg_loss_pct = 0.01
+
+            # Resolve stats from portfolio_state if possible
+            trade_history = portfolio_state.get('trade_history', portfolio_state.get('history', []))
+            if trade_history:
+                trade_count = len(trade_history)
+                wins = [t for t in trade_history if t.get('pnl', 0.0) > 0]
+                losses = [t for t in trade_history if t.get('pnl', 0.0) <= 0]
+                win_rate = len(wins) / trade_count if trade_count > 0 else 0.5
+                
+                win_pcts = []
+                for t in wins:
+                    entry_val = t.get('entry_price', 0) * t.get('quantity', 0)
+                    if entry_val > 0:
+                        win_pcts.append(t.get('pnl', 0.0) / entry_val)
+                avg_win_pct = sum(win_pcts) / len(win_pcts) if win_pcts else 0.015
+                
+                loss_pcts = []
+                for t in losses:
+                    entry_val = t.get('entry_price', 0) * t.get('quantity', 0)
+                    if entry_val > 0:
+                        loss_pcts.append(abs(t.get('pnl', 0.0)) / entry_val)
+                avg_loss_pct = sum(loss_pcts) / len(loss_pcts) if loss_pcts else 0.01
+
+            if 'trade_count' in portfolio_state:
+                trade_count = int(portfolio_state['trade_count'])
+            if 'win_rate' in portfolio_state:
+                win_rate = float(portfolio_state['win_rate'])
+            if 'avg_win_pct' in portfolio_state:
+                avg_win_pct = float(portfolio_state['avg_win_pct'])
+            if 'avg_loss_pct' in portfolio_state:
+                avg_loss_pct = float(portfolio_state['avg_loss_pct'])
+
+            if trade_count < min_trades_for_kelly:
+                sizing_model_used = 'atr'
+                atr_pct_14 = indicators.get('atr_pct_14')
+                if atr_pct_14 is None or atr_pct_14 <= 0:
+                    sizing_model_used = 'fixed'
+                    notes = f"Kelly fallback to ATR, but atr_pct_14 <= 0 or None; fallback to fixed sizing (trades: {trade_count} < {min_trades_for_kelly})."
+                    target_quantity = fixed_quantity
+                else:
+                    risk_amount_usd = balance * risk_pct_per_trade
+                    atr_distance = atr_pct_14 * last_price
+                    stop_distance_usd = atr_distance * atr_stop_multiplier
+                    if stop_distance_usd <= 0:
+                        sizing_model_used = 'fixed'
+                        notes = "stop_distance_usd <= 0; fallback to fixed sizing."
+                        target_quantity = fixed_quantity
+                    else:
+                        target_quantity = risk_amount_usd / stop_distance_usd
+                        notes = f"Kelly fallback to ATR (trades: {trade_count} < {min_trades_for_kelly}). Risk amount: {risk_amount_usd:.2f}, Stop distance: {stop_distance_usd:.4f}"
+            else:
+                if avg_win_pct <= 0:
+                    kelly_f = 0.0
+                else:
+                    kelly_f = (win_rate * avg_win_pct - (1.0 - win_rate) * avg_loss_pct) / avg_win_pct
+                
+                fractional_kelly = kelly_f * kelly_fraction
+                kelly_risk_fraction = max(0.0, min(fractional_kelly, max_kelly_pct))
+                risk_amount_usd = balance * kelly_risk_fraction
+                target_quantity = risk_amount_usd / last_price
+                notes = f"Kelly sizing. kelly_f: {kelly_f:.4f}, fractional: {fractional_kelly:.4f}, risk fraction: {kelly_risk_fraction:.4f}"
+
+        else:
+            sizing_model_used = 'fixed'
+            target_quantity = fixed_quantity
+            notes = f"Fixed sizing: {fixed_quantity}"
+
+        if sizing_model_used != 'fixed':
+            max_qty_by_pct = max_position_pct * balance / last_price
+            target_quantity = min(target_quantity, max_qty_by_pct)
+            target_quantity = min(target_quantity, max_quantity)
+            target_quantity = max(target_quantity, min_quantity)
+            notes += f" | Capped at range [{min_quantity}, {max_quantity}] and max_position_pct limit: {max_qty_by_pct:.6f}"
+
+    return {
+        "target_quantity": round(float(target_quantity), 8),
+        "sizing_model_used": sizing_model_used,
+        "risk_amount_usd": round(float(risk_amount_usd), 8),
+        "stop_distance_usd": round(float(stop_distance_usd), 8) if stop_distance_usd is not None else None,
+        "atr_pct_14": float(atr_pct_14) if atr_pct_14 is not None else None,
+        "kelly_f": float(kelly_f) if kelly_f is not None else None,
+        "notes": notes
+    }
+
+
 def build_risk_packet_v1(
     symbol: str,
     state: Dict[str, Any],
@@ -80,14 +225,38 @@ def build_risk_packet_v1(
     if account_equity and session_realized_pnl <= -(account_equity * float(config.get('session_loss_limit_fraction', 0.0))):
         rejection_reasons.append('session_loss_limit_breached')
 
-    stop_distance_fraction = max(float(strategy_state.get('stop_distance_fraction', 0.0) or 0.0), float(micro_volatility or 0.0) * 3.0, 0.001)
-    max_loss_budget = account_equity * per_trade_risk_fraction
-    stop_distance_abs = (last_price * stop_distance_fraction) if last_price else 0.0
-    target_quantity_risk = (max_loss_budget / stop_distance_abs) if stop_distance_abs else 0.0
-    target_notional_cap = min(account_equity * max_symbol_notional_fraction, cash_available)
-    target_quantity_cap = (target_notional_cap / last_price) if last_price else 0.0
-    target_quantity = min(target_quantity_risk, target_quantity_cap) if target_quantity_risk and target_quantity_cap else 0.0
+    # Position Sizing
+    sizing_result = compute_position_size(
+        symbol=symbol,
+        last_price=last_price or 0.0,
+        indicators=indicators,
+        risk_config=config,
+        portfolio_state=portfolio
+    )
+    target_quantity = sizing_result["target_quantity"]
     target_notional = target_quantity * last_price if last_price and target_quantity else 0.0
+    max_loss_budget = sizing_result["risk_amount_usd"] or (account_equity * per_trade_risk_fraction)
+
+    # Stop Loss & Suggested SL/TP
+    entry_side = strategy_state.get('entry_side', 'long')
+    stop_distance_fraction = max(float(strategy_state.get('stop_distance_fraction', 0.0) or 0.0), float(micro_volatility or 0.0) * 3.0, 0.001)
+    stop_price = None
+    take_profit_price = None
+
+    if last_price:
+        if sizing_result["sizing_model_used"] == "atr" and sizing_result["atr_pct_14"] is not None:
+            atr_pct_14 = sizing_result["atr_pct_14"]
+            atr_stop_multiplier = float(config.get('atr_stop_multiplier', 1.5))
+            rr_ratio = float(config.get('rr_ratio', 2.0))
+            
+            suggested_stop_loss_pct = atr_pct_14 * atr_stop_multiplier
+            suggested_take_profit_pct = suggested_stop_loss_pct * rr_ratio
+            
+            stop_distance_fraction = suggested_stop_loss_pct
+            stop_price = last_price * (1 - suggested_stop_loss_pct) if entry_side == 'long' else last_price * (1 + suggested_stop_loss_pct)
+            take_profit_price = last_price * (1 + suggested_take_profit_pct) if entry_side == 'long' else last_price * (1 - suggested_take_profit_pct)
+        else:
+            stop_price = last_price * (1 - stop_distance_fraction) if entry_side == 'long' else last_price * (1 + stop_distance_fraction)
 
     if stop_distance_fraction > 0.02:
         advisory_flags.append('wide_stop_distance')
@@ -107,32 +276,28 @@ def build_risk_packet_v1(
     else:
         risk_status = 'BLOCK'
 
-    entry_side = strategy_state.get('entry_side', 'long')
-    stop_price = None
-    if last_price:
-        stop_price = last_price * (1 - stop_distance_fraction) if entry_side == 'long' else last_price * (1 + stop_distance_fraction)
-
-    return {
+    packet = {
         'symbol': symbol,
         'signal_name': strategy_name,
         'risk_status': risk_status,
         'allow_entry': allow_entry,
         'rejection_reasons': rejection_reasons,
         'advisory_flags': advisory_flags,
-        'sizing_mode': 'risk_budget_capped_notional',
+        'sizing_mode': sizing_result["sizing_model_used"],
         'target_notional': round(float(target_notional), 8),
         'target_quantity': round(float(target_quantity), 8),
         'max_loss_budget': round(float(max_loss_budget), 8),
+        'position_sizing': sizing_result,
         'stop_policy': {
-            'stop_policy_type': 'volatility_scaled_stop',
+            'stop_policy_type': 'volatility_scaled_stop' if sizing_result["sizing_model_used"] != "atr" else 'atr_scaled_stop',
             'initial_stop_price': round(float(stop_price), 8) if stop_price else None,
             'stop_distance_fraction': round(float(stop_distance_fraction), 8),
-            'stop_reason': 'default_v1_volatility_scaled',
+            'stop_reason': 'default_v1_volatility_scaled' if sizing_result["sizing_model_used"] != "atr" else 'atr_stop_multiplier_scaled',
             'trailing_policy': None,
         },
         'take_profit_policy': {
-            'policy_type': 'fixed_rr_target',
-            'rr_multiple': 2.0,
+            'policy_type': 'fixed_rr_target' if sizing_result["sizing_model_used"] != "atr" else 'atr_rr_target',
+            'rr_multiple': float(config.get('rr_ratio', 2.0)),
         },
         'kill_switch_state': kill_switch,
         'exposure_snapshot': {
@@ -152,3 +317,17 @@ def build_risk_packet_v1(
         },
         'updated_at': now_iso(),
     }
+
+    if sizing_result["sizing_model_used"] == "atr" and sizing_result["atr_pct_14"] is not None:
+        atr_pct_14 = sizing_result["atr_pct_14"]
+        atr_stop_multiplier = float(config.get('atr_stop_multiplier', 1.5))
+        rr_ratio = float(config.get('rr_ratio', 2.0))
+        suggested_stop_loss_pct = atr_pct_14 * atr_stop_multiplier
+        suggested_take_profit_pct = suggested_stop_loss_pct * rr_ratio
+        
+        packet["suggested_stop_loss_pct"] = round(float(suggested_stop_loss_pct), 8)
+        packet["suggested_take_profit_pct"] = round(float(suggested_take_profit_pct), 8)
+        if take_profit_price is not None:
+            packet["take_profit_price"] = round(float(take_profit_price), 8)
+
+    return packet
