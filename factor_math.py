@@ -62,7 +62,6 @@ def macd_np(closes: List[float], fast: int = 12, slow: int = 26, signal: int = 9
     macd_val = float(macd_line[-1])
     sig_val  = float(sig_line[-1])
     return {"MACD": macd_val, "MACD_signal": sig_val, "MACD_hist": macd_val - sig_val}
-    return {"MACD": macd_val, "MACD_signal": sig_val, "MACD_hist": macd_val - sig_val}
 
 
 # ── Bollinger Bands ───────────────────────────────────────────────

@@ -120,10 +120,13 @@ def generate_playbook_code(symbol: str, strategy_name: str, parameters: dict, ri
         return 0'''
     elif strategy_name == "bollinger_bands_reversion":
         evaluate_body = '''        last_bar = bars[-1] if bars else None
-        close = last_bar.get('close', 0.0) if isinstance(last_bar, dict) else getattr(last_bar, 'close', 0.0) if last_bar else 0.0
+        try:
+            close = last_bar['close'] if isinstance(last_bar, dict) else last_bar.close
+        except (KeyError, AttributeError, TypeError):
+            close = 0.0
         upper = indicators.get("BBANDS_upper", 0.0)
         lower = indicators.get("BBANDS_lower", 0.0)
-        if not upper or not lower:
+        if upper == 0.0 or lower == 0.0:
             return 0
             
         if close > upper:
@@ -134,7 +137,10 @@ def generate_playbook_code(symbol: str, strategy_name: str, parameters: dict, ri
     elif strategy_name == "bollinger_squeeze_breakout":
         evaluate_body = '''        width = indicators.get("BollingerWidth", 1.0)
         last_bar = bars[-1] if bars else None
-        close = last_bar.get('close', 0.0) if isinstance(last_bar, dict) else getattr(last_bar, 'close', 0.0) if last_bar else 0.0
+        try:
+            close = last_bar['close'] if isinstance(last_bar, dict) else last_bar.close
+        except (KeyError, AttributeError, TypeError):
+            close = 0.0
         mid = indicators.get("BBANDS_mid", 0.0)
         
         # Check squeeze threshold
