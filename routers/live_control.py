@@ -8,21 +8,34 @@ import globals
 
 router = APIRouter(prefix="/api")
 
-# Load processed idempotency tokens from file if it exists
+# Load processed idempotency tokens from file if it exists, keeping only last 1000 to limit size
 token_file = Path('data/logs/processed_tokens.txt')
 processed_tokens = set()
+token_list = []
 if token_file.exists():
     try:
-        processed_tokens = set(token_file.read_text(encoding='utf-8').splitlines())
+        token_list = token_file.read_text(encoding='utf-8').splitlines()
+        if len(token_list) > 1000:
+            token_list = token_list[-1000:]
+            token_file.write_text('\n'.join(token_list) + '\n', encoding='utf-8')
+        processed_tokens = set(token_list)
     except Exception:
         pass
 
 def save_token(token: str):
+    global token_list
+    if token in processed_tokens:
+        return
     processed_tokens.add(token)
+    token_list.append(token)
     try:
         token_file.parent.mkdir(parents=True, exist_ok=True)
-        with token_file.open('a', encoding='utf-8') as f:
-            f.write(token + '\n')
+        if len(token_list) > 1000:
+            token_list = token_list[-1000:]
+            token_file.write_text('\n'.join(token_list) + '\n', encoding='utf-8')
+        else:
+            with token_file.open('a', encoding='utf-8') as f:
+                f.write(token + '\n')
     except Exception:
         pass
 
