@@ -497,6 +497,35 @@ def get_specs_history(limit: int = 100) -> Dict[str, Any]:
     }
 
 
+@app.get('/api/equity-curve')
+def get_equity_curve(limit: int = 1440) -> Dict[str, Any]:
+    points = db.load_equity_curve(limit=limit)
+    return {
+        "equity_curve": points,
+        "count": len(points),
+        "latest": points[-1] if points else None
+    }
+
+
+@app.get('/api/order-log')
+def get_order_log(limit: int = 200) -> Dict[str, Any]:
+    logs = db.load_order_log(limit=limit)
+    accepted = [l for l in logs if l["accepted"]]
+    rejected = [l for l in logs if not l["accepted"]]
+    return {
+        "order_log": logs,
+        "total": len(logs),
+        "accepted_count": len(accepted),
+        "rejected_count": len(rejected)
+    }
+
+
+@app.get('/api/system-events')
+def get_system_events(limit: int = 100) -> Dict[str, Any]:
+    events = db.load_system_events(limit=limit)
+    return {"system_events": events, "count": len(events)}
+
+
 @app.get('/api/telemetry')
 def get_telemetry() -> Dict[str, Any]:
     import globals

@@ -24,6 +24,7 @@ class PaperBroker:
 
         self.positions: Dict[str, Dict[str, Any]] = db.load_positions()
         self.trade_history: List[Dict[str, Any]] = db.load_trade_history()
+        self._last_equity_save = None  # will be set on first tick
         logger.info(
             f"[PaperBroker] Loaded {len(self.positions)} positions, "
             f"{len(self.trade_history)} trades from DB"
@@ -73,6 +74,18 @@ class PaperBroker:
         self.equity = round(self.balance + unrealized_total, 4)
         db.save_broker_state(self.balance, self.equity)
 
+        # Throttle: save equity point every 60 seconds max
+        now_ts = datetime.now(UTC).isoformat()
+        last_eq = getattr(self, '_last_equity_save', None)
+        if last_eq is None or (datetime.now(UTC) - datetime.fromisoformat(last_eq)).seconds >= 60:
+            db.save_equity_point(
+                balance=self.balance,
+                equity=self.equity,
+                open_positions=len(self.positions),
+                unrealized_pnl=unrealized_total
+            )
+            self._last_equity_save = now_ts
+
     def execute_order(
         self,
         symbol: str,
@@ -85,12 +98,22 @@ class PaperBroker:
         signal_source: str = "unknown",
     ) -> bool:
         if symbol in self.positions:
+            db.save_order_log(symbol, direction, quantity, price,
+                              stop_loss, take_profit, signal_source,
+                              accepted=False, reject_reason="Position already open")
             return False
         if quantity <= 0 or price <= 0:
+            db.save_order_log(symbol, direction, quantity, price,
+                              stop_loss, take_profit, signal_source,
+                              accepted=False, reject_reason="Invalid quantity or price")
             return False
 
         cost = quantity * price
         if cost > self.balance * 2.0:
+            db.save_order_log(symbol, direction, quantity, price,
+                              stop_loss, take_profit, signal_source,
+                              accepted=False,
+                              reject_reason=f"Insufficient margin: cost={cost:.2f} balance={self.balance:.2f}")
             logger.warning(f"Simulated order failed: Insufficient margin for {symbol}")
             return False
 
@@ -117,6 +140,9 @@ class PaperBroker:
             f"[PaperBroker] OPENED {direction.upper()} {symbol} "
             f"qty={quantity} price={price} SL={stop_loss} via {signal_source}"
         )
+        db.save_order_log(symbol, direction, quantity, price,
+                          stop_loss, take_profit, signal_source,
+                          accepted=True, reject_reason=None)
         return True
 
     def close_position(

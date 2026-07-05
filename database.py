@@ -121,6 +121,43 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_validation_history_symbol
             ON validation_history(symbol);
 
+        CREATE TABLE IF NOT EXISTS equity_curve (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            balance    REAL NOT NULL,
+            equity     REAL NOT NULL,
+            open_positions INTEGER NOT NULL DEFAULT 0,
+            unrealized_pnl REAL NOT NULL DEFAULT 0.0,
+            recorded_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_equity_curve_time
+            ON equity_curve(recorded_at);
+
+        CREATE TABLE IF NOT EXISTS system_events (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type   TEXT NOT NULL,
+            value        TEXT NOT NULL,
+            triggered_by TEXT NOT NULL DEFAULT 'system',
+            recorded_at  TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_system_events_type
+            ON system_events(event_type);
+
+        CREATE TABLE IF NOT EXISTS order_log (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            symbol       TEXT NOT NULL,
+            direction    TEXT NOT NULL,
+            quantity     REAL NOT NULL,
+            price        REAL NOT NULL,
+            stop_loss    REAL,
+            take_profit  REAL,
+            signal_source TEXT NOT NULL DEFAULT 'unknown',
+            accepted     INTEGER NOT NULL DEFAULT 0,
+            reject_reason TEXT,
+            attempted_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_order_log_symbol
+            ON order_log(symbol);
+
         CREATE INDEX IF NOT EXISTS idx_signal_snapshots_symbol 
             ON signal_snapshots(symbol, signal_id);
         CREATE INDEX IF NOT EXISTS idx_trade_history_symbol 
@@ -344,13 +381,95 @@ def prune_old_records(keep_days: int = 30):
     with conn:
         for table in ("strategy_specs", "playbook_packets",
                       "ranking_history", "validation_history",
-                      "signal_snapshots"):
+                      "signal_snapshots", "equity_curve",
+                      "system_events", "order_log"):
             try:
                 conn.execute(
-                    f"DELETE FROM {table} WHERE created_at < ? OR recorded_at < ?",
-                    (cutoff, cutoff)
+                    f"DELETE FROM {table} WHERE created_at < ? OR recorded_at < ? OR attempted_at < ?",
+                    (cutoff, cutoff, cutoff)
                 )
             except Exception:
                 pass  # column name differs — skip silently
     conn.close()
     logger.info(f"[DB] Pruned records older than {keep_days} days")
+
+
+# ── Equity curve ──────────────────────────────────────────────────────────────
+
+def save_equity_point(balance: float, equity: float,
+                      open_positions: int, unrealized_pnl: float):
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+            INSERT INTO equity_curve
+                (balance, equity, open_positions, unrealized_pnl, recorded_at)
+            VALUES (?, ?, ?, ?, ?)
+        """, (balance, equity, open_positions,
+              unrealized_pnl, datetime.now(UTC).isoformat()))
+    conn.close()
+
+def load_equity_curve(limit: int = 1440) -> List[Dict[str, Any]]:
+    """Load last N equity points. Default 1440 = 24h at 1-min intervals."""
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT balance, equity, open_positions, unrealized_pnl, recorded_at
+        FROM equity_curve ORDER BY id DESC LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return list(reversed([dict(r) for r in rows]))
+
+# ── System events ─────────────────────────────────────────────────────────────
+
+def save_system_event(event_type: str, value: str, triggered_by: str = "system"):
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+            INSERT INTO system_events (event_type, value, triggered_by, recorded_at)
+            VALUES (?, ?, ?, ?)
+        """, (event_type, value, triggered_by, datetime.now(UTC).isoformat()))
+    conn.close()
+
+def load_latest_system_event(event_type: str) -> Optional[str]:
+    """Return the most recent value for a given event_type."""
+    conn = get_connection()
+    row = conn.execute("""
+        SELECT value FROM system_events
+        WHERE event_type = ?
+        ORDER BY id DESC LIMIT 1
+    """, (event_type,)).fetchone()
+    conn.close()
+    return row["value"] if row else None
+
+def load_system_events(limit: int = 100) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM system_events ORDER BY id DESC LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+# ── Order log ─────────────────────────────────────────────────────────────────
+
+def save_order_log(symbol: str, direction: str, quantity: float,
+                   price: float, stop_loss: float | None,
+                   take_profit: float | None, signal_source: str,
+                   accepted: bool, reject_reason: str | None = None):
+    conn = get_connection()
+    with conn:
+        conn.execute("""
+            INSERT INTO order_log
+                (symbol, direction, quantity, price, stop_loss, take_profit,
+                 signal_source, accepted, reject_reason, attempted_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (symbol, direction, quantity, price, stop_loss, take_profit,
+              signal_source, int(accepted), reject_reason,
+              datetime.now(UTC).isoformat()))
+    conn.close()
+
+def load_order_log(limit: int = 200) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    rows = conn.execute("""
+        SELECT * FROM order_log ORDER BY id DESC LIMIT ?
+    """, (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
