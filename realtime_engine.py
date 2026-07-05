@@ -182,6 +182,10 @@ class ResearchEngine:
         self.thresholds = thresholds or {}
         self.states: Dict[str, SymbolState] = {s: SymbolState(symbol=s, bars=deque(maxlen=max_bars)) for s in symbols}
         self._paper_broker = None  # Set externally after init
+        self._last_entry_time: Dict[str, float] = {}   # symbol → unix timestamp
+        self._last_sl_time: Dict[str, float] = {}       # symbol → unix timestamp
+        self.entry_cooldown_seconds: int = 300          # 5 minutes between entries
+        self.sl_cooldown_seconds: int = 600             # 10 minutes after a stop loss
 
     def process_message(self, msg: Dict[str, Any]):
         channel = msg.get('channel')
@@ -417,6 +421,24 @@ class ResearchEngine:
         # ── FIX 1: Always call process_tick so PnL updates in real-time ──
         self._paper_broker.process_tick(state.symbol, last_price, state.updated_at)
 
+        # Track SL closes for cooldown
+        # If symbol was in positions before tick but not after, and reason was SL
+        # We detect this by checking trade_history for recent SL on this symbol
+        recent_trades = self._paper_broker.trade_history[-3:] if self._paper_broker.trade_history else []
+        for t in recent_trades:
+            if (t.get('symbol') == state.symbol
+                    and t.get('reason') == 'Stop Loss'):
+                import time as _time2
+                last_recorded = self._last_sl_time.get(state.symbol, 0.0)
+                try:
+                    trade_ts = __import__('datetime').datetime.fromisoformat(
+                        t['exit_time'].replace('Z', '+00:00')
+                    ).timestamp()
+                except Exception:
+                    trade_ts = _time2.time()
+                if trade_ts > last_recorded:
+                    self._last_sl_time[state.symbol] = trade_ts
+
         for strategy_name, strategy_state in state.strategies.items():
             if not strategy_state.get('execution_ready'):
                 continue
@@ -462,6 +484,20 @@ class ResearchEngine:
                 tp_pct = max(0.01, bb_width)
                 take_profit = last_price * (1 + tp_pct) if direction == 'long' else last_price * (1 - tp_pct)
 
+            # Cooldown gate
+            import time as _time
+            now_ts = _time.time()
+
+            # Gate 1: general entry cooldown
+            last_entry = self._last_entry_time.get(symbol, 0.0)
+            if now_ts - last_entry < self.entry_cooldown_seconds:
+                continue
+
+            # Gate 2: extra cooldown after stop loss
+            last_sl = self._last_sl_time.get(symbol, 0.0)
+            if now_ts - last_sl < self.sl_cooldown_seconds:
+                continue
+
             success = self._paper_broker.execute_order(
                 symbol=symbol,
                 direction=direction,
@@ -474,6 +510,7 @@ class ResearchEngine:
             )
 
             if success:
+                self._last_entry_time[symbol] = _time.time()
                 import logging
                 logging.getLogger(__name__).info(
                     f"[PaperTrade] OPENED {direction.upper()} {symbol} "
