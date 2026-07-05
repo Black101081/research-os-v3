@@ -578,24 +578,128 @@
       color: var(--muted);
     }
 
+    /* Mobile Top Bar - hidden on desktop */
+    .mobile-top-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .menu-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+    }
+    
+    .menu-btn:hover {
+      background-color: var(--surface-hover);
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 150;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+    }
+    
+    .sidebar-overlay.active {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     /* Responsive adjustments */
     @media (max-width: 1024px) {
       .app {
         grid-template-columns: 1fr;
       }
-      .sidebar {
-        height: auto;
-        position: relative;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
+      .mobile-top-bar {
+        display: flex;
       }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px; /* Hidden offscreen left */
+        width: 280px;
+        height: 100vh;
+        z-index: 200;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: 1px solid var(--border);
+      }
+      .sidebar.open {
+        transform: translateX(280px);
+      }
+      .main {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
       .board {
-        grid-template-columns: 1fr;
+        display: flex;
+        overflow-x: auto;
+        gap: 12px;
+        padding-bottom: 8px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      .lane {
+        flex: 0 0 280px;
+        scroll-snap-align: start;
+      }
+      .steps {
+        display: flex;
+        overflow-x: auto;
+        gap: 12px;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .step {
+        flex: 0 0 140px;
+      }
+      .header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .metric-value {
+        font-size: 1.5rem;
       }
     }
   </style>
 </head>
 <body>
+<header class="mobile-top-bar">
+  <button class="menu-btn" id="menuToggle">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+  </button>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <span style="font-weight:700; font-size:1rem; letter-spacing:-0.01em;">Research OS</span>
+    <span class="badge badge-primary" style="font-size:0.6rem; padding:2px 6px;">V3 Live</span>
+  </div>
+  <div id="mobileWalletSum" style="font-family:var(--font-mono); font-size:0.9rem; font-weight:700; color:var(--primary);">$10,000.00</div>
+</header>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="app">
   <!-- Sidebar -->
   <aside class="sidebar">
@@ -931,6 +1035,12 @@
   }
 
   function render(config, snap, validation, specs, replay, validator, backtests, broker) {
+    // Update mobile wallet sum
+    const mobSum = document.getElementById('mobileWalletSum');
+    if (mobSum) {
+      mobSum.textContent = fmtCurrency(broker.balance);
+    }
+
     // 1. Sidebar details
     document.getElementById('feedMeta').innerHTML = `
       Network: <span class="mono">${config.network}</span><br>
@@ -1103,6 +1213,22 @@
     } catch (e) {
       console.error("Poller error:", e);
     }
+  }
+
+  // Handle sidebar toggle on mobile
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.querySelector('.sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  
+  if (menuToggle && sidebar && sidebarOverlay) {
+    menuToggle.onclick = () => {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('active');
+    };
+    sidebarOverlay.onclick = () => {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('active');
+    };
   }
 
   bindTabs();
