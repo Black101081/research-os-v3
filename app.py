@@ -14,7 +14,7 @@ import uvicorn
 
 from hyperliquid_ws_client import HyperliquidWSClient
 from realtime_engine import ResearchEngine
-from registry_writer import RegistryWriter
+from async_registry_writer import AsyncRegistryWriter
 from strategy_spec_builder import build_strategy_spec_v1
 from playbook_bridge import build_playbook_packet
 from bootstrap_ohlcv import warmup_engine
@@ -32,11 +32,12 @@ BASE = Path(__file__).resolve().parent
 CONFIG = json.loads((BASE / 'config.example.json').read_text())
 
 engine = ResearchEngine(symbols=CONFIG['symbols'], max_bars=CONFIG['runtime']['max_bars'], thresholds=CONFIG['thresholds'])
-registry = RegistryWriter(BASE / 'runtime')
+registry = AsyncRegistryWriter(BASE / 'runtime')
 broker = PaperBroker(initial_balance=10000.0)
 ws_client = None
 ws_task = None
 writer_task = None
+registry_task = None
 
 
 def build_subscriptions() -> List[Dict[str, Any]]:
@@ -98,13 +99,11 @@ async def writer_loop() -> None:
                     )
 
         specs, packets = build_specs_and_packets(snapshot)
-        def do_writes():
-            registry.write_snapshot(snapshot)
-            registry.append_strategy_specs(specs)
-            registry.append_playbook_packets(packets)
-            registry.append_strategy_candidates(snapshot)
         try:
-            await asyncio.to_thread(do_writes)
+            await registry.write_snapshot(snapshot)
+            await registry.append_strategy_specs(specs)
+            await registry.append_playbook_packets(packets)
+            await registry.append_strategy_candidates(snapshot)
         except Exception as e:
             logger.error(f"Registry write failed: {e}")
         await asyncio.sleep(CONFIG['runtime']['write_every_seconds'])
@@ -112,7 +111,7 @@ async def writer_loop() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global ws_client, ws_task, writer_task
+    global ws_client, ws_task, writer_task, registry_task
     try:
         warmup_engine(engine, CONFIG['symbols'], CONFIG['candle_interval'], CONFIG['runtime']['warmup_bars'])
     except Exception as e:
@@ -121,6 +120,7 @@ async def lifespan(app: FastAPI):
         engine.process_message(msg)
     ws_client = HyperliquidWSClient(url=CONFIG['ws_url'], subscriptions=build_subscriptions(), on_message=on_message_wrapper)
     ws_task = asyncio.create_task(ws_client.run_forever())
+    registry_task = asyncio.create_task(registry.run())
     writer_task = asyncio.create_task(writer_loop())
     logger.info('Research OS started')
     try:
@@ -132,6 +132,9 @@ async def lifespan(app: FastAPI):
             ws_task.cancel()
         if writer_task is not None:
             writer_task.cancel()
+        if registry_task is not None:
+            registry_task.cancel()
+            await registry.close()
         logger.info('Research OS stopped')
 
 

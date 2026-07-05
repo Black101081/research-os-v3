@@ -14,13 +14,16 @@ import numpy as np
 
 # ── EMA ───────────────────────────────────────────────────────────
 def ema_np(values: List[float] | np.ndarray, period: int) -> Optional[float]:
-    """Exponential moving average via numpy — ~10x faster than pure-Python loop."""
+    """Exponential moving average via numpy — matches pure-Python exactly and is vectorized."""
     arr = np.asarray(values, dtype=np.float64)
     if arr.size == 0:
         return None
+    if arr.size == 1:
+        return float(arr[0])
     alpha = 2.0 / (period + 1)
-    weights = (1 - alpha) ** np.arange(arr.size - 1, -1, -1)
-    result = float(np.dot(arr, weights) / weights.sum())
+    weights = alpha * (1 - alpha) ** np.arange(arr.size - 1, -1, -1)
+    weights[0] = (1 - alpha) ** (arr.size - 1)
+    result = float(np.dot(arr, weights))
     return result
 
 

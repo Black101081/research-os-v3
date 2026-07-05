@@ -11,6 +11,7 @@ from signal_orchestrator import evaluate_supported_signals
 from validation_bridge import build_validation_packet
 from risk_engine import build_risk_packet_v1
 from reactivity_diff import build_reactivity_diff_v1
+from factor_math import compute_factors_np, compute_indicators_np
 
 
 def now_iso() -> str:
@@ -280,8 +281,16 @@ class ResearchEngine:
         state = self.states[symbol]
         include_current = mode in {'tick', 'intrabar', 'bar_close'}
         self._compute_micro_factors(state)
-        self._compute_factors(state, include_current=include_current)
-        self._compute_indicators(state, include_current=include_current)
+        
+        closes = state.closes(include_current=include_current)
+        volumes = state.volumes(include_current=include_current)
+        
+        base_factors = compute_factors_np(closes, volumes)
+        state.factors.update(base_factors)
+        
+        base_indicators = compute_indicators_np(closes, state.factors)
+        state.indicators.update(base_indicators)
+        
         self._compute_regime(state)
         self._compute_signals(state)
         self._compute_strategies(state)
@@ -324,112 +333,7 @@ class ResearchEngine:
             if prev_close:
                 state.factors['live_ret_from_last_close'] = (latest_close / prev_close) - 1
 
-    def _compute_factors(self, state: SymbolState, include_current: bool = False):
-        closes = state.closes(include_current=include_current)
-        volumes = state.volumes(include_current=include_current)
-        if len(closes) < 2:
-            return
-        state.factors['ret_1'] = (closes[-1] / closes[-2]) - 1 if closes[-2] else 0.0
-        if len(closes) >= 5 and closes[-5]:
-            state.factors['ret_5'] = (closes[-1] / closes[-5]) - 1
-        if len(closes) >= 21:
-            ema8 = ema(closes[-50:], 8)
-            ema21 = ema(closes[-50:], 21)
-            state.factors['ema_spread_8_21'] = ((ema8 - ema21) / closes[-1]) if ema8 is not None and ema21 is not None and closes[-1] else 0.0
-            vol_mean_20 = mean(volumes[-20:]) if len(volumes) >= 20 else 0.0
-            state.factors['rel_volume_20'] = (volumes[-1] / vol_mean_20) if vol_mean_20 else 0.0
-            window = closes[-20:]
-            center = mean(window)
-            dev = safe_std(window)
-            state.factors['zscore_close_20'] = ((closes[-1] - center) / dev) if dev else 0.0
-            state.factors['volatility_20'] = dev / center if center else 0.0
 
-    def _compute_indicators(self, state: SymbolState, include_current: bool = False):
-        closes = state.closes(include_current=include_current)
-        if len(closes) < 20:
-            return
-        if len(closes) >= 35:
-            finalized_closes = [b.close for b in state.bars]
-            n_finalized = len(finalized_closes)
-            
-            if 'macd_history' not in state._cache:
-                state._cache['macd_history'] = []
-                state._cache['ema12_history'] = []
-                state._cache['ema26_history'] = []
-                state._cache['macd_signal_history'] = []
-                
-            cache_len = len(state._cache['macd_history'])
-            if cache_len > n_finalized:
-                state._cache['macd_history'] = []
-                state._cache['ema12_history'] = []
-                state._cache['ema26_history'] = []
-                state._cache['macd_signal_history'] = []
-                cache_len = 0
-                
-            if cache_len < n_finalized:
-                for i in range(cache_len, n_finalized):
-                    price = finalized_closes[i]
-                    if i == 0:
-                        ema12 = price
-                        ema26 = price
-                    else:
-                        ema12 = price * (2 / 13) + state._cache['ema12_history'][-1] * (11 / 13)
-                        ema26 = price * (2 / 27) + state._cache['ema26_history'][-1] * (25 / 27)
-                    macd = ema12 - ema26
-                    state._cache['ema12_history'].append(ema12)
-                    state._cache['ema26_history'].append(ema26)
-                    state._cache['macd_history'].append(macd)
-                    
-                    if len(state._cache['macd_history']) >= 9:
-                        if len(state._cache['macd_signal_history']) == 0 or state._cache['macd_signal_history'][-1] == 0.0:
-                            signal = mean(state._cache['macd_history'][-9:])
-                        else:
-                            signal = macd * (2 / 10) + state._cache['macd_signal_history'][-1] * (8 / 10)
-                        state._cache['macd_signal_history'].append(signal)
-                    else:
-                        state._cache['macd_signal_history'].append(0.0)
-                        
-            if include_current and state.current_bar is not None:
-                temp_price = state.current_bar.close
-                if n_finalized == 0:
-                    temp_ema12 = temp_price
-                    temp_ema26 = temp_price
-                    temp_macd = 0.0
-                    temp_signal = 0.0
-                else:
-                    temp_ema12 = temp_price * (2 / 13) + state._cache['ema12_history'][-1] * (11 / 13)
-                    temp_ema26 = temp_price * (2 / 27) + state._cache['ema26_history'][-1] * (25 / 27)
-                    temp_macd = temp_ema12 - temp_ema26
-                    if len(state._cache['macd_history']) >= 8:
-                        if len(state._cache['macd_signal_history']) == 0 or state._cache['macd_signal_history'][-1] == 0.0:
-                            temp_signal = mean(state._cache['macd_history'][-8:] + [temp_macd])
-                        else:
-                            temp_signal = temp_macd * (2 / 10) + state._cache['macd_signal_history'][-1] * (8 / 10)
-                    else:
-                        temp_signal = 0.0
-                macd_val = temp_macd
-                macd_sig_val = temp_signal
-            else:
-                macd_val = state._cache['macd_history'][-1] if state._cache['macd_history'] else 0.0
-                macd_sig_val = state._cache['macd_signal_history'][-1] if state._cache['macd_signal_history'] else 0.0
-                
-            state.indicators['MACD'] = macd_val
-            state.indicators['MACD_signal'] = macd_sig_val
-            state.indicators['MACD_hist'] = macd_val - macd_sig_val
-        sma20 = mean(closes[-20:])
-        sd20 = safe_std(closes[-20:])
-        upper = sma20 + 2 * sd20
-        lower = sma20 - 2 * sd20
-        state.indicators['BBANDS_mid'] = sma20
-        state.indicators['BBANDS_upper'] = upper
-        state.indicators['BBANDS_lower'] = lower
-        state.indicators['BollingerWidth'] = ((upper - lower) / sma20) if sma20 else 0.0
-        state.indicators['ZScore_Close'] = state.factors.get('zscore_close_20', 0.0)
-        state.indicators['RelativeVolume'] = state.factors.get('rel_volume_20', 0.0)
-        state.indicators['TradeFlowImbalance'] = state.factors.get('trade_flow_imbalance_20', 0.0)
-        state.indicators['MicroVolatility'] = state.factors.get('micro_volatility_20', 0.0)
-        state.indicators['SpreadBps'] = state.factors.get('spread_bps', 0.0)
-        state.indicators['LiveReturnFromClose'] = state.factors.get('live_ret_from_last_close', 0.0)
 
     def _compute_regime(self, state: SymbolState):
         state.regime_state = classify_regime(state.factors, state.indicators)
