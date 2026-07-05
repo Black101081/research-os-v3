@@ -603,7 +603,29 @@ class ResearchEngine:
             'regime_state': state.regime_state,
         }
         risk_config = self.thresholds.get('risk_config_v1', {})
-        portfolio_state = self.thresholds.get('portfolio_state', {})
+        # Build live portfolio_state from actual broker state
+        if self._paper_broker is not None:
+            broker_summary = self._paper_broker.get_summary()
+            portfolio_state = {
+                'balance': broker_summary.get('balance', 10000.0),
+                'account_equity': broker_summary.get('equity', 10000.0),
+                'active_positions_count': broker_summary.get('active_positions_count', 0),
+                'gross_exposure': sum(
+                    p.get('quantity', 0) * p.get('current_price', 0)
+                    for p in broker_summary.get('positions', [])
+                ),
+                'net_exposure': 0.0,
+                'session_realized_pnl': sum(
+                    t.get('pnl', 0) for t in broker_summary.get('trade_history', [])
+                ),
+                'symbol_exposure': {
+                    p['symbol']: p.get('quantity', 0) * p.get('current_price', 0)
+                    for p in broker_summary.get('positions', [])
+                },
+                'trade_history': broker_summary.get('trade_history', []),
+            }
+        else:
+            portfolio_state = self.thresholds.get('portfolio_state', {})
         for strategy_name, strategy_state in state.strategies.items():
             packet = build_risk_packet_v1(state.symbol, state_payload, strategy_name, strategy_state, risk_config=risk_config, portfolio_state=portfolio_state)
             packets[strategy_name] = packet

@@ -19,18 +19,34 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
     elif macd < 0 and ret_5 < 0:
         regime = 'downtrend'
         confidence = 0.68
-    elif bb_width < 0.03 and abs(z) < 0.75:
+    elif bb_width < 0.025 and abs(z) < 0.5 and vol_20 < 0.015:
         regime = 'range_chop'
         confidence = 0.64
+    elif vol_20 > 0.01 and abs(ret_5) < 0.005:
+        regime = 'transition_ambiguous'
+        confidence = 0.55
     else:
         regime = 'transition_ambiguous'
         confidence = 0.51
 
     tradable = regime in {'uptrend', 'downtrend', 'range_chop'}
+
+    if regime == 'uptrend':
+        allowed = ['continuation', 'breakout', 'order_flow',
+                   'cross_asset', 'divergence', 'mean_reversion']
+    elif regime == 'downtrend':
+        allowed = ['continuation', 'breakout', 'order_flow',
+                   'cross_asset', 'divergence', 'mean_reversion']
+    elif regime == 'range_chop':
+        allowed = ['mean_reversion', 'divergence']
+    else:
+        allowed = []
+
     return {
         'regime': regime,
         'confidence': confidence,
         'tradable': tradable,
+        'allowed_signal_families': allowed,
         'why': {
             'ret_5': ret_5,
             'volatility_20': vol_20,

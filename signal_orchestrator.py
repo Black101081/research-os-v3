@@ -217,4 +217,32 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
                 'quality_tier': sig.get('quality_tier', 'A'),
             }
             
+    allowed_families = regime_state.get('allowed_signal_families', [])
+
+    for signal_name, signal_result in out.items():
+        family = signal_result.get('template_family', '')
+        # Map signal names to families if template_family missing
+        if not family or family == 'unknown':
+            if 'mean_reversion' in signal_name or 'zscore' in signal_name:
+                family = 'mean_reversion'
+            elif 'divergence' in signal_name:
+                family = 'divergence'
+            elif 'macd' in signal_name or 'continuation' in signal_name:
+                family = 'continuation'
+            elif 'flow' in signal_name or 'imbalance' in signal_name:
+                family = 'order_flow'
+            elif 'breakout' in signal_name:
+                family = 'breakout'
+            else:
+                family = 'continuation'  # conservative default
+            signal_result['template_family'] = family
+
+        if allowed_families and family not in allowed_families:
+            signal_result['active'] = False
+            signal_result['invalidated'] = True
+            signal_result['invalidation_reason'] = f'regime_family_blocked:{regime_state.get("regime","unknown")}'
+            # Update the why dict for snapshot visibility
+            signal_result['why']['invalidated'] = True
+            signal_result['why']['invalidation_reason'] = signal_result['invalidation_reason']
+
     return out
