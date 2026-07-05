@@ -17,6 +17,18 @@ if not config_path.exists():
     config_path = BASE / 'config.example.json'
 CONFIG = json.loads(config_path.read_text())
 
+# Synthesize legacy fields for backward compatibility
+if 'asset_config' in CONFIG:
+    if 'symbols' not in CONFIG:
+        CONFIG['symbols'] = list(CONFIG['asset_config'].keys())
+    if 'candle_interval' not in CONFIG:
+        first_asset = list(CONFIG['asset_config'].values())[0]
+        CONFIG['candle_interval'] = first_asset.get('candle_intervals', ['1m'])[0]
+    if 'runtime' in CONFIG:
+        if 'max_bars' not in CONFIG['runtime']:
+            max_bars_per_tf = CONFIG['runtime'].get('max_bars_per_tf', {})
+            CONFIG['runtime']['max_bars'] = max_bars_per_tf.get('1m', 500)
+
 engine = ResearchEngine(
     symbols=CONFIG['symbols'],
     max_bars=CONFIG['runtime']['max_bars'],

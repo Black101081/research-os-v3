@@ -21,6 +21,8 @@ from factor_math import (
     macd_history_np,
     rsi_history_np
 )
+from multi_tf_state import MultiTFEngine
+from asset_tf_fitness import is_fitness_ok, fitness_summary, get_fitness
 
 
 def now_iso() -> str:
@@ -182,6 +184,20 @@ class ResearchEngine:
         self.thresholds = thresholds or {}
         self.states: Dict[str, SymbolState] = {s: SymbolState(symbol=s, bars=deque(maxlen=max_bars)) for s in symbols}
         self._paper_broker = None  # Set externally after init
+        # Build asset_config from thresholds or derive from symbols list
+        asset_config = (thresholds or {}).get("asset_config", {})
+        if not asset_config:
+            # Legacy fallback — wrap old symbols list
+            for sym in symbols:
+                asset_config[sym] = {
+                    "candle_intervals": ["1m"],
+                    "role": "anchor" if sym == "BTC" else "major",
+                }
+        max_bars_per_tf = (thresholds or {}).get("runtime", {}).get(
+            "max_bars_per_tf", {"1m": 500, "5m": 300, "15m": 200, "1h": 100}
+        )
+        self._mtf = MultiTFEngine(asset_config, max_bars_per_tf)
+        self._asset_config = asset_config
         self._last_entry_time: Dict[str, float] = {}   # symbol → unix timestamp
         self._last_sl_time: Dict[str, float] = {}       # symbol → unix timestamp
         self.entry_cooldown_seconds: int = 300          # 5 minutes between entries
@@ -193,11 +209,18 @@ class ResearchEngine:
         if channel == 'trades':
             self._handle_trades(data)
         elif channel == 'candle':
-            self._handle_candle(data)
+            # Also forward to MultiTFEngine for all intervals
+            self._mtf.handle_candle(data)
+            self._handle_candle(data)   # existing handler (handles 1m SymbolState)
+            return                       # avoid double-call, wrap existing call
         elif channel == 'bbo':
             self._handle_bbo(data)
         elif channel == 'allMids':
             self._handle_all_mids(data)
+        elif channel == 'l2Book':
+            self._mtf.handle_l2book(data)
+        elif channel == 'activeAssetCtx':
+            self._mtf.handle_active_asset_ctx(data)
 
     def _get_state(self, symbol: str) -> Optional[SymbolState]:
         return self.states.get(symbol)
@@ -498,6 +521,24 @@ class ResearchEngine:
             if now_ts - last_sl < self.sl_cooldown_seconds:
                 continue
 
+            # MTF alignment gate on execution path (defense-in-depth)
+            if self._mtf:
+                mtf_sym_state = self._mtf.get(symbol)
+                if mtf_sym_state:
+                    alignment = mtf_sym_state.mtf_alignment(["5m", "15m", "1h"])
+                    if direction == "long" and alignment < -0.5:
+                        import logging as _log
+                        _log.getLogger(__name__).debug(
+                            f"[MTF Block] {symbol} LONG skipped — alignment={alignment:.2f} (strongly bearish)"
+                        )
+                        continue
+                    if direction == "short" and alignment > 0.5:
+                        import logging as _log
+                        _log.getLogger(__name__).debug(
+                            f"[MTF Block] {symbol} SHORT skipped — alignment={alignment:.2f} (strongly bullish)"
+                        )
+                        continue
+
             success = self._paper_broker.execute_order(
                 symbol=symbol,
                 direction=direction,
@@ -569,7 +610,55 @@ class ResearchEngine:
             is_signal_only = (direction == 'signal_only')
             
             status = 'candidate' if (active and not is_signal_only) else 'standby'
-            logic_ready = bool(active and not is_signal_only and close_count >= 35 and state.regime_state.get('tradable', False))
+            # 1. Asset role + signal family
+            asset_role = self._asset_config.get(state.symbol, {}).get("role", "major")
+            signal_family = signal_state.get("template_family", "breakout")
+
+            # 2. Primary TF for this signal (prefer m5 if available, else m1)
+            mtf_sym = self._mtf.get(state.symbol)
+            available_intervals = list(
+                self._asset_config.get(state.symbol, {}).get("candle_intervals", ["1m"])
+            )
+            # Pick best interval for this signal family (prefer higher TF for quality)
+            TF_PRIORITY = {"1h": 0, "15m": 1, "5m": 2, "1m": 3}
+            sorted_intervals = sorted(
+                available_intervals,
+                key=lambda x: TF_PRIORITY.get(x, 99)
+            )
+            signal_interval = sorted_intervals[0] if sorted_intervals else "1m"
+
+            # 3. Bars count on the signal's primary TF
+            tf_state = mtf_sym.get_tf(signal_interval) if mtf_sym else None
+            tf_bars = len(tf_state.bars) if tf_state else close_count
+
+            # 4. Fitness gate
+            fitness_ok = is_fitness_ok(signal_family, asset_role, signal_interval, tf_bars)
+
+            # 5. Min bars for MACD validity — always 35 on any TF
+            bars_ok = tf_bars >= 35
+
+            # 6. HTF bias alignment gate
+            # Signals must not trade against strong HTF trend
+            mtf_alignment_ok = True
+            htf_bias = "n/a"
+            htf_to_check = "15m" if "15m" in available_intervals else (
+                            "5m"  if "5m"  in available_intervals else None)
+            if htf_to_check and mtf_sym:
+                htf_bias = mtf_sym.htf_bias(htf_to_check)
+                entry_side_guess = signal_state.get("direction", "both")
+                if entry_side_guess == "long" and htf_bias == "bearish":
+                    mtf_alignment_ok = False
+                elif entry_side_guess == "short" and htf_bias == "bullish":
+                    mtf_alignment_ok = False
+
+            logic_ready = bool(
+                active
+                and not is_signal_only
+                and bars_ok
+                and state.regime_state.get("tradable", False)
+                and fitness_ok
+                and mtf_alignment_ok
+            )
             
             last_price = state.latest_price() or 0.0
             entry_side = _infer_entry_side(signal_name, last_price, state.indicators, signal_state.get('template_family'))
@@ -589,6 +678,11 @@ class ResearchEngine:
                 'updated_at': state.updated_at,
                 'regime': state.regime_state.get('regime'),
                 'reactive_source': 'live_intrabar' if state.current_bar is not None else 'bar_close',
+                'fitness_score': get_fitness(signal_family, asset_role, signal_interval)["score"],
+                'signal_interval': signal_interval,
+                'htf_bias': htf_bias,
+                'mtf_alignment_ok': mtf_alignment_ok,
+                'fitness_ok': fitness_ok,
             }
         state.strategies = strategies
 

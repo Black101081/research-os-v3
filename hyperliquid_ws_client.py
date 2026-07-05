@@ -12,13 +12,44 @@ TESTNET_WS = "wss://api.hyperliquid-testnet.xyz/ws"
 
 
 class HyperliquidWSClient:
-    def __init__(self, url: str, subscriptions: List[Dict[str, Any]], on_message: Callable[[Dict[str, Any]], Any], reconnect_seconds: int = 5):
+    def __init__(self, url: str, subscriptions: Any, on_message: Callable[[Dict[str, Any]], Any], reconnect_seconds: int = 5):
         self.url = url
-        self.subscriptions = subscriptions
+        if isinstance(subscriptions, dict):
+            self.subscriptions = self._build_subscriptions(subscriptions)
+        else:
+            self.subscriptions = subscriptions
         self.on_message = on_message
         self.reconnect_seconds = reconnect_seconds
         self._running = False
         self._ws = None
+
+    def _build_subscriptions(self, config: dict) -> list:
+        subs = []
+        asset_config = config.get("asset_config", {})
+
+        # Legacy fallback — single candle_interval
+        if not asset_config:
+            for symbol in config.get("symbols", []):
+                interval = config.get("candle_interval", "1m")
+                subs.append({"type": "candle", "coin": symbol, "interval": interval})
+                subs.append({"type": "trades", "coin": symbol})
+                subs.append({"type": "bbo",    "coin": symbol})
+            subs.append({"type": "allMids"})
+            return subs
+
+        # Multi-TF subscription
+        for symbol, cfg in asset_config.items():
+            for interval in cfg.get("candle_intervals", ["1m"]):
+                subs.append({"type": "candle", "coin": symbol, "interval": interval})
+            subs.append({"type": "trades", "coin": symbol})
+            subs.append({"type": "bbo",    "coin": symbol})
+            if cfg.get("subscribe_l2book", False):
+                subs.append({"type": "l2Book",         "coin": symbol})
+            if cfg.get("subscribe_active_asset_ctx", False):
+                subs.append({"type": "activeAssetCtx", "coin": symbol})
+
+        subs.append({"type": "allMids"})
+        return subs
 
     async def _send_subscriptions(self):
         for sub in self.subscriptions:

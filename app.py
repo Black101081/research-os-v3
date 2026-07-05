@@ -47,17 +47,31 @@ registry_task = None
 
 
 def build_subscriptions() -> List[Dict[str, Any]]:
-    subs: List[Dict[str, Any]] = []
-    interval = CONFIG['candle_interval']
-    for symbol in CONFIG['symbols']:
-        if 'trades' in CONFIG['subscriptions']:
-            subs.append({'type': 'trades', 'coin': symbol})
-        if 'candle' in CONFIG['subscriptions']:
-            subs.append({'type': 'candle', 'coin': symbol, 'interval': interval})
-        if 'bbo' in CONFIG['subscriptions']:
-            subs.append({'type': 'bbo', 'coin': symbol})
-    if 'allMids' in CONFIG['subscriptions']:
-        subs.append({'type': 'allMids'})
+    subs = []
+    asset_config = CONFIG.get("asset_config", {})
+
+    # Legacy fallback — single candle_interval
+    if not asset_config:
+        for symbol in CONFIG.get("symbols", []):
+            interval = CONFIG.get("candle_interval", "1m")
+            subs.append({"type": "candle", "coin": symbol, "interval": interval})
+            subs.append({"type": "trades", "coin": symbol})
+            subs.append({"type": "bbo",    "coin": symbol})
+        subs.append({"type": "allMids"})
+        return subs
+
+    # Multi-TF subscription
+    for symbol, cfg in asset_config.items():
+        for interval in cfg.get("candle_intervals", ["1m"]):
+            subs.append({"type": "candle", "coin": symbol, "interval": interval})
+        subs.append({"type": "trades", "coin": symbol})
+        subs.append({"type": "bbo",    "coin": symbol})
+        if cfg.get("subscribe_l2book", False):
+            subs.append({"type": "l2Book",         "coin": symbol})
+        if cfg.get("subscribe_active_asset_ctx", False):
+            subs.append({"type": "activeAssetCtx", "coin": symbol})
+
+    subs.append({"type": "allMids"})
     return subs
 
 
