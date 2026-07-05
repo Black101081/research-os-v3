@@ -587,6 +587,32 @@ def get_ranking() -> Dict[str, Any]:
     }
 
 
+kill_switch_active = False
+trading_mode = 'paper'
+
+
+@app.post('/api/kill-switch')
+def post_kill_switch() -> Dict[str, Any]:
+    global kill_switch_active
+    kill_switch_active = True
+    broker.positions.clear()
+    return {
+        'status': 'success',
+        'kill_switch_active': kill_switch_active,
+        'message': 'EMERGENCY KILL SWITCH ACTIVATED. Open positions closed.'
+    }
+
+
+@app.post('/api/toggle-trading-mode')
+def post_toggle_trading_mode() -> Dict[str, Any]:
+    global trading_mode
+    trading_mode = 'live_testnet' if trading_mode == 'paper' else 'paper'
+    return {
+        'status': 'success',
+        'trading_mode': trading_mode
+    }
+
+
 @app.get('/api/telemetry')
 def get_telemetry() -> Dict[str, Any]:
     snap = engine.snapshot()
@@ -595,7 +621,10 @@ def get_telemetry() -> Dict[str, Any]:
         for strategy in state.get('strategies', {}).values():
             if strategy.get('execution_ready'):
                 ready_count += 1
-    return telemetry.get_metrics(active_candidates=ready_count)
+    metrics = telemetry.get_metrics(active_candidates=ready_count)
+    metrics['kill_switch_active'] = kill_switch_active
+    metrics['trading_mode'] = trading_mode
+    return metrics
 
 
 @app.get('/')

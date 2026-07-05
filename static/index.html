@@ -950,6 +950,22 @@
       <div class="wallet-equity" id="brokerEquity">Equity: <span>$10,000.00</span></div>
     </div>
 
+    <!-- Live Risk Controls & Emergency Kill Switch -->
+    <div class="panel" style="border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03); border-radius: 12px; padding: 12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h3 style="color:var(--error); margin:0;">Live Risk Control</h3>
+        <span class="badge badge-primary" id="riskModeBadge" style="font-size:0.6rem; padding:2px 6px;">PAPER</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="tab-btn active" id="killSwitchBtn" style="background-color:var(--error); border-color:var(--error); color:#fff; font-weight:700; width:100%; border-radius:6px; padding:6px; font-size:0.75rem;" onclick="triggerKillSwitch()">
+          🚨 EMERGENCY STOP (KILL)
+        </button>
+        <button class="tab-btn" style="width:100%; border-radius:6px; padding:4px; font-size:0.72rem;" onclick="toggleTradingMode()">
+          Toggle Live Mode
+        </button>
+      </div>
+    </div>
+
     <div class="panel">
       <h3>Feed Status</h3>
       <div class="panel-val" id="feedMeta">Loading...</div>
@@ -1421,6 +1437,28 @@
         const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
         const s = (sec % 60).toString().padStart(2, '0');
         uptimeEl.textContent = `${h}h ${m}m ${s}s`;
+      }
+      
+      const modeBadge = document.getElementById('riskModeBadge');
+      if (modeBadge) {
+        const mode = telemetryData.trading_mode || 'paper';
+        modeBadge.textContent = mode.toUpperCase().replace('_', ' ');
+        if (mode === 'paper') {
+          modeBadge.className = 'badge badge-primary';
+        } else {
+          modeBadge.className = 'badge badge-warn';
+        }
+      }
+      
+      const killBtn = document.getElementById('killSwitchBtn');
+      if (killBtn) {
+        if (telemetryData.kill_switch_active) {
+          killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
+          killBtn.style.backgroundColor = '#991b1b'; // darker red
+        } else {
+          killBtn.textContent = '🚨 EMERGENCY STOP (KILL)';
+          killBtn.style.backgroundColor = 'var(--error)';
+        }
       }
     }
 
@@ -1985,6 +2023,36 @@
   window.closePlaybookExport = function() {
     document.getElementById('tourOverlay').classList.remove('active');
     document.getElementById('playbookExportModal').classList.remove('active');
+  };
+
+  window.triggerKillSwitch = async function() {
+    if (!confirm("WARNING: Are you sure you want to activate EMERGENCY STOP? Open positions will be closed immediately.")) return;
+    try {
+      const response = await fetch('/api/kill-switch', { method: 'POST' });
+      const data = await response.json();
+      if (data.status === 'success') {
+        tick();
+        alert(data.message);
+      } else {
+        alert("Failed to activate Kill Switch: " + JSON.stringify(data));
+      }
+    } catch (err) {
+      alert("Error triggering Kill Switch: " + err.message);
+    }
+  };
+
+  window.toggleTradingMode = async function() {
+    try {
+      const response = await fetch('/api/toggle-trading-mode', { method: 'POST' });
+      const data = await response.json();
+      if (data.status === 'success') {
+        tick();
+      } else {
+        alert("Failed to toggle mode: " + JSON.stringify(data));
+      }
+    } catch (err) {
+      alert("Error toggling mode: " + err.message);
+    }
   };
 
   bindTabs();
