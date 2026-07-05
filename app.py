@@ -33,6 +33,12 @@ from dashboard_presenter import get_dashboard_payload, get_overview_payload, get
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import os
+if os.path.isdir("/data"):
+    logger.info("[STORAGE] ✅ /data mounted — using persistent storage at /data/research.db")
+else:
+    logger.warning("[STORAGE] ⚠️ /data NOT mounted — falling back to ./research.db (data will be lost on restart)")
+
 ws_client = None
 ws_task = None
 writer_task = None
@@ -164,6 +170,40 @@ def health() -> Dict[str, Any]:
     snapshot = engine.snapshot()
     active_counts = {symbol: len([s for s in state.get('signals', {}).values() if s.get('active')]) for symbol, state in snapshot.items()}
     return {'status': 'ok', 'ok': True, 'symbols': list(snapshot.keys()), 'active_signal_counts': active_counts}
+
+
+@app.get("/api/health/storage")
+async def health_storage():
+    import os, sqlite3
+    mounted = os.path.isdir("/data")
+    db_path = "/data/research.db" if mounted else "./research.db"
+    db_exists = os.path.isfile(db_path)
+    db_size_kb = round(os.path.getsize(db_path) / 1024, 1) if db_exists else 0
+    
+    trade_count = 0
+    position_count = 0
+    if db_exists:
+        try:
+            conn = sqlite3.connect(db_path)
+            trade_count = conn.execute(
+                "SELECT COUNT(*) FROM trade_history"
+            ).fetchone()[0]
+            position_count = conn.execute(
+                "SELECT COUNT(*) FROM paper_positions"
+            ).fetchone()[0]
+            conn.close()
+        except Exception:
+            pass
+    
+    return {
+        "storage_mounted": mounted,
+        "db_path": db_path,
+        "db_exists": db_exists,
+        "db_size_kb": db_size_kb,
+        "trade_count": trade_count,
+        "open_positions": position_count,
+        "status": "persistent" if mounted else "ephemeral"
+    }
 
 
 @app.get('/api/config')
