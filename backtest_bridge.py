@@ -26,7 +26,10 @@ def load_expanded_strategy_catalog() -> Dict[str, Any]:
 def load_validator_report() -> Dict[str, Any]:
     path = RUNTIME / 'research_validator_report.json'
     if path.exists():
-        return json.loads(path.read_text())
+        try:
+            return json.loads(path.read_text())
+        except Exception:
+            pass
     return {'strategy_validation': {'rows': []}, 'signal_validation': {'rows': []}}
 
 
