@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
+import time
 from hyperliquid_ws_client import HyperliquidWSClient
 from realtime_engine import ResearchEngine
 from async_registry_writer import AsyncRegistryWriter
@@ -22,6 +23,7 @@ from paper_replay import run_paper_replay_demo
 from validator_runner import run_validator
 from backtest_bridge import build_bridge_demo
 from baseline_backtest_runner import run_backtest_runner_demo
+from telemetry import TelemetryTracker
 
 from paper_broker import PaperBroker
 
@@ -33,6 +35,7 @@ CONFIG = json.loads((BASE / 'config.example.json').read_text())
 
 engine = ResearchEngine(symbols=CONFIG['symbols'], max_bars=CONFIG['runtime']['max_bars'], thresholds=CONFIG['thresholds'])
 registry = AsyncRegistryWriter(BASE / 'runtime')
+telemetry = TelemetryTracker()
 broker = PaperBroker(initial_balance=10000.0)
 ws_client = None
 ws_task = None
@@ -117,7 +120,13 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Warmup failed: {e}. Proceeding without warmup.")
     async def on_message_wrapper(msg):
-        engine.process_message(msg)
+        t_start = time.perf_counter()
+        try:
+            engine.process_message(msg)
+            telemetry.record_success(time.perf_counter() - t_start)
+        except Exception as e:
+            telemetry.record_error()
+            logger.error(f"WS process message failed: {e}")
     ws_client = HyperliquidWSClient(url=CONFIG['ws_url'], subscriptions=build_subscriptions(), on_message=on_message_wrapper)
     ws_task = asyncio.create_task(ws_client.run_forever())
     registry_task = asyncio.create_task(registry.run())
@@ -214,6 +223,17 @@ def backtest_runner_demo() -> JSONResponse:
 @app.get('/api/positions')
 def get_positions() -> Dict[str, Any]:
     return broker.get_summary()
+
+
+@app.get('/api/telemetry')
+def get_telemetry() -> Dict[str, Any]:
+    snap = engine.snapshot()
+    ready_count = 0
+    for symbol, state in snap.items():
+        for strategy in state.get('strategies', {}).values():
+            if strategy.get('execution_ready'):
+                ready_count += 1
+    return telemetry.get_metrics(active_candidates=ready_count)
 
 
 @app.get('/')

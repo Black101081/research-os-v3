@@ -729,10 +729,31 @@
     </div>
 
     <div class="panel">
-      <h3>Connection</h3>
-      <div class="panel-val" style="display:flex; align-items:center; gap:8px;">
-        <span class="pulse-dot"></span>
-        <span class="mono" id="refreshMeta">Connecting...</span>
+      <h3>System Telemetry</h3>
+      <div class="panel-val" style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="color:var(--muted);">Latency:</span>
+          <span class="mono" id="telemetryLatency" style="font-weight:700; display:flex; align-items:center; gap:6px;">
+            <span class="pulse-dot" id="telemetryPulse"></span>
+            <span id="telemetryLatencyVal">—</span>
+          </span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--muted);">Throughput:</span>
+          <span class="mono" id="telemetryThroughput">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--muted);">Error Rate:</span>
+          <span class="mono" id="telemetryError">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--muted);">Active Specs:</span>
+          <span class="mono" id="telemetryCandidates" style="color:var(--success); font-weight:700;">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:4px; padding-top:4px; border-top:1px dashed var(--border);">
+          <span style="color:var(--muted);">Uptime:</span>
+          <span class="mono" id="telemetryUptime">—</span>
+        </div>
       </div>
     </div>
 
@@ -939,6 +960,7 @@
   async function loadResearchValidator() { const r = await fetch('/api/research-validator'); return await r.json(); }
   async function loadBacktests() { const r = await fetch('/api/backtest-runner-demo'); return await r.json(); }
   async function loadPositions() { const r = await fetch('/api/positions'); return await r.json(); }
+  async function loadTelemetry() { const r = await fetch('/api/telemetry'); return await r.json(); }
 
   function fmt(v) { return typeof v === 'number' ? v.toFixed(4) : String(v ?? '—'); }
   function fmtCurrency(v) { return typeof v === 'number' ? '$' + v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : String(v ?? '—'); }
@@ -1034,11 +1056,59 @@
     }).join('');
   }
 
-  function render(config, snap, validation, specs, replay, validator, backtests, broker) {
+  function render(config, snap, validation, specs, replay, validator, backtests, broker, telemetryData) {
     // Update mobile wallet sum
     const mobSum = document.getElementById('mobileWalletSum');
     if (mobSum) {
       mobSum.textContent = fmtCurrency(broker.balance);
+    }
+
+    // Render System Telemetry
+    if (telemetryData) {
+      const lat = telemetryData.avg_latency_ms;
+      const latEl = document.getElementById('telemetryLatencyVal');
+      const pulseEl = document.getElementById('telemetryPulse');
+      if (latEl && pulseEl) {
+        latEl.textContent = lat.toFixed(2) + ' ms';
+        if (lat < 5.0) {
+          latEl.style.color = 'var(--success)';
+          pulseEl.style.backgroundColor = 'var(--success)';
+          pulseEl.style.boxShadow = '0 0 0 4px var(--success-glow)';
+        } else if (lat < 50.0) {
+          latEl.style.color = 'var(--warn)';
+          pulseEl.style.backgroundColor = 'var(--warn)';
+          pulseEl.style.boxShadow = '0 0 0 4px var(--warn-glow)';
+        } else {
+          latEl.style.color = 'var(--error)';
+          pulseEl.style.backgroundColor = 'var(--error)';
+          pulseEl.style.boxShadow = '0 0 0 4px var(--error-glow)';
+        }
+      }
+      
+      const rateEl = document.getElementById('telemetryThroughput');
+      if (rateEl) {
+        rateEl.textContent = telemetryData.msg_rate_fps.toFixed(1) + ' msg/s';
+      }
+      
+      const errEl = document.getElementById('telemetryError');
+      if (errEl) {
+        errEl.textContent = telemetryData.error_rate_pct.toFixed(2) + '%';
+        errEl.style.color = telemetryData.error_rate_pct > 0 ? 'var(--error)' : 'var(--muted)';
+      }
+      
+      const candEl = document.getElementById('telemetryCandidates');
+      if (candEl) {
+        candEl.textContent = telemetryData.active_candidates + ' ready';
+      }
+      
+      const uptimeEl = document.getElementById('telemetryUptime');
+      if (uptimeEl) {
+        const sec = telemetryData.uptime_seconds;
+        const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+        const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        uptimeEl.textContent = `${h}h ${m}m ${s}s`;
+      }
     }
 
     // 1. Sidebar details
@@ -1048,7 +1118,6 @@
       Interval: <span class="mono">${config.candle_interval}</span><br>
       Warmup: <span class="mono">${config.runtime.warmup_bars} bars</span>
     `;
-    document.getElementById('refreshMeta').textContent = `Live (${new Date().toLocaleTimeString()})`;
 
     // 2. Broker Wallet Card
     document.getElementById('brokerBalance').textContent = fmtCurrency(broker.balance);
@@ -1199,7 +1268,7 @@
 
   async function tick() {
     try {
-      const [config, snap, validation, specs, replay, validator, backtests, broker] = await Promise.all([
+      const [config, snap, validation, specs, replay, validator, backtests, broker, telemetry] = await Promise.all([
         loadConfig(),
         loadSnapshot(),
         loadValidation(),
@@ -1207,9 +1276,10 @@
         loadReplay(),
         loadResearchValidator(),
         loadBacktests(),
-        loadPositions()
+        loadPositions(),
+        loadTelemetry()
       ]);
-      render(config, snap, validation, specs, replay, validator, backtests, broker);
+      render(config, snap, validation, specs, replay, validator, backtests, broker, telemetry);
     } catch (e) {
       console.error("Poller error:", e);
     }
