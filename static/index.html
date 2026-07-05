@@ -594,6 +594,10 @@
 <script src="/static/js/presets.js"></script>
 <script src="/static/js/playbook.js"></script>
 <script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const SIGNAL_DETAIL_CACHE_TTL_MS = 10000; // 10 seconds
+const POLLING_INTERVAL_MS = 5000;         // 5 seconds
+
 // ── State ────────────────────────────────────────────────────────────────────
 let lastSignalsCache = [];
 let expandedSignals = new Set();
@@ -687,7 +691,7 @@ function renderSignalsExplorer(signals) {
       const cacheKey = sig.symbol + ':' + sig.signal_id;
       const cacheEntry = signalDetailCache[cacheKey];
       if (isExpanded) {
-        if (cacheEntry && (Date.now() - cacheEntry.ts < 10000)) {
+        if (cacheEntry && (Date.now() - cacheEntry.ts < SIGNAL_DETAIL_CACHE_TTL_MS)) {
           const d = cacheEntry.data;
           detailHtml = '<div class="signal-card-detail open">' +
             '<div style="margin-bottom:6px;"><strong style="color:var(--primary);">Thesis:</strong> ' + (d.thesis || '—') + '</div>' +
@@ -748,7 +752,7 @@ async function fetchSignalDetail(symbol, signalId) {
     signalDetailCache[cacheKey] = { data, ts: Date.now() };
     renderSignalsExplorer(lastSignalsCache);
   } catch (e) {
-    // silently ignore fetch errors
+    console.error('fetchSignalDetail failed for', symbol, signalId, e);
   }
 }
 
@@ -960,7 +964,7 @@ async function tick() {
 
 // Initial load + polling
 tick();
-setInterval(tick, 5000);
+setInterval(tick, POLLING_INTERVAL_MS);
 </script>
 </body>
 </html>
