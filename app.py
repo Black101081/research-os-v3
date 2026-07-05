@@ -22,6 +22,9 @@ from validator_runner import run_validator
 from backtest_bridge import build_bridge_demo
 from baseline_backtest_runner import run_backtest_runner_demo
 
+import database as db
+db.init_db()
+
 from globals import CONFIG, engine, registry, telemetry, broker, BASE
 engine._paper_broker = broker
 from routers import presets, brief, playbook, live_control

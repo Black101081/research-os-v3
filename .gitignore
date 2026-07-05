@@ -15,3 +15,5 @@ sandbox_test_reports/alpha_registry_store_*/
 sandbox_test_reports/audit_demo_run/
 validation_reports/
 runtime/
+*.db
+/data/
