@@ -1,0 +1,281 @@
+{
+  "summary": {
+    "candidate_count": 3,
+    "registered_alpha_count": 3,
+    "validation_scorecard_count": 4,
+    "top_ranked_alpha": "alpha_2",
+    "top_research_score": -4.25,
+    "promoted_count": 0,
+    "demoted_count": 3,
+    "quarantined_count": 0,
+    "decay_profile_count": 1,
+    "revalidation_task_count": 3,
+    "brief_json_path": "C:\\Users\\Black\\Downloads\\ResearchOS\\research-os-v3\\sandbox_test_reports\\alpha_factory_demo_v1\\registry_store\\briefs\\alpha_factory_demo_v1_brief.json",
+    "brief_md_path": "C:\\Users\\Black\\Downloads\\ResearchOS\\research-os-v3\\sandbox_test_reports\\alpha_factory_demo_v1\\registry_store\\briefs\\alpha_factory_demo_v1_brief.md",
+    "healthcheck": {
+      "alpha_count": 3,
+      "validation_scorecard_count": 4,
+      "latest_scorecard_count": 3,
+      "lifecycle_event_count": 3,
+      "decay_profile_count": 1,
+      "revalidation_task_count": 3,
+      "top_alpha_id": "alpha_2"
+    }
+  },
+  "ranked_scorecards": [
+    {
+      "alpha_id": "alpha_2",
+      "validation_run_id": "validation_1_1783278603",
+      "sample_window": "bt_breakout_execution_gated",
+      "train_window": null,
+      "test_window": "backtest_runner_demo",
+      "walk_forward_slice_id": null,
+      "expectancy": 0.0,
+      "sharpe": 0.0,
+      "sortino": 0.25,
+      "drawdown_max": 0.0,
+      "turnover": 0.45,
+      "capacity_proxy": 0.1,
+      "win_rate": 0.5,
+      "profit_factor": 1.0,
+      "stability_score": 0.0,
+      "overfit_risk_score": 0.35,
+      "validation_status": "reject",
+      "rejection_reasons": [
+        "never_fires",
+        "non_positive_expectancy"
+      ],
+      "created_at": "2026-07-05T19:10:03.457896+00:00",
+      "candidate_id": "0354befe5edd55e1",
+      "template_family": "mean_reversion",
+      "trigger_definition": "zscore_close_20 < -1.5",
+      "research_score": -4.25,
+      "regime_panels": [
+        {
+          "alpha_id": "alpha_2",
+          "regime_name": "range_chop",
+          "trade_count": 50,
+          "expectancy": 0.0,
+          "sharpe": 0.0,
+          "drawdown_max": 0.0,
+          "turnover": 0.45,
+          "hit_rate": 0.5,
+          "robustness_score": 0.0,
+          "created_at": "2026-07-05T19:10:03.457896+00:00"
+        },
+        {
+          "alpha_id": "alpha_2",
+          "regime_name": "transition_ambiguous",
+          "trade_count": 50,
+          "expectancy": 0.0,
+          "sharpe": 0.0,
+          "drawdown_max": 0.0,
+          "turnover": 0.45,
+          "hit_rate": 0.5,
+          "robustness_score": 0.0,
+          "created_at": "2026-07-05T19:10:03.457896+00:00"
+        }
+      ],
+      "research_rank": 1
+    },
+    {
+      "alpha_id": "alpha_3",
+      "validation_run_id": "validation_2_1783278603",
+      "sample_window": "bt_equilibrium_recenter",
+      "train_window": null,
+      "test_window": "backtest_runner_demo",
+      "walk_forward_slice_id": null,
+      "expectancy": 0.0,
+      "sharpe": 0.0,
+      "sortino": 0.25,
+      "drawdown_max": 0.0,
+      "turnover": 0.45,
+      "capacity_proxy": 0.1,
+      "win_rate": 0.5,
+      "profit_factor": 1.0,
+      "stability_score": 0.0,
+      "overfit_risk_score": 0.35,
+      "validation_status": "reject",
+      "rejection_reasons": [
+        "never_fires",
+        "non_positive_expectancy"
+      ],
+      "created_at": "2026-07-05T19:10:03.457896+00:00",
+      "candidate_id": "b65eba1a3557f48e",
+      "template_family": "continuation",
+      "trigger_definition": "MACD > MACD_signal and ema_spread_8_21 > 0",
+      "research_score": -4.25,
+      "regime_panels": [
+        {
+          "alpha_id": "alpha_3",
+          "regime_name": "uptrend",
+          "trade_count": 50,
+          "expectancy": 0.0,
+          "sharpe": 0.0,
+          "drawdown_max": 0.0,
+          "turnover": 0.45,
+          "hit_rate": 0.5,
+          "robustness_score": 0.0,
+          "created_at": "2026-07-05T19:10:03.457896+00:00"
+        },
+        {
+          "alpha_id": "alpha_3",
+          "regime_name": "downtrend",
+          "trade_count": 50,
+          "expectancy": 0.0,
+          "sharpe": 0.0,
+          "drawdown_max": 0.0,
+          "turnover": 0.45,
+          "hit_rate": 0.5,
+          "robustness_score": 0.0,
+          "created_at": "2026-07-05T19:10:03.457896+00:00"
+        }
+      ],
+      "research_rank": 2
+    },
+    {
+      "alpha_id": "alpha_1",
+      "validation_run_id": "validation_0_1783278603",
+      "sample_window": "bt_breakout_confirmation",
+      "train_window": null,
+      "test_window": "backtest_runner_demo",
+      "walk_forward_slice_id": null,
+      "expectancy": -0.1727,
+      "sharpe": 0.0,
+      "sortino": 0.25,
+      "drawdown_max": 0.0086,
+      "turnover": 0.45,
+      "capacity_proxy": 0.1,
+      "win_rate": 0.5,
+      "profit_factor": 0.5,
+      "stability_score": 0.0,
+      "overfit_risk_score": 0.35,
+      "validation_status": "reject",
+      "rejection_reasons": [
+        "non_positive_expectancy"
+      ],
+      "created_at": "2026-07-05T19:10:03.457896+00:00",
+      "candidate_id": "750c5d1723b2043c",
+      "template_family": "breakout",
+      "trigger_definition": "BollingerWidth < 0.03 and live_ret_from_last_close > 0.001",
+      "research_score": -21.606,
+      "regime_panels": [
+        {
+          "alpha_id": "alpha_1",
+          "regime_name": "uptrend",
+          "trade_count": 50,
+          "expectancy": -0.1727,
+          "sharpe": 0.0,
+          "drawdown_max": 0.0086,
+          "turnover": 0.45,
+          "hit_rate": 0.5,
+          "robustness_score": 0.0,
+          "created_at": "2026-07-05T19:10:03.457896+00:00"
+        },
+        {
+          "alpha_id": "alpha_1",
+          "regime_name": "high_volatility",
+          "trade_count": 50,
+          "expectancy": -0.1727,
+          "sharpe": 0.0,
+          "drawdown_max": 0.0086,
+          "turnover": 0.45,
+          "hit_rate": 0.5,
+          "robustness_score": 0.0,
+          "created_at": "2026-07-05T19:10:03.457896+00:00"
+        }
+      ],
+      "research_rank": 3
+    }
+  ],
+  "decisions": [
+    {
+      "alpha_id": "alpha_1",
+      "alpha_name": "breakout_1",
+      "current_state": "validated",
+      "target_state": "demoted",
+      "transition_allowed": true,
+      "trigger_reason": "low_research_score_or_rejected_validation",
+      "supporting_validation_run_id": "validation_0_1783278603",
+      "research_score": -21.606,
+      "created_at": "2026-07-05T19:10:03.466906+00:00",
+      "diversification_pass": true,
+      "diversification_reason": null
+    },
+    {
+      "alpha_id": "alpha_2",
+      "alpha_name": "mean_reversion_2",
+      "current_state": "validated",
+      "target_state": "demoted",
+      "transition_allowed": true,
+      "trigger_reason": "low_research_score_or_rejected_validation",
+      "supporting_validation_run_id": "validation_1_1783278603",
+      "research_score": -4.25,
+      "created_at": "2026-07-05T19:10:03.466906+00:00",
+      "diversification_pass": true,
+      "diversification_reason": null
+    },
+    {
+      "alpha_id": "alpha_3",
+      "alpha_name": "continuation_3",
+      "current_state": "validated",
+      "target_state": "demoted",
+      "transition_allowed": true,
+      "trigger_reason": "low_research_score_or_rejected_validation",
+      "supporting_validation_run_id": "validation_2_1783278603",
+      "research_score": -4.25,
+      "created_at": "2026-07-05T19:10:03.466906+00:00",
+      "diversification_pass": true,
+      "diversification_reason": null
+    }
+  ],
+  "decay_profiles": [
+    {
+      "alpha_id": "alpha_2",
+      "observation_window": "validation_1_1783278603->demo_followup_window",
+      "prior_research_score": -4.25,
+      "current_research_score": 0.0,
+      "delta_score": 4.25,
+      "prior_sharpe": 0.0,
+      "current_sharpe": 0.0,
+      "prior_expectancy": 0.0,
+      "current_expectancy": 0.0,
+      "decay_flag": false,
+      "decay_reason": null,
+      "created_at": "2026-07-05T19:10:03.468293+00:00"
+    }
+  ],
+  "revalidation_tasks": [
+    {
+      "task_id": "revalidate_alpha_1_demoted",
+      "alpha_id": "alpha_1",
+      "alpha_name": "breakout_1",
+      "reason": "lifecycle_demoted",
+      "priority": "medium",
+      "due_hours": 24,
+      "created_at": "2026-07-05T19:10:03.468983+00:00"
+    },
+    {
+      "task_id": "revalidate_alpha_2_demoted",
+      "alpha_id": "alpha_2",
+      "alpha_name": "mean_reversion_2",
+      "reason": "lifecycle_demoted",
+      "priority": "medium",
+      "due_hours": 24,
+      "created_at": "2026-07-05T19:10:03.468983+00:00"
+    },
+    {
+      "task_id": "revalidate_alpha_3_demoted",
+      "alpha_id": "alpha_3",
+      "alpha_name": "continuation_3",
+      "reason": "lifecycle_demoted",
+      "priority": "medium",
+      "due_hours": 24,
+      "created_at": "2026-07-05T19:10:03.468983+00:00"
+    }
+  ],
+  "brief_paths": {
+    "json_path": "C:\\Users\\Black\\Downloads\\ResearchOS\\research-os-v3\\sandbox_test_reports\\alpha_factory_demo_v1\\registry_store\\briefs\\alpha_factory_demo_v1_brief.json",
+    "md_path": "C:\\Users\\Black\\Downloads\\ResearchOS\\research-os-v3\\sandbox_test_reports\\alpha_factory_demo_v1\\registry_store\\briefs\\alpha_factory_demo_v1_brief.md"
+  }
+}

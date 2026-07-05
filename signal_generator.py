@@ -26,6 +26,39 @@ class SignalGenerator:
                 ids.append(factor['factor_id'])
         return ids
 
+    def _build_expression(self, required_inputs: List[str], family: str) -> str:
+        parts = []
+        for factor_id in required_inputs:
+            if factor_id == 'BollingerWidth':
+                parts.append("BollingerWidth < 0.03")
+            elif factor_id == 'live_ret_from_last_close':
+                parts.append("live_ret_from_last_close > 0.001")
+            elif factor_id == 'zscore_close_20':
+                parts.append("zscore_close_20 < -1.5")
+            elif factor_id == 'micro_volatility_20':
+                if family == 'volatility_event':
+                    parts.append("micro_volatility_20 > 0.002")
+                else:
+                    parts.append("micro_volatility_20 < 0.004")
+            elif factor_id == 'MACD':
+                if 'MACD_signal' in required_inputs:
+                    parts.append("MACD > MACD_signal")
+                else:
+                    parts.append("MACD > 0")
+            elif factor_id == 'MACD_signal':
+                continue
+            elif factor_id == 'ema_spread_8_21':
+                parts.append("ema_spread_8_21 > 0")
+            elif factor_id == 'spread_bps':
+                parts.append("spread_bps < 8")
+            elif factor_id == 'tick_ret_5':
+                parts.append("tick_ret_5 > 0")
+            elif factor_id == 'trade_flow_imbalance_20':
+                parts.append("trade_flow_imbalance_20 > 0.1")
+            else:
+                parts.append(f"{factor_id} > 0")
+        return " and ".join(parts)
+
     def generate_candidates(self) -> List[Dict[str, Any]]:
         candidates: List[Dict[str, Any]] = []
         max_candidates = int(self.config.get('max_candidates_per_batch', 100))
@@ -35,16 +68,7 @@ class SignalGenerator:
             if not all(r in known for r in required):
                 continue
             family = template.get('family')
-            if family == 'breakout':
-                expr = 'BollingerWidth < 0.03 and live_ret_from_last_close > 0.001'
-            elif family == 'mean_reversion':
-                expr = 'zscore_close_20 < -1.5 and micro_volatility_20 < 0.004'
-            elif family == 'continuation':
-                expr = 'MACD > MACD_signal and ema_spread_8_21 > 0'
-            elif family == 'volatility_event':
-                expr = 'micro_volatility_20 > 0.002 and spread_bps < 8'
-            else:
-                expr = 'tick_ret_5 > 0 and trade_flow_imbalance_20 > 0.1'
+            expr = self._build_expression(required, family)
             seed = f"{template['template_id']}|{expr}"
             candidates.append({
                 'signal_candidate_id': _candidate_id(seed),

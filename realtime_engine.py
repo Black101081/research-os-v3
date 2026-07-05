@@ -155,15 +155,16 @@ class SymbolState:
         return self.last_trade or self.latest_close() or self.mid
 
 
-def _infer_entry_side(signal_name: str, last_price: float, indicators: dict) -> str:
-    if signal_name == 'zscore_recenter':
+def _infer_entry_side(signal_name: str, last_price: float, indicators: dict, template_family: str | None = None) -> str:
+    family = template_family or signal_name
+    if 'zscore' in family or 'mean_reversion' in family:
         z = indicators.get('ZScore_Close', 0.0)
         return 'short' if z >= 1.5 else 'long'
-    if signal_name == 'macd_trend_continuation':
+    if 'macd' in family or 'continuation' in family:
         macd = indicators.get('MACD', 0.0)
         sig = indicators.get('MACD_signal', 0.0)
         return 'long' if macd > sig else 'short'
-    # bollinger_squeeze_breakout: direction from price vs midband
+    # breakout / bollinger:
     mid = indicators.get('BBANDS_mid', 0.0)
     return 'long' if last_price > mid else 'short'
 
@@ -364,7 +365,7 @@ class ResearchEngine:
             active = bool(signal_state.get('active'))
             logic_ready = bool(active and close_count >= 35 and state.regime_state.get('tradable', False))
             last_price = state.latest_price() or 0.0
-            entry_side = _infer_entry_side(signal_name, last_price, state.indicators)
+            entry_side = _infer_entry_side(signal_name, last_price, state.indicators, signal_state.get('template_family'))
             strategies[signal_name] = {
                 'status': 'candidate' if active else 'standby',
                 'signal_name': signal_name,
