@@ -49,3 +49,11 @@ class HyperliquidWSClient:
 
     def stop(self):
         self._running = False
+
+    async def close(self):
+        self._running = False
+        if self._ws:
+            try:
+                await self._ws.close()
+            except Exception:
+                pass
