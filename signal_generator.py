@@ -55,6 +55,26 @@ class SignalGenerator:
                 parts.append("tick_ret_5 > 0")
             elif factor_id == 'trade_flow_imbalance_20':
                 parts.append("trade_flow_imbalance_20 > 0.1")
+            elif factor_id == 'bb_pct_b':
+                parts.append("bb_pct_b < 0.05")
+            elif factor_id == 'rsi_14':
+                parts.append("rsi_14 < 30")
+            elif factor_id == 'price_vs_sma20':
+                parts.append("abs(price_vs_sma20) < 0.01")
+            elif factor_id == 'volatility_ratio_5_20':
+                parts.append("volatility_ratio_5_20 < 0.7")
+            elif factor_id == 'atr_pct_14':
+                parts.append("atr_pct_14 > 0.01")
+            elif factor_id == 'momentum_divergence':
+                parts.append("momentum_divergence != 0")
+            elif factor_id == 'trade_flow_imbalance_50':
+                parts.append("trade_flow_imbalance_50 > 0.2")
+            elif factor_id == 'large_trade_ratio':
+                parts.append("large_trade_ratio > 0.15")
+            elif factor_id == 'btc_ret_1':
+                parts.append("abs(btc_ret_1) > 0.003")
+            elif factor_id == 'market_correlation_20':
+                parts.append("market_correlation_20 > 0.7")
             else:
                 parts.append(f"{factor_id} > 0")
         return " and ".join(parts)

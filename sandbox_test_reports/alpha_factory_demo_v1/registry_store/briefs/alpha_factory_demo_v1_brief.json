@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-05T19:10:03.468983+00:00",
+  "generated_at": "2026-07-05T19:19:58.740435+00:00",
   "alpha_count": 3,
   "validation_scorecard_count": 4,
   "top_ranked_alphas": [
@@ -20,7 +20,7 @@
     {
       "alpha_id": "alpha_1",
       "research_rank": 3,
-      "research_score": -21.606,
+      "research_score": -21.589,
       "validation_status": "reject",
       "sample_window": "bt_breakout_confirmation"
     },
@@ -39,8 +39,8 @@
       "previous_state": "validated",
       "new_state": "demoted",
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_0_1783278603",
-      "created_at": "2026-07-05T19:10:03.466906+00:00"
+      "supporting_validation_run_id": "validation_0_1783279198",
+      "created_at": "2026-07-05T19:19:58.738215+00:00"
     },
     "alpha_2": {
       "alpha_id": "alpha_2",
@@ -48,8 +48,8 @@
       "previous_state": "validated",
       "new_state": "demoted",
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_1_1783278603",
-      "created_at": "2026-07-05T19:10:03.466906+00:00"
+      "supporting_validation_run_id": "validation_1_1783279198",
+      "created_at": "2026-07-05T19:19:58.738215+00:00"
     },
     "alpha_3": {
       "alpha_id": "alpha_3",
@@ -57,8 +57,8 @@
       "previous_state": "validated",
       "new_state": "demoted",
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_2_1783278603",
-      "created_at": "2026-07-05T19:10:03.466906+00:00"
+      "supporting_validation_run_id": "validation_2_1783279198",
+      "created_at": "2026-07-05T19:19:58.738215+00:00"
     }
   },
   "promoted_count": 0,
@@ -74,25 +74,25 @@
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:10:03.468983+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     },
     {
       "task_id": "revalidate_alpha_2_demoted",
       "alpha_id": "alpha_2",
-      "alpha_name": "mean_reversion_2",
+      "alpha_name": "breakout_2",
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:10:03.468983+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     },
     {
       "task_id": "revalidate_alpha_3_demoted",
       "alpha_id": "alpha_3",
-      "alpha_name": "continuation_3",
+      "alpha_name": "mean_reversion_3",
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:10:03.468983+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     }
   ]
 }

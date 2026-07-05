@@ -10,7 +10,10 @@ from factor_math import (
     rel_volume_np,
     flow_imbalance_np,
     compute_factors_np,
-    compute_indicators_np
+    compute_indicators_np,
+    rsi_np,
+    atr_np,
+    compute_divergence
 )
 
 
@@ -85,6 +88,29 @@ class TestFactorMath(unittest.TestCase):
             np_val = ema_np(closes, period)
             self.assertIsNotNone(np_val)
             self.assertAlmostEqual(np_val, pd_val, places=6)
+
+    def test_rsi_np(self):
+        closes = [100.0] * 30
+        res = rsi_np(closes, 14)
+        self.assertEqual(res, 50.0) # Flat prices = neutral RSI
+        
+        # Increasing prices
+        up_closes = [100.0 + i for i in range(30)]
+        res_up = rsi_np(up_closes, 14)
+        self.assertTrue(res_up > 50.0)
+        
+    def test_atr_np(self):
+        highs = [102.0] * 20
+        lows = [98.0] * 20
+        closes = [100.0] * 20
+        res = atr_np(highs, lows, closes, 14)
+        self.assertAlmostEqual(res, 4.0) # True range is consistently 4
+        
+    def test_compute_divergence(self):
+        closes = [100.0 + i for i in range(10)]
+        macd = [10.0 - i for i in range(10)] # Diverging
+        res = compute_divergence(closes, macd)
+        self.assertEqual(res, -1.0) # Bearish divergence
 
     def test_latency_benchmark(self):
         import time

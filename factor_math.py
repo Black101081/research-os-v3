@@ -105,6 +105,65 @@ def flow_imbalance_np(sizes: List[float], sides: List[str], window: int = 20) ->
     return float((sz * signs).sum() / total) if total else 0.0
 
 
+# ── RSI ───────────────────────────────────────────────────────────
+def rsi_np(closes: List[float], period: int = 14) -> float:
+    """Relative Strength Index via numpy/scipy lfilter matching Wilder's smoothing."""
+    arr = np.asarray(closes, dtype=np.float64)
+    if arr.size <= period:
+        return 50.0
+    diff = np.diff(arr)
+    gains = np.where(diff > 0, diff, 0.0)
+    losses = np.where(diff < 0, -diff, 0.0)
+    
+    alpha = 1.0 / period
+    b = [alpha]
+    a = [1, -(1 - alpha)]
+    from scipy.signal import lfilter, lfilter_zi
+    
+    zi_g = lfilter_zi(b, a) * gains[0]
+    avg_g, _ = lfilter(b, a, gains, zi=zi_g)
+    
+    zi_l = lfilter_zi(b, a) * losses[0]
+    avg_l, _ = lfilter(b, a, losses, zi=zi_l)
+    
+    rs = avg_g[-1] / avg_l[-1] if avg_l[-1] else 0.0
+    if avg_l[-1] == 0.0:
+        return 50.0 if avg_g[-1] == 0.0 else 100.0
+    return float(100.0 - 100.0 / (1.0 + rs))
+
+
+# ── ATR ───────────────────────────────────────────────────────────
+def atr_np(highs: List[float], lows: List[float], closes: List[float], period: int = 14) -> float:
+    """Average True Range via EMA of True Range."""
+    h = np.asarray(highs, dtype=np.float64)
+    l = np.asarray(lows, dtype=np.float64)
+    c = np.asarray(closes, dtype=np.float64)
+    if h.size < period + 1:
+        return 0.0
+    
+    tr = np.zeros_like(h)
+    tr[0] = h[0] - l[0]
+    for i in range(1, h.size):
+        tr[i] = max(h[i] - l[i], abs(h[i] - c[i-1]), abs(l[i] - c[i-1]))
+    
+    res = ema_np(tr, period)
+    return res if res is not None else 0.0
+
+
+# ── Divergence ────────────────────────────────────────────────────
+def compute_divergence(closes: List[float], macd: List[float]) -> float:
+    """Price-momentum divergence proxy."""
+    if len(closes) < 10 or len(macd) < 10:
+        return 0.0
+    price_slope = closes[-1] - closes[-5]
+    macd_slope = macd[-1] - macd[-5]
+    if price_slope > 0 and macd_slope < 0:
+        return -1.0
+    elif price_slope < 0 and macd_slope > 0:
+        return 1.0
+    return 0.0
+
+
 # ── Batch factors (drop-in replacement for ResearchEngine methods) ─
 def compute_factors_np(closes: List[float], volumes: List[float]) -> Dict[str, float]:
     """Return full factor dict from close/volume arrays."""

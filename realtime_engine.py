@@ -11,7 +11,7 @@ from signal_orchestrator import evaluate_supported_signals
 from validation_bridge import build_validation_packet
 from risk_engine import build_risk_packet_v1
 from reactivity_diff import build_reactivity_diff_v1
-from factor_math import compute_factors_np, compute_indicators_np
+from factor_math import compute_factors_np, compute_indicators_np, rsi_np, atr_np, compute_divergence, flow_imbalance_np
 
 
 def now_iso() -> str:
@@ -300,11 +300,91 @@ class ResearchEngine:
         closes = state.closes(include_current=include_current)
         volumes = state.volumes(include_current=include_current)
         
+        # Ingest highs and lows
+        highs = [b.high for b in list(state.bars)]
+        lows = [b.low for b in list(state.bars)]
+        if include_current and state.current_bar is not None:
+            if state.bars and state.bars[-1].ts == state.current_bar.ts:
+                highs[-1] = state.current_bar.high
+                lows[-1] = state.current_bar.low
+            else:
+                highs.append(state.current_bar.high)
+                lows.append(state.current_bar.low)
+        
+        import numpy as np
+        
         base_factors = compute_factors_np(closes, volumes)
         state.factors.update(base_factors)
         
         base_indicators = compute_indicators_np(closes, state.factors)
         state.indicators.update(base_indicators)
+        
+        # 1. trade_flow_imbalance_50
+        sizes = list(state.trade_sizes)
+        sides = list(state.trade_sides)
+        state.factors['trade_flow_imbalance_50'] = flow_imbalance_np(sizes, sides, 50)
+        
+        # 2. large_trade_ratio
+        if sizes:
+            mean_sz = mean(sizes[-20:]) if len(sizes) >= 20 else mean(sizes)
+            large_trades_sum = sum(sz for sz in sizes[-20:] if sz > 1.5 * mean_sz)
+            total_trades_sum = sum(sizes[-20:])
+            state.factors['large_trade_ratio'] = large_trades_sum / total_trades_sum if total_trades_sum else 0.0
+        else:
+            state.factors['large_trade_ratio'] = 0.0
+            
+        # 3. btc_ret_1 & market_correlation_20
+        btc_state = self.states.get('BTC')
+        if btc_state:
+            state.factors['btc_ret_1'] = btc_state.factors.get('ret_1', 0.0)
+            if state.symbol != 'BTC':
+                btc_closes = [b.close for b in list(btc_state.bars)[-20:]]
+                asset_closes = [b.close for b in list(state.bars)[-20:]]
+                if len(btc_closes) == len(asset_closes) and len(btc_closes) >= 5:
+                    btc_rets = np.diff(btc_closes) / btc_closes[:-1]
+                    asset_rets = np.diff(asset_closes) / asset_closes[:-1]
+                    if btc_rets.std() > 0 and asset_rets.std() > 0:
+                        corr = np.corrcoef(btc_rets, asset_rets)[0, 1]
+                        state.factors['market_correlation_20'] = float(corr) if not np.isnan(corr) else 0.0
+                    else:
+                        state.factors['market_correlation_20'] = 0.0
+                else:
+                    state.factors['market_correlation_20'] = 0.0
+            else:
+                state.factors['market_correlation_20'] = 1.0
+        else:
+            state.factors['btc_ret_1'] = 0.0
+            state.factors['market_correlation_20'] = 0.0
+            
+        # 4. Advanced Indicators
+        upper = state.indicators.get('BBANDS_upper', 0.0)
+        lower = state.indicators.get('BBANDS_lower', 0.0)
+        close = closes[-1] if closes else 0.0
+        state.indicators['bb_pct_b'] = (close - lower) / (upper - lower) if (upper - lower) else 0.5
+        state.indicators['rsi_14'] = rsi_np(closes, 14)
+        
+        mid = state.indicators.get('BBANDS_mid', 0.0)
+        state.indicators['price_vs_sma20'] = (close / mid) - 1.0 if mid else 0.0
+        
+        if len(closes) >= 20:
+            arr_closes = np.asarray(closes, dtype=np.float64)
+            std5 = arr_closes[-5:].std()
+            std20 = arr_closes[-20:].std()
+            state.indicators['volatility_ratio_5_20'] = std5 / std20 if std20 else 1.0
+        else:
+            state.indicators['volatility_ratio_5_20'] = 1.0
+            
+        atr_val = atr_np(highs, lows, closes, 14)
+        state.indicators['atr_pct_14'] = atr_val / close if close else 0.0
+        
+        macd_val = state.indicators.get('MACD', 0.0)
+        state.indicators['momentum_divergence'] = compute_divergence(closes, [macd_val] * len(closes))
+        
+        state.indicators['trade_flow_imbalance_20'] = state.factors.get('trade_flow_imbalance_20', 0.0)
+        state.indicators['trade_flow_imbalance_50'] = state.factors.get('trade_flow_imbalance_50', 0.0)
+        state.indicators['large_trade_ratio'] = state.factors.get('large_trade_ratio', 0.0)
+        state.indicators['btc_ret_1'] = state.factors.get('btc_ret_1', 0.0)
+        state.indicators['market_correlation_20'] = state.factors.get('market_correlation_20', 0.0)
         
         self._compute_regime(state)
         self._compute_signals(state)

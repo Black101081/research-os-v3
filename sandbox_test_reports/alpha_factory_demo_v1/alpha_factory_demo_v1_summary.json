@@ -25,7 +25,7 @@
   "ranked_scorecards": [
     {
       "alpha_id": "alpha_2",
-      "validation_run_id": "validation_1_1783278603",
+      "validation_run_id": "validation_1_1783279198",
       "sample_window": "bt_breakout_execution_gated",
       "train_window": null,
       "test_window": "backtest_runner_demo",
@@ -45,15 +45,15 @@
         "never_fires",
         "non_positive_expectancy"
       ],
-      "created_at": "2026-07-05T19:10:03.457896+00:00",
-      "candidate_id": "0354befe5edd55e1",
-      "template_family": "mean_reversion",
-      "trigger_definition": "zscore_close_20 < -1.5",
+      "created_at": "2026-07-05T19:19:58.727397+00:00",
+      "candidate_id": "06674ea70fdd8d47",
+      "template_family": "breakout",
+      "trigger_definition": "BollingerWidth < 0.03 and rel_volume_20 > 0 and BBANDS_upper > 0 and BBANDS_lower > 0",
       "research_score": -4.25,
       "regime_panels": [
         {
           "alpha_id": "alpha_2",
-          "regime_name": "range_chop",
+          "regime_name": "uptrend",
           "trade_count": 50,
           "expectancy": 0.0,
           "sharpe": 0.0,
@@ -61,11 +61,11 @@
           "turnover": 0.45,
           "hit_rate": 0.5,
           "robustness_score": 0.0,
-          "created_at": "2026-07-05T19:10:03.457896+00:00"
+          "created_at": "2026-07-05T19:19:58.727397+00:00"
         },
         {
           "alpha_id": "alpha_2",
-          "regime_name": "transition_ambiguous",
+          "regime_name": "downtrend",
           "trade_count": 50,
           "expectancy": 0.0,
           "sharpe": 0.0,
@@ -73,14 +73,14 @@
           "turnover": 0.45,
           "hit_rate": 0.5,
           "robustness_score": 0.0,
-          "created_at": "2026-07-05T19:10:03.457896+00:00"
+          "created_at": "2026-07-05T19:19:58.727397+00:00"
         }
       ],
       "research_rank": 1
     },
     {
       "alpha_id": "alpha_3",
-      "validation_run_id": "validation_2_1783278603",
+      "validation_run_id": "validation_2_1783279198",
       "sample_window": "bt_equilibrium_recenter",
       "train_window": null,
       "test_window": "backtest_runner_demo",
@@ -100,15 +100,15 @@
         "never_fires",
         "non_positive_expectancy"
       ],
-      "created_at": "2026-07-05T19:10:03.457896+00:00",
-      "candidate_id": "b65eba1a3557f48e",
-      "template_family": "continuation",
-      "trigger_definition": "MACD > MACD_signal and ema_spread_8_21 > 0",
+      "created_at": "2026-07-05T19:19:58.727397+00:00",
+      "candidate_id": "0354befe5edd55e1",
+      "template_family": "mean_reversion",
+      "trigger_definition": "zscore_close_20 < -1.5",
       "research_score": -4.25,
       "regime_panels": [
         {
           "alpha_id": "alpha_3",
-          "regime_name": "uptrend",
+          "regime_name": "range_chop",
           "trade_count": 50,
           "expectancy": 0.0,
           "sharpe": 0.0,
@@ -116,26 +116,14 @@
           "turnover": 0.45,
           "hit_rate": 0.5,
           "robustness_score": 0.0,
-          "created_at": "2026-07-05T19:10:03.457896+00:00"
-        },
-        {
-          "alpha_id": "alpha_3",
-          "regime_name": "downtrend",
-          "trade_count": 50,
-          "expectancy": 0.0,
-          "sharpe": 0.0,
-          "drawdown_max": 0.0,
-          "turnover": 0.45,
-          "hit_rate": 0.5,
-          "robustness_score": 0.0,
-          "created_at": "2026-07-05T19:10:03.457896+00:00"
+          "created_at": "2026-07-05T19:19:58.727397+00:00"
         }
       ],
       "research_rank": 2
     },
     {
       "alpha_id": "alpha_1",
-      "validation_run_id": "validation_0_1783278603",
+      "validation_run_id": "validation_0_1783279198",
       "sample_window": "bt_breakout_confirmation",
       "train_window": null,
       "test_window": "backtest_runner_demo",
@@ -143,7 +131,7 @@
       "expectancy": -0.1727,
       "sharpe": 0.0,
       "sortino": 0.25,
-      "drawdown_max": 0.0086,
+      "drawdown_max": 0.0069,
       "turnover": 0.45,
       "capacity_proxy": 0.1,
       "win_rate": 0.5,
@@ -154,11 +142,11 @@
       "rejection_reasons": [
         "non_positive_expectancy"
       ],
-      "created_at": "2026-07-05T19:10:03.457896+00:00",
+      "created_at": "2026-07-05T19:19:58.727397+00:00",
       "candidate_id": "750c5d1723b2043c",
       "template_family": "breakout",
       "trigger_definition": "BollingerWidth < 0.03 and live_ret_from_last_close > 0.001",
-      "research_score": -21.606,
+      "research_score": -21.589,
       "regime_panels": [
         {
           "alpha_id": "alpha_1",
@@ -166,23 +154,23 @@
           "trade_count": 50,
           "expectancy": -0.1727,
           "sharpe": 0.0,
-          "drawdown_max": 0.0086,
+          "drawdown_max": 0.0069,
           "turnover": 0.45,
           "hit_rate": 0.5,
           "robustness_score": 0.0,
-          "created_at": "2026-07-05T19:10:03.457896+00:00"
+          "created_at": "2026-07-05T19:19:58.727397+00:00"
         },
         {
           "alpha_id": "alpha_1",
-          "regime_name": "high_volatility",
+          "regime_name": "downtrend",
           "trade_count": 50,
           "expectancy": -0.1727,
           "sharpe": 0.0,
-          "drawdown_max": 0.0086,
+          "drawdown_max": 0.0069,
           "turnover": 0.45,
           "hit_rate": 0.5,
           "robustness_score": 0.0,
-          "created_at": "2026-07-05T19:10:03.457896+00:00"
+          "created_at": "2026-07-05T19:19:58.727397+00:00"
         }
       ],
       "research_rank": 3
@@ -196,35 +184,35 @@
       "target_state": "demoted",
       "transition_allowed": true,
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_0_1783278603",
-      "research_score": -21.606,
-      "created_at": "2026-07-05T19:10:03.466906+00:00",
+      "supporting_validation_run_id": "validation_0_1783279198",
+      "research_score": -21.589,
+      "created_at": "2026-07-05T19:19:58.738215+00:00",
       "diversification_pass": true,
       "diversification_reason": null
     },
     {
       "alpha_id": "alpha_2",
-      "alpha_name": "mean_reversion_2",
+      "alpha_name": "breakout_2",
       "current_state": "validated",
       "target_state": "demoted",
       "transition_allowed": true,
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_1_1783278603",
+      "supporting_validation_run_id": "validation_1_1783279198",
       "research_score": -4.25,
-      "created_at": "2026-07-05T19:10:03.466906+00:00",
+      "created_at": "2026-07-05T19:19:58.738215+00:00",
       "diversification_pass": true,
       "diversification_reason": null
     },
     {
       "alpha_id": "alpha_3",
-      "alpha_name": "continuation_3",
+      "alpha_name": "mean_reversion_3",
       "current_state": "validated",
       "target_state": "demoted",
       "transition_allowed": true,
       "trigger_reason": "low_research_score_or_rejected_validation",
-      "supporting_validation_run_id": "validation_2_1783278603",
+      "supporting_validation_run_id": "validation_2_1783279198",
       "research_score": -4.25,
-      "created_at": "2026-07-05T19:10:03.466906+00:00",
+      "created_at": "2026-07-05T19:19:58.738215+00:00",
       "diversification_pass": true,
       "diversification_reason": null
     }
@@ -232,7 +220,7 @@
   "decay_profiles": [
     {
       "alpha_id": "alpha_2",
-      "observation_window": "validation_1_1783278603->demo_followup_window",
+      "observation_window": "validation_1_1783279198->demo_followup_window",
       "prior_research_score": -4.25,
       "current_research_score": 0.0,
       "delta_score": 4.25,
@@ -242,7 +230,7 @@
       "current_expectancy": 0.0,
       "decay_flag": false,
       "decay_reason": null,
-      "created_at": "2026-07-05T19:10:03.468293+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     }
   ],
   "revalidation_tasks": [
@@ -253,25 +241,25 @@
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:10:03.468983+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     },
     {
       "task_id": "revalidate_alpha_2_demoted",
       "alpha_id": "alpha_2",
-      "alpha_name": "mean_reversion_2",
+      "alpha_name": "breakout_2",
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:10:03.468983+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     },
     {
       "task_id": "revalidate_alpha_3_demoted",
       "alpha_id": "alpha_3",
-      "alpha_name": "continuation_3",
+      "alpha_name": "mean_reversion_3",
       "reason": "lifecycle_demoted",
       "priority": "medium",
       "due_hours": 24,
-      "created_at": "2026-07-05T19:10:03.468983+00:00"
+      "created_at": "2026-07-05T19:19:58.740435+00:00"
     }
   ],
   "brief_paths": {
