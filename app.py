@@ -154,10 +154,12 @@ async def writer_loop() -> None:
 
         specs, packets = build_specs_and_packets(snapshot)
         try:
-            await registry.write_snapshot(snapshot)
-            await registry.append_strategy_specs(specs)
-            await registry.append_playbook_packets(packets)
-            await registry.append_strategy_candidates(snapshot)
+            await asyncio.wait_for(registry.write_snapshot(snapshot), timeout=5.0)
+            await asyncio.wait_for(registry.append_strategy_specs(specs), timeout=5.0)
+            await asyncio.wait_for(registry.append_playbook_packets(packets), timeout=5.0)
+            await asyncio.wait_for(registry.append_strategy_candidates(snapshot), timeout=5.0)
+        except asyncio.TimeoutError:
+            logger.warning("[writer_loop] Registry write timed out — skipping cycle")
         except Exception as e:
             logger.error(f"Registry write failed: {e}")
 
