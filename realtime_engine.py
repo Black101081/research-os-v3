@@ -755,6 +755,13 @@ class ResearchEngine:
                 elif entry_side_guess == "short" and htf_bias == "bullish":
                     mtf_alignment_ok = False
 
+            trade_tier = state.regime_state.get('trade_tier', 'blocked')
+            regime_allowed = state.regime_state.get('allowed_signal_families', [])
+            family_allowed = (
+                trade_tier == 'full'
+                or signal_family in regime_allowed
+            )
+
             logic_ready = bool(
                 active
                 and not is_signal_only
@@ -762,6 +769,7 @@ class ResearchEngine:
                 and state.regime_state.get("tradable", False)
                 and fitness_ok
                 and mtf_alignment_ok
+                and family_allowed
             )
             
             tf_indicators = tf_state.indicators if tf_state else state.indicators
@@ -788,6 +796,7 @@ class ResearchEngine:
                 'htf_bias': htf_bias,
                 'mtf_alignment_ok': mtf_alignment_ok,
                 'fitness_ok': fitness_ok,
+                'trade_tier': trade_tier,
             }
         state.strategies = strategies
 

@@ -29,23 +29,34 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
         regime = 'transition_ambiguous'
         confidence = 0.51
 
-    tradable = regime in {'uptrend', 'downtrend', 'range_chop'}
-
-    if regime == 'uptrend':
-        allowed = ['continuation', 'breakout', 'order_flow',
-                   'cross_asset', 'divergence', 'mean_reversion']
-    elif regime == 'downtrend':
+    # Adaptive trade tier
+    if regime in {'uptrend', 'downtrend'}:
+        tradable = True
+        trade_tier = 'full'
         allowed = ['continuation', 'breakout', 'order_flow',
                    'cross_asset', 'divergence', 'mean_reversion']
     elif regime == 'range_chop':
+        tradable = True
+        trade_tier = 'selective'
         allowed = ['mean_reversion', 'divergence']
+    elif regime == 'high_volatility':
+        tradable = True
+        trade_tier = 'selective'
+        allowed = ['order_flow', 'mean_reversion']
+    elif regime == 'transition_ambiguous' and confidence >= 0.55:
+        tradable = True
+        trade_tier = 'cautious'
+        allowed = ['order_flow']
     else:
+        tradable = False
+        trade_tier = 'blocked'
         allowed = []
 
     return {
         'regime': regime,
         'confidence': confidence,
         'tradable': tradable,
+        'trade_tier': trade_tier,
         'allowed_signal_families': allowed,
         'why': {
             'ret_5': ret_5,
