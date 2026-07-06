@@ -354,3 +354,438 @@ def compute_indicators_np(closes: List[float], factors: Dict[str, float]) -> Dic
     indicators["SpreadBps"]       = factors.get("spread_bps", 0.0)
     indicators["LiveReturnFromClose"] = factors.get("live_ret_from_last_close", 0.0)
     return indicators
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A1. VOLUME INDICATORS
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_vwap(closes: list, volumes: list) -> float:
+    """
+    Session VWAP = sum(close * volume) / sum(volume).
+    Uses all bars provided — caller slices to session window.
+    Returns closes[-1] if total volume is 0 (graceful fallback).
+    """
+    if len(closes) != len(volumes) or not closes:
+        return float(closes[-1]) if closes else 0.0
+    c = np.array(closes, dtype=float)
+    v = np.array(volumes, dtype=float)
+    total_v = v.sum()
+    return float((c * v).sum() / total_v) if total_v > 0 else float(c[-1])
+
+
+def calc_vwap_deviation(close: float, vwap: float) -> float:
+    """
+    Percent deviation of current close from VWAP.
+    > 0 = above VWAP (bullish), < 0 = below VWAP (bearish).
+    """
+    if vwap == 0:
+        return 0.0
+    return float((close - vwap) / vwap * 100)
+
+
+def calc_volume_ratio(volumes: list, window: int = 20) -> float:
+    """
+    Current bar volume / SMA(volume, window).
+    > 1.5 = elevated, > 2.0 = spike, < 0.5 = dry.
+    Returns 1.0 if insufficient bars.
+    """
+    if len(volumes) < window + 1:
+        return 1.0
+    v = np.array(volumes, dtype=float)
+    baseline = v[-(window+1):-1].mean()   # exclude current bar from baseline
+    return float(v[-1] / baseline) if baseline > 0 else 1.0
+
+
+def calc_volume_zscore(volumes: list, window: int = 20) -> float:
+    """
+    Z-score of current volume vs rolling window.
+    Measures how unusual the current bar's volume is.
+    Returns 0.0 if insufficient data.
+    """
+    if len(volumes) < window + 1:
+        return 0.0
+    v = np.array(volumes, dtype=float)
+    window_v = v[-(window+1):-1]
+    mu = window_v.mean()
+    sigma = window_v.std()
+    return float((v[-1] - mu) / sigma) if sigma > 0 else 0.0
+
+
+def calc_obv(closes: list, volumes: list) -> float:
+    """
+    On-Balance Volume (last value).
+    OBV[i] = OBV[i-1] + volume if close > prev_close, else - volume.
+    Returns raw OBV value; use slope for signal (see calc_obv_slope).
+    """
+    if len(closes) < 2 or len(volumes) < 2:
+        return 0.0
+    c = np.array(closes, dtype=float)
+    v = np.array(volumes, dtype=float)
+    signs = np.where(c[1:] > c[:-1], 1.0, np.where(c[1:] < c[:-1], -1.0, 0.0))
+    return float((signs * v[1:]).sum())
+
+
+def calc_obv_slope(closes: list, volumes: list, window: int = 10) -> float:
+    """
+    Linear regression slope of OBV over last `window` bars.
+    Positive = accumulation trend, negative = distribution.
+    Returns 0.0 if insufficient data.
+    """
+    if len(closes) < window + 2:
+        return 0.0
+    c = np.array(closes, dtype=float)
+    v = np.array(volumes, dtype=float)
+    signs = np.where(c[1:] > c[:-1], 1.0, np.where(c[1:] < c[:-1], -1.0, 0.0))
+    obv_series = np.cumsum(signs * v[1:])
+    recent = obv_series[-window:]
+    x = np.arange(len(recent), dtype=float)
+    slope = np.polyfit(x, recent, 1)
+    return float(slope[0])
+
+
+def calc_volume_poc(closes: list, volumes: list, bins: int = 20) -> float:
+    """
+    Point of Control (POC): price level with highest volume in the provided window.
+    Uses histogram binning across the closes range.
+    Returns the mid-price of the highest-volume bin.
+    Returns closes[-1] if insufficient data.
+    """
+    if len(closes) < 5 or len(volumes) < 5:
+        return float(closes[-1]) if closes else 0.0
+    c = np.array(closes, dtype=float)
+    v = np.array(volumes, dtype=float)
+    lo, hi = c.min(), c.max()
+    if hi == lo:
+        return float(c[-1])
+    edges = np.linspace(lo, hi, bins + 1)
+    vol_per_bin = np.zeros(bins)
+    for price, vol in zip(c, v):
+        idx = min(int((price - lo) / (hi - lo) * bins), bins - 1)
+        vol_per_bin[idx] += vol
+    poc_bin = int(np.argmax(vol_per_bin))
+    poc_price = (edges[poc_bin] + edges[poc_bin + 1]) / 2
+    return float(poc_price)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A2. TREND / MOMENTUM (TF-AGNOSTIC)
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_ema(values: list, period: int) -> float:
+    """
+    EMA of last value. Pure Python/numpy implementation.
+    Returns values[-1] if insufficient data.
+    """
+    if len(values) < period:
+        return float(values[-1]) if values else 0.0
+    v = np.array(values, dtype=float)
+    k = 2.0 / (period + 1)
+    ema = v[:period].mean()
+    for price in v[period:]:
+        ema = price * k + ema * (1 - k)
+    return float(ema)
+
+
+def calc_ema_spread(closes: list, fast: int = 8, slow: int = 21) -> float:
+    """
+    EMA fast - EMA slow, expressed as % of close.
+    > 0 = bullish momentum, < 0 = bearish.
+    """
+    if len(closes) < slow:
+        return 0.0
+    fast_ema = calc_ema(closes, fast)
+    slow_ema = calc_ema(closes, slow)
+    ref = float(closes[-1]) if closes[-1] != 0 else slow_ema
+    return float((fast_ema - slow_ema) / ref * 100) if ref else 0.0
+
+
+def calc_adx(highs: list, lows: list, closes: list, period: int = 14) -> float:
+    """
+    Average Directional Index (ADX).
+    >= 25 = strong trend, 20-25 = weak trend, < 20 = no trend.
+    Returns 0.0 if insufficient data (needs 2*period bars minimum).
+    """
+    min_bars = period * 2 + 1
+    if len(closes) < min_bars:
+        return 0.0
+    h = np.array(highs[-min_bars:], dtype=float)
+    l = np.array(lows[-min_bars:], dtype=float)
+    c = np.array(closes[-min_bars:], dtype=float)
+
+    tr_list, pdm_list, ndm_list = [], [], []
+    for i in range(1, len(c)):
+        tr = max(h[i] - l[i], abs(h[i] - c[i-1]), abs(l[i] - c[i-1]))
+        pdm = max(h[i] - h[i-1], 0.0) if (h[i] - h[i-1]) > (l[i-1] - l[i]) else 0.0
+        ndm = max(l[i-1] - l[i], 0.0) if (l[i-1] - l[i]) > (h[i] - h[i-1]) else 0.0
+        tr_list.append(tr); pdm_list.append(pdm); ndm_list.append(ndm)
+
+    def _smooth(arr, p):
+        result = [sum(arr[:p])]
+        for v in arr[p:]:
+            result.append(result[-1] - result[-1] / p + v)
+        return result
+
+    atr_s  = _smooth(tr_list,  period)
+    pdm_s  = _smooth(pdm_list, period)
+    ndm_s  = _smooth(ndm_list, period)
+
+    dx_list = []
+    for atr_v, pdm_v, ndm_v in zip(atr_s, pdm_s, ndm_s):
+        pdi = 100 * pdm_v / atr_v if atr_v else 0
+        ndi = 100 * ndm_v / atr_v if atr_v else 0
+        denom = pdi + ndi
+        dx = 100 * abs(pdi - ndi) / denom if denom else 0
+        dx_list.append(dx)
+
+    if len(dx_list) < period:
+        return 0.0
+    adx = sum(dx_list[-period:]) / period
+    return float(adx)
+
+
+def calc_rsi(closes: list, period: int = 14) -> float:
+    """
+    RSI using Wilder's smoothing. Standard implementation.
+    Returns 50.0 if insufficient data.
+    """
+    if len(closes) < period + 1:
+        return 50.0
+    c = np.array(closes[-(period * 3):], dtype=float)
+    deltas = np.diff(c)
+    gains = np.where(deltas > 0, deltas, 0.0)
+    losses = np.where(deltas < 0, -deltas, 0.0)
+    avg_gain = gains[:period].mean()
+    avg_loss = losses[:period].mean()
+    for g, l in zip(gains[period:], losses[period:]):
+        avg_gain = (avg_gain * (period - 1) + g) / period
+        avg_loss = (avg_loss * (period - 1) + l) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return float(100 - 100 / (1 + rs))
+
+
+def calc_macd(closes: list,
+              fast: int = 12, slow: int = 26, signal: int = 9
+              ) -> tuple:
+    """
+    Returns (macd_line, signal_line, histogram).
+    Needs at least slow + signal bars.
+    Returns (0.0, 0.0, 0.0) if insufficient data.
+    """
+    if len(closes) < slow + signal:
+        return 0.0, 0.0, 0.0
+    fast_ema  = calc_ema(closes, fast)
+    slow_ema  = calc_ema(closes, slow)
+    macd_line = fast_ema - slow_ema
+    # Build a mini macd series for signal line smoothing
+    # Use last (slow + signal * 3) bars to compute rolling macd
+    window = min(len(closes), slow + signal * 3)
+    c = np.array(closes[-window:], dtype=float)
+    k_fast = 2.0 / (fast + 1)
+    k_slow = 2.0 / (slow + 1)
+    k_sig  = 2.0 / (signal + 1)
+    ema_f = c[:fast].mean()
+    ema_s = c[:slow].mean()
+    for price in c[max(fast, slow):]:
+        ema_f = price * k_fast + ema_f * (1 - k_fast)
+        ema_s = price * k_slow + ema_s * (1 - k_slow)
+    macd_line_v = ema_f - ema_s
+    # Build signal from macd series over last signal*3 bars
+    macd_series = []
+    ef = c[:fast].mean(); es = c[:slow].mean()
+    for price in c[slow:]:
+        ef = price * k_fast + ef * (1 - k_fast)
+        es = price * k_slow + es * (1 - k_slow)
+        macd_series.append(ef - es)
+    if len(macd_series) < signal:
+        return float(macd_line_v), 0.0, float(macd_line_v)
+    sig_line = sum(macd_series[:signal]) / signal
+    for m in macd_series[signal:]:
+        sig_line = m * k_sig + sig_line * (1 - k_sig)
+    histogram = macd_line_v - sig_line
+    return float(macd_line_v), float(sig_line), float(histogram)
+
+
+def calc_atr(highs: list, lows: list, closes: list, period: int = 14) -> float:
+    """
+    Average True Range using Wilder's smoothing.
+    Returns 0.0 if insufficient data.
+    """
+    if len(closes) < period + 1:
+        return 0.0
+    h = np.array(highs[-(period * 3):], dtype=float)
+    l = np.array(lows[-(period * 3):], dtype=float)
+    c = np.array(closes[-(period * 3):], dtype=float)
+    trs = [max(h[i] - l[i], abs(h[i] - c[i-1]), abs(l[i] - c[i-1]))
+           for i in range(1, len(c))]
+    atr = sum(trs[:period]) / period
+    for tr in trs[period:]:
+        atr = (atr * (period - 1) + tr) / period
+    return float(atr)
+
+
+def calc_atr_pct(highs: list, lows: list, closes: list, period: int = 14) -> float:
+    """
+    ATR as % of current close. Useful for normalising across assets.
+    """
+    atr = calc_atr(highs, lows, closes, period)
+    close = float(closes[-1]) if closes else 1.0
+    return float(atr / close * 100) if close else 0.0
+
+
+def calc_bb_width(closes: list, period: int = 20, std_mult: float = 2.0) -> float:
+    """
+    Bollinger Band Width = (upper - lower) / middle, as %.
+    High = high volatility/expansion, Low = squeeze/compression.
+    Returns 0.0 if insufficient data.
+    """
+    if len(closes) < period:
+        return 0.0
+    c = np.array(closes[-period:], dtype=float)
+    mid = c.mean()
+    std = c.std()
+    return float((std_mult * 2 * std) / mid * 100) if mid else 0.0
+
+
+def calc_bb_pct(closes: list, period: int = 20, std_mult: float = 2.0) -> float:
+    """
+    %B: where current close sits within Bollinger Bands.
+    0.0 = at lower band, 0.5 = at middle, 1.0 = at upper band.
+    > 1.0 = above upper band, < 0.0 = below lower band.
+    """
+    if len(closes) < period:
+        return 0.5
+    c = np.array(closes[-period:], dtype=float)
+    mid = c.mean()
+    std = c.std()
+    if std == 0:
+        return 0.5
+    upper = mid + std_mult * std
+    lower = mid - std_mult * std
+    return float((closes[-1] - lower) / (upper - lower))
+
+
+def calc_stoch_rsi(closes: list, rsi_period: int = 14,
+                   stoch_period: int = 14, smooth_k: int = 3) -> tuple:
+    """
+    Stochastic RSI → returns (%K, %D).
+    %K: StochRSI smoothed, %D: signal of %K.
+    Returns (50.0, 50.0) if insufficient data.
+    Needs rsi_period + stoch_period + smooth_k bars minimum.
+    """
+    min_bars = rsi_period + stoch_period + smooth_k + 5
+    if len(closes) < min_bars:
+        return 50.0, 50.0
+    # Build RSI series
+    rsi_series = []
+    for i in range(rsi_period + 1, len(closes) + 1):
+        rsi_series.append(calc_rsi(closes[:i], rsi_period))
+    if len(rsi_series) < stoch_period + smooth_k:
+        return 50.0, 50.0
+    # StochRSI raw
+    stoch_raw = []
+    for i in range(stoch_period, len(rsi_series) + 1):
+        window = rsi_series[i - stoch_period:i]
+        lo, hi = min(window), max(window)
+        val = (rsi_series[i-1] - lo) / (hi - lo) * 100 if hi != lo else 50.0
+        stoch_raw.append(val)
+    # Smooth K
+    k_series = []
+    for i in range(smooth_k, len(stoch_raw) + 1):
+        k_series.append(sum(stoch_raw[i - smooth_k:i]) / smooth_k)
+    if not k_series:
+        return 50.0, 50.0
+    # D = SMA(K, 3)
+    d_val = sum(k_series[-3:]) / min(3, len(k_series))
+    return float(k_series[-1]), float(d_val)
+
+
+def calc_cmf(highs: list, lows: list, closes: list,
+             volumes: list, period: int = 20) -> float:
+    """
+    Chaikin Money Flow. Range: -1.0 to +1.0.
+    > 0.05 = buying pressure, < -0.05 = selling pressure.
+    Returns 0.0 if insufficient data.
+    """
+    if len(closes) < period:
+        return 0.0
+    h = np.array(highs[-period:], dtype=float)
+    l = np.array(lows[-period:], dtype=float)
+    c = np.array(closes[-period:], dtype=float)
+    v = np.array(volumes[-period:], dtype=float)
+    hl_range = h - l
+    mfv = np.where(hl_range > 0,
+                   ((c - l) - (h - c)) / hl_range * v,
+                   0.0)
+    total_v = v.sum()
+    return float(mfv.sum() / total_v) if total_v else 0.0
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A3. CRYPTO-NATIVE INDICATORS
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_funding_zscore(funding_history: list) -> float:
+    """
+    Z-score of most recent funding rate vs history.
+    Extreme values (|z| > 2) = potential reversion opportunity.
+    Returns 0.0 if fewer than 3 data points.
+    """
+    if len(funding_history) < 3:
+        return 0.0
+    arr = np.array(funding_history, dtype=float)
+    mu = arr[:-1].mean()
+    sigma = arr[:-1].std()
+    return float((arr[-1] - mu) / sigma) if sigma > 0 else 0.0
+
+
+def calc_oi_momentum(oi_history: list, period: int = 5) -> float:
+    """
+    OI momentum = (OI[-1] - OI[-period]) / OI[-period] * 100.
+    Positive = OI expanding (new money in), negative = OI contracting (closing).
+    OI rising + price rising = trend continuation (strong).
+    OI rising + price falling = bearish continuation (shorts piling in).
+    Returns 0.0 if insufficient data.
+    """
+    if len(oi_history) < period + 1:
+        return 0.0
+    base = float(oi_history[-period - 1])
+    current = float(oi_history[-1])
+    return float((current - base) / base * 100) if base else 0.0
+
+
+def calc_bid_ask_imbalance(bid_levels: list, ask_levels: list,
+                           top_n: int = 10) -> float:
+    """
+    Orderbook imbalance from top N price levels.
+    bid_levels / ask_levels: list of (price, size) tuples.
+    Returns: -1.0 (pure ask) to +1.0 (pure bid).
+    """
+    bid_sz = sum(sz for _, sz in bid_levels[:top_n])
+    ask_sz = sum(sz for _, sz in ask_levels[:top_n])
+    total = bid_sz + ask_sz
+    return float((bid_sz - ask_sz) / total) if total else 0.0
+
+
+def calc_price_vs_prev_day(close: float, prev_day_px: float) -> float:
+    """
+    % change vs previous day close. Simple but useful for intraday context.
+    Returns 0.0 if prev_day_px is 0.
+    """
+    if prev_day_px == 0:
+        return 0.0
+    return float((close - prev_day_px) / prev_day_px * 100)
+
+
+def calc_spread_bps(best_bid: float, best_ask: float) -> float:
+    """
+    Bid-ask spread in basis points. Mid = (bid+ask)/2.
+    High spread → low liquidity → avoid taker entries.
+    Returns 0.0 if inputs invalid.
+    """
+    if best_bid <= 0 or best_ask <= 0:
+        return 0.0
+    mid = (best_bid + best_ask) / 2
+    return float((best_ask - best_bid) / mid * 10000) if mid else 0.0

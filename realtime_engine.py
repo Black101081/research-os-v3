@@ -23,6 +23,7 @@ from factor_math import (
 )
 from multi_tf_state import MultiTFEngine
 from asset_tf_fitness import is_fitness_ok, fitness_summary, get_fitness
+from tf_indicator_engine import compute_all_tf_indicators
 
 
 def now_iso() -> str:
@@ -198,6 +199,16 @@ class ResearchEngine:
         )
         self._mtf = MultiTFEngine(asset_config, max_bars_per_tf)
         self._asset_config = asset_config
+        # Crypto-native history buffers (per symbol)
+        from collections import deque as _deque
+        self._funding_history: dict = {
+            sym: _deque(maxlen=48)   # 48 data points ≈ 16 days (funding every 8h)
+            for sym in self._mtf.symbols()
+        }
+        self._oi_history: dict = {
+            sym: _deque(maxlen=200)   # 200 samples of OI snapshots
+            for sym in self._mtf.symbols()
+        }
         self._last_entry_time: Dict[str, float] = {}   # symbol → unix timestamp
         self._last_sl_time: Dict[str, float] = {}       # symbol → unix timestamp
         self.entry_cooldown_seconds: int = 300          # 5 minutes between entries
@@ -221,6 +232,27 @@ class ResearchEngine:
             self._mtf.handle_l2book(data)
         elif channel == 'activeAssetCtx':
             self._mtf.handle_active_asset_ctx(data)
+            symbol = data.get("coin")
+            ctx = data.get("ctx", {})
+            if symbol and ctx:
+                fr = ctx.get("funding")
+                oi = ctx.get("openInterest")
+                if fr is not None:
+                    try:
+                        if symbol not in self._funding_history:
+                            from collections import deque as _deque
+                            self._funding_history[symbol] = _deque(maxlen=48)
+                        self._funding_history[symbol].append(float(fr))
+                    except (TypeError, ValueError):
+                        pass
+                if oi is not None:
+                    try:
+                        if symbol not in self._oi_history:
+                            from collections import deque as _deque
+                            self._oi_history[symbol] = _deque(maxlen=200)
+                        self._oi_history[symbol].append(float(oi))
+                    except (TypeError, ValueError):
+                        pass
 
     def _get_state(self, symbol: str) -> Optional[SymbolState]:
         return self.states.get(symbol)
@@ -284,6 +316,22 @@ class ResearchEngine:
         state.append_or_replace_bar(bar)
         self._refresh_state(symbol, mode='bar_close')
         self._record_reactivity(state, 'candle', before)
+
+        # After bar has been appended to both, compute all tf indicators
+        sym_state = self._mtf.get(symbol) if symbol else None
+        if sym_state:
+            # Extract best bid/ask from BBO if available
+            bbo_state = self.states.get(symbol)
+            best_bid = getattr(bbo_state, "best_bid", 0.0) if bbo_state else 0.0
+            best_ask = getattr(bbo_state, "best_ask", 0.0) if bbo_state else 0.0
+
+            compute_all_tf_indicators(
+                sym_state=sym_state,
+                funding_history=list(self._funding_history.get(symbol, [])),
+                oi_history=list(self._oi_history.get(symbol, [])),
+                best_bid=best_bid,
+                best_ask=best_ask,
+            )
 
     def _handle_bbo(self, data: Dict[str, Any]):
         symbol = data.get('coin') or data.get('symbol') or data.get('s')
@@ -488,12 +536,22 @@ class ResearchEngine:
             if quantity <= 0:
                 continue
 
+            # Fetch TF-specific indicators
+            signal_interval = strategy_state.get('signal_interval', '1m')
+            mtf_sym = self._mtf.get(symbol)
+            tf_state = mtf_sym.get_tf(signal_interval) if mtf_sym else None
+            tf_indicators = tf_state.indicators if tf_state else state.indicators
+
             # SL từ risk packet
             stop_loss = risk_packet.get('stop_policy', {}).get('initial_stop_price')
 
             # ── FIX 2: ATR-based SL fallback khi risk packet không có SL ──
             if stop_loss is None:
-                atr_pct = state.indicators.get('atr_pct_14', 0.02)
+                atr_val = tf_indicators.get('atr_14_pct')
+                if atr_val is not None:
+                    atr_pct = atr_val / 100.0
+                else:
+                    atr_pct = tf_indicators.get('atr_pct_14', 0.02)
                 sl_pct = max(0.01, atr_pct * 1.5)
                 if direction == 'long':
                     stop_loss = round(last_price * (1 - sl_pct), 6)
@@ -503,7 +561,11 @@ class ResearchEngine:
             # TP từ risk packet hoặc fallback Bollinger Width
             take_profit = risk_packet.get('take_profit_price')
             if take_profit is None:
-                bb_width = state.indicators.get('BollingerWidth', 0.03)
+                bb_val = tf_indicators.get('bb_width_20')
+                if bb_val is not None:
+                    bb_width = bb_val / 100.0
+                else:
+                    bb_width = tf_indicators.get('BollingerWidth', 0.03)
                 tp_pct = max(0.01, bb_width)
                 take_profit = last_price * (1 + tp_pct) if direction == 'long' else last_price * (1 - tp_pct)
 
@@ -660,8 +722,9 @@ class ResearchEngine:
                 and mtf_alignment_ok
             )
             
+            tf_indicators = tf_state.indicators if tf_state else state.indicators
             last_price = state.latest_price() or 0.0
-            entry_side = _infer_entry_side(signal_name, last_price, state.indicators, signal_state.get('template_family'))
+            entry_side = _infer_entry_side(signal_name, last_price, tf_indicators, signal_state.get('template_family'))
             
             invalidated = bool(signal_state.get('invalidated'))
             thesis_state = 'invalidated' if invalidated else ('aligned' if active else 'not_triggered')

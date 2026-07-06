@@ -88,7 +88,7 @@ def test_orchestrator_evaluation():
     """Test 3-layer orchestrator evaluation under various indicator conditions."""
     factors = {"live_ret_from_last_close": 0.002}
     indicators = {
-        "BollingerWidth": 0.06,
+        "BollingerWidth": 0.02,
         "volatility_ratio_5_20": 1.2,
         "RelativeVolume": 1.5,
         "TradeFlowImbalance": 0.35,
@@ -116,7 +116,7 @@ def test_orchestrator_evaluation():
     assert sig['invalidation_score'] == 0.0
     
     # Now let's trigger invalidation by expanding spread
-    indicators["SpreadBps"] = 15.0  # limit is 10.0
+    indicators["SpreadBps"] = 16.0  # limit is 15.0
     res = evaluate_supported_signals("BTC", factors, indicators, regime_state, last_close=62000.0, prev_bollinger_width=0.08)
     sig = res['bollinger_squeeze_breakout']
     assert sig['triggered'] is True
