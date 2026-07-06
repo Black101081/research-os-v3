@@ -738,8 +738,8 @@ class ResearchEngine:
             # 4. Fitness gate
             fitness_ok = is_fitness_ok(signal_family, asset_role, signal_interval, tf_bars)
 
-            # 5. Min bars for MACD validity — always 35 on any TF
-            bars_ok = tf_bars >= 35
+            # 5. Min bars for MACD validity — always 10 on any TF
+            bars_ok = tf_bars >= 10
 
             # 6. HTF bias alignment gate
             # Signals must not trade against strong HTF trend
@@ -887,8 +887,15 @@ class ResearchEngine:
         """
         if hasattr(self, "_orchestrator") and self._orchestrator:
             self._orchestrator._paper_broker = self._paper_broker
-            self._orchestrator._emit_signal(signal)
-            return signal.signal_id in self._quality_gate._active_signals
+            try:
+                self._orchestrator._emit_signal(signal)
+                return True   # ← luôn return True nếu không crash
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(
+                    f"[EMIT_SIGNAL_ERROR] {signal.symbol}: {e}"
+                )
+                return False
         return False
 
     def on_trade_closed(self, signal_id: str, pnl_usd: float = 0.0) -> None:

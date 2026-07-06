@@ -309,6 +309,12 @@ async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
         ws_client = HyperliquidWSClient(url=CONFIG['ws_url'], subscriptions=build_subscriptions(), on_message=on_message_wrapper)
         ws_task = asyncio.create_task(ws_client.run_forever())
         
+        # Clear caches on hot reload
+        global _replay_cache, _validator_cache, _backtest_cache
+        _replay_cache = None
+        _validator_cache = None
+        _backtest_cache = None
+
         logger.info(f"Pipeline hot-reloaded successfully: {new_symbols} - {new_interval}")
         return {'status': 'ok', 'message': f'Successfully updated config and hot-reloaded pipeline for {new_symbols} on {new_interval}!'}
     except Exception as e:
@@ -390,16 +396,27 @@ def get_specs() -> Dict[str, Any]:
     }
 
 
+_replay_cache = None
+_validator_cache = None
+_backtest_cache = None
+
+
 @app.get('/replay-demo')
 @app.get('/api/replay-demo')
 def replay_demo() -> JSONResponse:
-    return JSONResponse(run_paper_replay_demo(CONFIG))
+    global _replay_cache
+    if _replay_cache is None:
+        _replay_cache = run_paper_replay_demo(CONFIG)
+    return JSONResponse(_replay_cache)
 
 
 @app.get('/validator-report')
 @app.get('/api/research-validator')
 def validator_report() -> JSONResponse:
-    return JSONResponse(run_validator())
+    global _validator_cache
+    if _validator_cache is None:
+        _validator_cache = run_validator()
+    return JSONResponse(_validator_cache)
 
 
 @app.get('/backtest-bridge-demo')
@@ -411,7 +428,10 @@ def backtest_bridge_demo() -> JSONResponse:
 @app.get('/backtest-runner-demo')
 @app.get('/api/backtest-runner-demo')
 def backtest_runner_demo() -> JSONResponse:
-    return JSONResponse(run_backtest_runner_demo())
+    global _backtest_cache
+    if _backtest_cache is None:
+        _backtest_cache = run_backtest_runner_demo()
+    return JSONResponse(_backtest_cache)
 
 
 @app.get('/api/positions')

@@ -37,6 +37,7 @@ engine = ResearchEngine(
 registry = AsyncRegistryWriter(BASE / 'runtime')
 telemetry = TelemetryTracker()
 broker = PaperBroker(initial_balance=10000.0)
+engine._paper_broker = broker
 
 import sys
 from types import ModuleType
