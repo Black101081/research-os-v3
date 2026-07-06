@@ -11,10 +11,48 @@ stays under 5 ms per tick.
 from typing import Any, Dict, List, Optional
 import numpy as np
 
+try:
+    from scipy.signal import lfilter, lfilter_zi
+    _HAS_SCIPY = True
+except ImportError:
+    _HAS_SCIPY = False
+
+    def lfilter_zi(b, a):
+        alpha = b[0]
+        return np.array([1.0 - alpha], dtype=np.float64)
+
+    def lfilter(b, a, x, zi=None):
+        alpha = b[0]
+        y = np.zeros_like(x, dtype=np.float64)
+        if len(x) == 0:
+            return y, zi
+        state = zi[0] if zi is not None else 0.0
+        for t in range(len(x)):
+            y[t] = alpha * x[t] + state
+            state = (1 - alpha) * y[t]
+        return y, np.array([state])
+
+
+# Graceful fallback for argrelextrema as requested by reviewer
+try:
+    from scipy.signal import argrelextrema
+    _HAS_SCIPY_EXTREMA = True
+except ImportError:
+    _HAS_SCIPY_EXTREMA = False
+    def argrelextrema(data, comparator, **kwargs):
+        # fallback đơn giản: tìm local extrema thủ công
+        import numpy as np
+        result = []
+        order = kwargs.get('order', 1)
+        for i in range(order, len(data) - order):
+            window = data[i-order:i+order+1]
+            if comparator(data[i], window).all():
+                result.append(i)
+        return (np.array(result),)
+
 
 def ema_np(values: List[float] | np.ndarray, period: int) -> Optional[float]:
     """Exponential moving average via numpy/scipy — normalized and vectorized."""
-    from scipy.signal import lfilter, lfilter_zi
     arr = np.asarray(values, dtype=np.float64)
     if arr.size == 0:
         return None
@@ -31,8 +69,6 @@ def macd_np(closes: List[float], fast: int = 12, slow: int = 26, signal: int = 9
     arr = np.asarray(closes, dtype=np.float64)
     if arr.size < slow:
         return {"MACD": 0.0, "MACD_signal": 0.0, "MACD_hist": 0.0}
-
-    from scipy.signal import lfilter, lfilter_zi
 
     alpha_fast = 2.0 / (fast + 1)
     alpha_slow = 2.0 / (slow + 1)
@@ -118,7 +154,6 @@ def rsi_np(closes: List[float], period: int = 14) -> float:
     alpha = 1.0 / period
     b = [alpha]
     a = [1, -(1 - alpha)]
-    from scipy.signal import lfilter, lfilter_zi
     
     zi_g = lfilter_zi(b, a) * gains[0]
     avg_g, _ = lfilter(b, a, gains, zi=zi_g)
@@ -187,8 +222,6 @@ def macd_history_np(closes: List[float], fast: int = 12, slow: int = 26) -> np.n
     if arr.size < slow:
         return np.zeros(arr.size)
 
-    from scipy.signal import lfilter, lfilter_zi
-
     alpha_fast = 2.0 / (fast + 1)
     alpha_slow = 2.0 / (slow + 1)
 
@@ -219,7 +252,6 @@ def rsi_history_np(closes: List[float], period: int = 14) -> np.ndarray:
     alpha = 1.0 / period
     b = [alpha]
     a = [1, -(1 - alpha)]
-    from scipy.signal import lfilter, lfilter_zi
 
     zi_g = lfilter_zi(b, a) * gains[0]
     avg_g, _ = lfilter(b, a, gains, zi=zi_g)
@@ -248,70 +280,79 @@ def compute_divergence(
       < 0  = bullish divergence (indicator stronger than price)
     Magnitude: 0.0 to 1.0
     """
-    if len(closes) < 2 * fractal_window + 1 or len(closes) != len(indicator_values):
+    if not _HAS_SCIPY and not _HAS_SCIPY:
+        # nếu dùng argrelextrema fallback thì vẫn chạy được
+        pass
+    if len(closes) < 5 or len(indicator_values) < 5:
         return 0.0
 
-    price_peaks = find_fractal_peaks(closes, fractal_window)
-    price_troughs = find_fractal_troughs(closes, fractal_window)
+    try:
+        if len(closes) < 2 * fractal_window + 1 or len(closes) != len(indicator_values):
+            return 0.0
 
-    ind_peaks = find_fractal_peaks(indicator_values, fractal_window)
-    ind_troughs = find_fractal_troughs(indicator_values, fractal_window)
+        price_peaks = find_fractal_peaks(closes, fractal_window)
+        price_troughs = find_fractal_troughs(closes, fractal_window)
 
-    n = len(closes)
-    bullish_score = 0.0
-    bearish_score = 0.0
+        ind_peaks = find_fractal_peaks(indicator_values, fractal_window)
+        ind_troughs = find_fractal_troughs(indicator_values, fractal_window)
 
-    # Bullish Divergence check
-    if len(price_troughs) >= 2 and len(ind_troughs) >= 2:
-        p_idx_curr = price_troughs[-1]
-        p_idx_prev = price_troughs[-2]
-        ind_idx_curr = ind_troughs[-1]
-        ind_idx_prev = ind_troughs[-2]
-        
-        # Check staleness
-        if (n - 1 - p_idx_curr <= max_lookback) and (n - 1 - ind_idx_curr <= max_lookback):
-            trough_prev = closes[p_idx_prev]
-            trough_curr = closes[p_idx_curr]
-            ind_trough_prev = indicator_values[ind_idx_prev]
-            ind_trough_curr = indicator_values[ind_idx_curr]
+        n = len(closes)
+        bullish_score = 0.0
+        bearish_score = 0.0
+
+        # Bullish Divergence check
+        if len(price_troughs) >= 2 and len(ind_troughs) >= 2:
+            p_idx_curr = price_troughs[-1]
+            p_idx_prev = price_troughs[-2]
+            ind_idx_curr = ind_troughs[-1]
+            ind_idx_prev = ind_troughs[-2]
             
-            # price LL (trough_curr < trough_prev) and indicator HL (ind_trough_curr > ind_trough_prev)
-            if trough_curr < trough_prev and ind_trough_curr > ind_trough_prev:
-                if trough_prev != 0 and ind_trough_prev != 0:
-                    price_diff_pct = (trough_prev - trough_curr) / trough_prev
-                    ind_diff_pct = (ind_trough_curr - ind_trough_prev) / abs(ind_trough_prev)
-                    bullish_score = -1.0 * min(price_diff_pct * ind_diff_pct * scale_factor, 1.0)
+            # Check staleness
+            if (n - 1 - p_idx_curr <= max_lookback) and (n - 1 - ind_idx_curr <= max_lookback):
+                trough_prev = closes[p_idx_prev]
+                trough_curr = closes[p_idx_curr]
+                ind_trough_prev = indicator_values[ind_idx_prev]
+                ind_trough_curr = indicator_values[ind_idx_curr]
+                
+                # price LL (trough_curr < trough_prev) and indicator HL (ind_trough_curr > ind_trough_prev)
+                if trough_curr < trough_prev and ind_trough_curr > ind_trough_prev:
+                    if trough_prev != 0 and ind_trough_prev != 0:
+                        price_diff_pct = (trough_prev - trough_curr) / trough_prev
+                        ind_diff_pct = (ind_trough_curr - ind_trough_prev) / abs(ind_trough_prev)
+                        bullish_score = -1.0 * min(price_diff_pct * ind_diff_pct * scale_factor, 1.0)
 
-    # Bearish Divergence check
-    if len(price_peaks) >= 2 and len(ind_peaks) >= 2:
-        p_idx_curr = price_peaks[-1]
-        p_idx_prev = price_peaks[-2]
-        ind_idx_curr = ind_peaks[-1]
-        ind_idx_prev = ind_peaks[-2]
-        
-        # Check staleness
-        if (n - 1 - p_idx_curr <= max_lookback) and (n - 1 - ind_idx_curr <= max_lookback):
-            peak_prev = closes[p_idx_prev]
-            peak_curr = closes[p_idx_curr]
-            ind_peak_prev = indicator_values[ind_idx_prev]
-            ind_peak_curr = indicator_values[ind_idx_curr]
+        # Bearish Divergence check
+        if len(price_peaks) >= 2 and len(ind_peaks) >= 2:
+            p_idx_curr = price_peaks[-1]
+            p_idx_prev = price_peaks[-2]
+            ind_idx_curr = ind_peaks[-1]
+            ind_idx_prev = ind_peaks[-2]
             
-            # price HH (peak_curr > peak_prev) and indicator LH (ind_peak_curr < ind_peak_prev)
-            if peak_curr > peak_prev and ind_peak_curr < ind_peak_prev:
-                if peak_prev != 0 and ind_peak_prev != 0:
-                    price_diff_pct = (peak_curr - peak_prev) / peak_prev
-                    ind_diff_pct = (ind_peak_prev - ind_peak_curr) / abs(ind_peak_prev)
-                    bearish_score = +1.0 * min(price_diff_pct * ind_diff_pct * scale_factor, 1.0)
+            # Check staleness
+            if (n - 1 - p_idx_curr <= max_lookback) and (n - 1 - ind_idx_curr <= max_lookback):
+                peak_prev = closes[p_idx_prev]
+                peak_curr = closes[p_idx_curr]
+                ind_peak_prev = indicator_values[ind_idx_prev]
+                ind_peak_curr = indicator_values[ind_idx_curr]
+                
+                # price HH (peak_curr > peak_prev) and indicator LH (ind_peak_curr < ind_peak_prev)
+                if peak_curr > peak_prev and ind_peak_curr < ind_peak_prev:
+                    if peak_prev != 0 and ind_peak_prev != 0:
+                        price_diff_pct = (peak_curr - peak_prev) / peak_prev
+                        ind_diff_pct = (ind_peak_prev - ind_peak_curr) / abs(ind_peak_prev)
+                        bearish_score = +1.0 * min(price_diff_pct * ind_diff_pct * scale_factor, 1.0)
 
-    if bullish_score != 0.0 and bearish_score != 0.0:
-        if price_troughs[-1] > price_peaks[-1]:
+        if bullish_score != 0.0 and bearish_score != 0.0:
+            if price_troughs[-1] > price_peaks[-1]:
+                return bullish_score
+            else:
+                return bearish_score
+        elif bullish_score != 0.0:
             return bullish_score
         else:
             return bearish_score
-    elif bullish_score != 0.0:
-        return bullish_score
-    else:
-        return bearish_score
+    except Exception:
+        return 0.0
 
 
 # ── Batch factors (drop-in replacement for ResearchEngine methods) ─

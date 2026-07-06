@@ -738,8 +738,8 @@ class ResearchEngine:
             # 4. Fitness gate
             fitness_ok = is_fitness_ok(signal_family, asset_role, signal_interval, tf_bars)
 
-            # 5. Min bars for MACD validity — always 10 on any TF
-            bars_ok = tf_bars >= 10
+            # 5. Min bars for MACD validity — always 35 on any TF
+            bars_ok = close_count >= 35
 
             # 6. HTF bias alignment gate
             # Signals must not trade against strong HTF trend
