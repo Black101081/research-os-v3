@@ -5,7 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 from fastapi import APIRouter, Body
-from globals import engine, registry
+from globals import engine, registry, BASE
+import database as db
 
 router = APIRouter(prefix="/api")
 
@@ -16,33 +17,49 @@ def get_research_brief(symbol: str, strategy_name: str) -> Dict[str, Any]:
     if not state:
         return {'error': f'Symbol {symbol} not found'}
         
-    validation = state.get('validation_packet', {})
+    validation = state.get('validation_packet') or {}
     decay_detected = validation.get('decay_detected', False)
     code_valid = validation.get('code_valid', True)
     
-    r_state = state.get('regime_state', {})
+    r_state = state.get('regime_state') or {}
     regime = r_state.get('regime', 'unknown')
-    confidence = r_state.get('confidence', 0.0)
+    confidence = r_state.get('confidence')
     
     net_pnl = 0.0
-    win_rate = 50.0
-    backtest_file = Path('data/backtest_runner_demo.json')
+    win_rate = 0.5
+    backtest_file = BASE / 'runtime' / 'backtest_runner_demo.json'
     if backtest_file.exists():
         try:
-            bt_results = json.loads(backtest_file.read_text())
+            bt_results = json.loads(backtest_file.read_text(encoding='utf-8'))
             for res in bt_results.get('results', []):
                 if res.get('strategy_family') == strategy_name:
-                    metrics = res.get('runner_metrics', {})
+                    metrics = res.get('runner_metrics') or {}
                     net_pnl = metrics.get('net_pnl', 0.0)
-                    win_rate = metrics.get('win_rate', 0.5) * 100
+                    win_rate = metrics.get('win_rate', 0.5)
         except Exception:
             pass
 
-    factors = state.get('factors', {})
+    factors = state.get('factors') or {}
     zscore = factors.get('zscore_close_20', 0.0)
     volatility = factors.get('volatility_20', 0.0)
     rel_volume = factors.get('rel_volume_20', 0.0)
     
+    # Safe type conversions to avoid formatting errors on NoneType values
+    try:
+        net_pnl = float(net_pnl if net_pnl is not None else 0.0)
+        win_rate = float(win_rate if win_rate is not None else 0.5) * 100
+        confidence = float(confidence if confidence is not None else 0.0)
+        zscore = float(zscore if zscore is not None else 0.0)
+        volatility = float(volatility if volatility is not None else 0.0)
+        rel_volume = float(rel_volume if rel_volume is not None else 0.0)
+    except Exception:
+        net_pnl = 0.0
+        win_rate = 50.0
+        confidence = 0.0
+        zscore = 0.0
+        volatility = 0.0
+        rel_volume = 0.0
+
     brief_md = f"""# Research Brief: {strategy_name.replace('_', ' ').title()} ({symbol})
 
 ## 1. Thesis & Hypothesis
@@ -68,10 +85,12 @@ def get_research_brief(symbol: str, strategy_name: str) -> Dict[str, Any]:
 """
     
     feedback = None
-    fb_path = Path(f'data/research_briefs/{symbol}_{strategy_name}_feedback.json')
+    db_dir = Path(db.DB_PATH).parent
+    fb_dir = db_dir / 'research_briefs'
+    fb_path = fb_dir / f'{symbol}_{strategy_name}_feedback.json'
     if fb_path.exists():
         try:
-            feedback = json.loads(fb_path.read_text())
+            feedback = json.loads(fb_path.read_text(encoding='utf-8'))
         except Exception:
             pass
             
@@ -88,7 +107,8 @@ def post_research_brief_feedback(symbol: str, strategy_name: str, payload: Dict[
     comments = payload.get('comments', '')
     decision = payload.get('decision', 'STANDBY')
     
-    fb_dir = Path('data/research_briefs')
+    db_dir = Path(db.DB_PATH).parent
+    fb_dir = db_dir / 'research_briefs'
     fb_dir.mkdir(parents=True, exist_ok=True)
     fb_path = fb_dir / f'{symbol}_{strategy_name}_feedback.json'
     
