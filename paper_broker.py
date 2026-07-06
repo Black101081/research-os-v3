@@ -132,6 +132,7 @@ class PaperBroker:
             "unrealized_pnl": 0.0,
             "entry_fee":     round(entry_fee, 4),
             "signal_source": signal_source,
+            "signal_id":     None,  # default placeholder
         }
         self.positions[symbol] = pos
         db.save_position(pos)
@@ -144,6 +145,67 @@ class PaperBroker:
                           stop_loss, take_profit, signal_source,
                           accepted=True, reject_reason=None)
         return True
+
+    def on_qualified_signal(self, qualified: QualifiedSignal) -> bool:
+        """Process qualified signal from quality gate."""
+        entry_price = qualified.signal.entry_price
+        if entry_price <= 0:
+            return False
+        qty = round(qualified.position_size_usd / entry_price, 6)
+        if symbol_in := qualified.signal.symbol in self.positions:
+            return False
+        
+        cost = qty * entry_price
+        if cost > self.balance * 2.0:
+            return False
+
+        entry_fee = cost * 0.0005
+        self.balance = round(self.balance - entry_fee, 4)
+
+        pos = {
+            "symbol":        qualified.signal.symbol,
+            "direction":     qualified.signal.direction,
+            "quantity":      qty,
+            "entry_price":   entry_price,
+            "current_price": entry_price,
+            "stop_loss":     qualified.signal.stop_loss,
+            "take_profit":   qualified.signal.take_profit,
+            "entry_time":    qualified.qualified_at,
+            "unrealized_pnl": 0.0,
+            "entry_fee":     round(entry_fee, 4),
+            "signal_source": qualified.signal.family,
+            "signal_id":     qualified.signal.signal_id,
+        }
+        self.positions[qualified.signal.symbol] = pos
+        db.save_position(pos)
+        db.save_broker_state(self.balance, self.equity)
+        logger.info(
+            f"[PaperBroker] OPENED QUALIFIED {qualified.signal.direction.upper()} {qualified.signal.symbol} "
+            f"qty={qty} price={entry_price} SL={qualified.signal.stop_loss} via {qualified.signal.family}"
+        )
+        db.save_order_log(qualified.signal.symbol, qualified.signal.direction, qty, entry_price,
+                          qualified.signal.stop_loss, qualified.signal.take_profit, qualified.signal.family,
+                          accepted=True, reject_reason=None)
+        return True
+
+    def on_signal(self, signal_dict: Dict[str, Any]) -> bool:
+        """Fallback processing for dictionary-based signals."""
+        symbol = signal_dict.get("symbol")
+        direction = signal_dict.get("direction", "long")
+        entry_price = signal_dict.get("entry_price", 0.0)
+        pos_usd = signal_dict.get("position_size_usd", 0.0)
+        qty = round(pos_usd / entry_price, 6) if entry_price > 0 else 0.0
+        
+        return self.execute_order(
+            symbol=symbol,
+            direction=direction,
+            quantity=qty,
+            price=entry_price,
+            stop_loss=signal_dict.get("stop_loss"),
+            take_profit=signal_dict.get("take_profit"),
+            time_str=signal_dict.get("qualified_at") or signal_dict.get("fired_at"),
+            signal_source=signal_dict.get("family", "unknown"),
+        )
 
     def close_position(
         self,
@@ -179,6 +241,7 @@ class PaperBroker:
             "fees":         round(pos["entry_fee"] + exit_fee, 4),
             "reason":       reason,
             "signal_source": pos.get("signal_source", "unknown"),
+            "signal_id":     pos.get("signal_id"),
         }
         self.trade_history.append(trade)
 

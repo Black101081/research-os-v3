@@ -334,3 +334,52 @@ def evaluate_supported_signals(
             signal_result['why']['invalidation_reason'] = signal_result['invalidation_reason']
 
     return out
+
+
+class SignalOrchestrator:
+    def __init__(self, mtf_engine=None, paper_broker=None):
+        from quality_gate import QualityGate
+        from quality_gate_models import QualityGateConfig
+        self._mtf = mtf_engine
+        self._paper_broker = paper_broker
+        self._quality_gate = QualityGate(
+            config=QualityGateConfig(),
+            mtf_engine=self._mtf,
+        )
+
+    def _emit_signal(self, signal: "SignalResult") -> None:
+        """
+        Run signal through QualityGate before forwarding to paper_broker.
+        Only QualifiedSignal objects reach the broker.
+        GateRejection objects are logged and discarded.
+        """
+        import logging
+        log = logging.getLogger(__name__)
+
+        from quality_gate_models import GateRejection
+        result = self._quality_gate.evaluate(signal)
+
+        if isinstance(result, GateRejection):
+            log.debug(
+                f"[SIGNAL_REJECTED] {signal.symbol} {signal.family} "
+                f"{signal.direction} | blocked_by={result.blocked_by_layer} "
+                f"| reason={result.block_reason}"
+            )
+            return
+
+        # result is QualifiedSignal — forward to paper_broker
+        if hasattr(self, "_paper_broker") and self._paper_broker:
+            try:
+                self._paper_broker.on_qualified_signal(result)
+            except AttributeError:
+                # Fallback: paper_broker still uses old interface
+                self._paper_broker.on_signal(result.to_dict())
+            except Exception as exc:
+                log.error(f"[SIGNAL_EMIT_ERROR] {exc}")
+
+    def on_trade_closed(self, signal_id: str, pnl_usd: float = 0.0) -> None:
+        """Called by paper_broker when a trade closes."""
+        self._quality_gate.on_signal_closed(signal_id)
+        # Update account equity
+        current_equity = self._quality_gate._cfg.sizing.account_equity
+        self._quality_gate.update_account_equity(current_equity + pnl_usd)

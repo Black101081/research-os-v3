@@ -23,6 +23,8 @@ from factor_math import (
 )
 from multi_tf_state import MultiTFEngine
 from asset_tf_fitness import is_fitness_ok, fitness_summary, get_fitness
+from quality_gate_models import QualityGateConfig, QualifiedSignal, GateRejection
+from quality_gate import QualityGate
 from tf_indicator_engine import compute_all_tf_indicators
 
 
@@ -199,6 +201,11 @@ class ResearchEngine:
         )
         self._mtf = MultiTFEngine(asset_config, max_bars_per_tf)
         self._asset_config = asset_config
+        # Initialize Quality Gate
+        self._quality_gate = QualityGate(
+            config=QualityGateConfig(),
+            mtf_engine=self._mtf
+        )
         # Crypto-native history buffers (per symbol)
         from collections import deque as _deque
         self._funding_history: dict = {
@@ -492,11 +499,18 @@ class ResearchEngine:
         # ── FIX 1: Always call process_tick so PnL updates in real-time ──
         self._paper_broker.process_tick(state.symbol, last_price, state.updated_at)
 
-        # Track SL closes for cooldown
-        # If symbol was in positions before tick but not after, and reason was SL
-        # We detect this by checking trade_history for recent SL on this symbol
+        # Track closed trades to notify Quality Gate
         recent_trades = self._paper_broker.trade_history[-3:] if self._paper_broker.trade_history else []
+        if not hasattr(self, '_processed_trades'):
+            self._processed_trades = set()
         for t in recent_trades:
+            trade_key = f"{t.get('symbol')}_{t.get('exit_time')}_{t.get('pnl')}"
+            if trade_key not in self._processed_trades:
+                self._processed_trades.add(trade_key)
+                sig_id = t.get("signal_id")
+                if sig_id:
+                    self.on_trade_closed(sig_id, t.get("pnl", 0.0))
+
             if (t.get('symbol') == state.symbol
                     and t.get('reason') == 'Stop Loss'):
                 import time as _time2
@@ -605,16 +619,32 @@ class ResearchEngine:
                         )
                         continue
 
-            success = self._paper_broker.execute_order(
+            from signal_models import SignalResult
+            sig_id = signal_info.get("signal_id") or f"{symbol}_{strategy_name}_spec"
+            family = signal_info.get("template_family") or signal_info.get("family") or "continuation"
+            interval = signal_info.get("interval") or signal_interval
+            asset_role = signal_info.get("asset_role") or ("anchor" if symbol == "BTC" else "major")
+            fired = signal_info.get("fired", True)
+            sig_direction = signal_info.get("direction", direction)
+            confidence = signal_info.get("confidence_score") or signal_info.get("confirmation_score", 0.70)
+            rr = signal_info.get("risk_reward_ratio") or 2.0
+
+            signal_obj = SignalResult(
+                signal_id=sig_id,
                 symbol=symbol,
-                direction=direction,
-                quantity=quantity,
-                price=last_price,
+                family=family,
+                interval=interval,
+                asset_role=asset_role,
+                fired=fired,
+                direction=sig_direction,
+                entry_price=last_price,
                 stop_loss=stop_loss,
                 take_profit=take_profit,
-                time_str=state.updated_at,
-                signal_source=strategy_name,
+                confidence_score=confidence,
+                risk_reward_ratio=rr,
             )
+
+            success = self._emit_signal(signal_obj)
 
             if success:
                 self._last_entry_time[symbol] = _time.time()
@@ -849,3 +879,45 @@ class ResearchEngine:
                 'recent_reactivity': list(state.reactivity_events),
             }
         return payload
+
+    def _emit_signal(self, signal: "SignalResult") -> bool:
+        """
+        Run signal through QualityGate before forwarding to paper_broker.
+        Only QualifiedSignal objects reach the broker.
+        GateRejection objects are logged and discarded.
+        """
+        import logging
+        log = logging.getLogger(__name__)
+
+        result = self._quality_gate.evaluate(signal)
+
+        if isinstance(result, GateRejection):
+            log.debug(
+                f"[SIGNAL_REJECTED] {signal.symbol} {signal.family} "
+                f"{signal.direction} | blocked_by={result.blocked_by_layer} "
+                f"| reason={result.block_reason}"
+            )
+            return False
+
+        # result is QualifiedSignal — forward to paper_broker
+        if hasattr(self, "_paper_broker") and self._paper_broker:
+            try:
+                res = self._paper_broker.on_qualified_signal(result)
+                return bool(res)
+            except AttributeError:
+                try:
+                    res = self._paper_broker.on_signal(result.to_dict())
+                    return bool(res)
+                except Exception as exc:
+                    log.error(f"[SIGNAL_EMIT_ERROR] {exc}")
+                    return False
+            except Exception as exc:
+                log.error(f"[SIGNAL_EMIT_ERROR] {exc}")
+                return False
+        return False
+
+    def on_trade_closed(self, signal_id: str, pnl_usd: float = 0.0) -> None:
+        """Called when a trade closes."""
+        self._quality_gate.on_signal_closed(signal_id)
+        current_equity = self._quality_gate._cfg.sizing.account_equity
+        self._quality_gate.update_account_equity(current_equity + pnl_usd)
