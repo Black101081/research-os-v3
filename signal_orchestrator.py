@@ -241,97 +241,95 @@ def evaluate_supported_signals(
     # 2. Upgraded pure signal library evaluation
     # Build or use sym_state
     if sym_state is None:
-        sym_state = MultiTFSymbolState(symbol=symbol)
-        # Mock standard intervals
-        for interval in ["1m", "5m", "15m", "1h"]:
-            tf = TFState(symbol=symbol, interval=interval)
-            tf.indicators = {**indicators}
-            # Populate dummy bars so ready(35) checks pass
-            close_val = last_close if last_close is not None else indicators.get("vwap", 100.0)
-            if close_val <= 0.0:
-                close_val = 100.0
-            tf.bars = deque([
-                TFBar(ts="2026-07-06T00:00:00Z", open=close_val, high=close_val, low=close_val, close=close_val, volume=10.0)
-                for _ in range(50)
-            ], maxlen=300)
-            sym_state.tf_states[interval] = tf
-        sym_state.funding_rate = indicators.get("funding_rate", 0.0)
-        sym_state.open_interest = indicators.get("oi", 0.0)
+        # Cannot build meaningful sym_state without real bar history.
+        # Skip signal library evaluation entirely to avoid false negatives
+        # from flat mock bars (ATR=0, MACD=0 kill every signal).
+        pass
+    
+    if sym_state is not None:
+        # Asset role mapping
+        asset_role = "anchor" if symbol == "BTC" else "major"
 
-    # Asset role mapping
-    asset_role = "anchor" if symbol == "BTC" else "major"
+        # Evaluate each of the 8 signal families
+        families_mapping = {
+            FAMILY_CONTINUATION:      "signal_macd_continuation",
+            FAMILY_DIVERGENCE:        "signal_rsi_divergence",
+            FAMILY_BREAKOUT:          "signal_bb_squeeze_breakout",
+            FAMILY_MEAN_REVERSION:    "signal_mean_reversion",
+            FAMILY_ORDER_FLOW:        "signal_order_flow_imbalance",
+            FAMILY_VOLATILITY_EVENT:  "signal_volatility_event",
+            FAMILY_FUNDING_REVERSION: "signal_funding_reversion",
+            FAMILY_OI_REVERSAL:       "signal_oi_reversal",
+        }
 
-    # Evaluate each of the 8 signal families
-    families_mapping = {
-        FAMILY_CONTINUATION:      "signal_macd_continuation",
-        FAMILY_DIVERGENCE:        "signal_rsi_divergence",
-        FAMILY_BREAKOUT:          "signal_bb_squeeze_breakout",
-        FAMILY_MEAN_REVERSION:    "signal_mean_reversion",
-        FAMILY_ORDER_FLOW:        "signal_order_flow_imbalance",
-        FAMILY_VOLATILITY_EVENT:  "signal_volatility_event",
-        FAMILY_FUNDING_REVERSION: "signal_funding_reversion",
-        FAMILY_OI_REVERSAL:       "signal_oi_reversal",
-    }
+        # Call evaluate_all_signals ONCE per timeframe, cache results
+        # Group families by their best available TF first
+        tf_to_families: dict = {}
+        for family, sig_name in families_mapping.items():
+            tf_to_use = "1m"
+            for t in BEST_TFS.get(family, ["1m"]):
+                if t in sym_state.tf_states:
+                    tf_to_use = t
+                    break
+            tf_to_families.setdefault(tf_to_use, []).append((family, sig_name))
 
-    # Run evaluations
-    for family, sig_name in families_mapping.items():
-        tf_to_use = "1m"
-        for t in BEST_TFS.get(family, ["1m"]):
-            if t in sym_state.tf_states:
-                tf_to_use = t
-                break
-        
-        batch = evaluate_all_signals(sym_state, tf_to_use, asset_role)
-        sig_res = None
-        for r in batch.results:
-            if r.family == family:
-                sig_res = r
-                break
-        
-        if sig_res:
-            res_dict = sig_res.to_dict()
-            # Compatibility properties
-            res_dict['active'] = sig_res.fired
-            res_dict['triggered'] = sig_res.fired
-            res_dict['confirmed'] = sig_res.fired
-            res_dict['invalidated'] = False if sig_res.fired else (True if sig_res.invalidation_reason else False)
-            res_dict['confirmation_score'] = sig_res.confidence_score
-            res_dict['invalidation_score'] = 1.0 - sig_res.confidence_score if sig_res.invalidation_reason else 0.0
-            res_dict['template_family'] = sig_res.family
-            res_dict['why'] = {
-                'triggered': sig_res.fired,
-                'confirmed': sig_res.fired,
-                'invalidated': res_dict['invalidated'],
-                'invalidation_reason': sig_res.invalidation_reason,
-            }
-            # Add to out under the function name
-            out[sig_name] = res_dict
+        # One batch call per unique TF
+        tf_batch_cache: dict = {}
+        for tf_to_use, family_pairs in tf_to_families.items():
+            batch = evaluate_all_signals(sym_state, tf_to_use, asset_role)
+            results_by_family = {r.family: r for r in batch.results}
+            tf_batch_cache[tf_to_use] = results_by_family
 
-    # Post-filtering for allowed_signal_families
-    allowed_families = regime_state.get('allowed_signal_families', [])
-    for signal_name, signal_result in out.items():
-        family = signal_result.get('template_family', '')
-        if not family or family == 'unknown':
-            if 'mean_reversion' in signal_name or 'zscore' in signal_name:
-                family = 'mean_reversion'
-            elif 'divergence' in signal_name:
-                family = 'divergence'
-            elif 'macd' in signal_name or 'continuation' in signal_name:
-                family = 'continuation'
-            elif 'flow' in signal_name or 'imbalance' in signal_name:
-                family = 'order_flow'
-            elif 'breakout' in signal_name:
-                family = 'breakout'
-            else:
-                family = 'continuation'
-            signal_result['template_family'] = family
+        for family, sig_name in families_mapping.items():
+            tf_to_use = "1m"
+            for t in BEST_TFS.get(family, ["1m"]):
+                if t in sym_state.tf_states:
+                    tf_to_use = t
+                    break
+            sig_res = tf_batch_cache.get(tf_to_use, {}).get(family)
 
-        if allowed_families and family not in allowed_families:
-            signal_result['active'] = False
-            signal_result['invalidated'] = True
-            signal_result['invalidation_reason'] = f'regime_family_blocked:{regime_state.get("regime","unknown")}'
-            signal_result['why']['invalidated'] = True
-            signal_result['why']['invalidation_reason'] = signal_result['invalidation_reason']
+            if sig_res:
+                res_dict = sig_res.to_dict()
+                res_dict['active'] = sig_res.fired
+                res_dict['triggered'] = sig_res.fired
+                res_dict['confirmed'] = sig_res.fired
+                res_dict['invalidated'] = False if sig_res.fired else (True if sig_res.invalidation_reason else False)
+                res_dict['confirmation_score'] = sig_res.confidence_score
+                res_dict['invalidation_score'] = 1.0 - sig_res.confidence_score if sig_res.invalidation_reason else 0.0
+                res_dict['template_family'] = sig_res.family
+                res_dict['why'] = {
+                    'triggered': sig_res.fired,
+                    'confirmed': sig_res.fired,
+                    'invalidated': res_dict['invalidated'],
+                    'invalidation_reason': sig_res.invalidation_reason,
+                }
+                out[sig_name] = res_dict
+
+        # Post-filtering for allowed_signal_families
+        allowed_families = regime_state.get('allowed_signal_families', [])
+        for signal_name, signal_result in out.items():
+            family = signal_result.get('template_family', '')
+            if not family or family == 'unknown':
+                if 'mean_reversion' in signal_name or 'zscore' in signal_name:
+                    family = 'mean_reversion'
+                elif 'divergence' in signal_name:
+                    family = 'divergence'
+                elif 'macd' in signal_name or 'continuation' in signal_name:
+                    family = 'continuation'
+                elif 'flow' in signal_name or 'imbalance' in signal_name:
+                    family = 'order_flow'
+                elif 'breakout' in signal_name:
+                    family = 'breakout'
+                else:
+                    family = 'continuation'
+                signal_result['template_family'] = family
+
+            if allowed_families and family not in allowed_families:
+                signal_result['active'] = False
+                signal_result['invalidated'] = True
+                signal_result['invalidation_reason'] = f'regime_family_blocked:{regime_state.get("regime","unknown")}'
+                signal_result['why']['invalidated'] = True
+                signal_result['why']['invalidation_reason'] = signal_result['invalidation_reason']
 
     return out
 
