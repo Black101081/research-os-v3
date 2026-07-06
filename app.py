@@ -130,6 +130,27 @@ async def writer_loop() -> None:
                             time_str=current_time,
                             signal_source=strategy_name
                         )
+                    elif qty > 0 and _globals.quality_gate is not None and not _globals.kill_switch_active:
+                        try:
+                            from signal_models import SignalResult
+                            from quality_gate_models import QualifiedSignal
+                            sig = SignalResult(
+                                signal_id=f"{symbol}_{strategy_name}_{current_time or 'now'}",
+                                symbol=symbol,
+                                family=strategy_name,
+                                direction=side,
+                                entry_price=current_price,
+                                stop_loss=sl if sl else 0.0,
+                                take_profit=tp if tp else 0.0,
+                                confidence_score=strategy_state.get('confidence_score', 0.6),
+                                risk_reward_ratio=risk.get('risk_reward_ratio', 1.5),
+                                asset_role=CONFIG.get('asset_config', {}).get(symbol, {}).get('role', 'altcoin'),
+                            )
+                            result = _globals.quality_gate.evaluate(sig)
+                            if isinstance(result, QualifiedSignal):
+                                broker.on_qualified_signal(result)
+                        except Exception as _qge:
+                            logger.warning(f"[writer_loop] quality_gate.evaluate failed for {symbol}/{strategy_name}: {_qge}")
 
         specs, packets = build_specs_and_packets(snapshot)
         try:
