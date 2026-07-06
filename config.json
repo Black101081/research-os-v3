@@ -1,5 +1,7 @@
 {
   "network": "mainnet",
+  "symbols": ["BTC", "ETH", "SOL"],
+  "candle_interval": "1m",
   "ws_url": "wss://api.hyperliquid.xyz/ws",
   "asset_config": {
     "BTC": {
@@ -39,7 +41,9 @@
       "15m": 200,
       "1h":  100
     },
-    "warmup_bars": 50
+    "warmup_bars": 50,
+    "write_every_seconds": 5,
+    "max_bars": 500
   },
   "thresholds": {
     "zscore_entry": -1.5,

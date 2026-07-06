@@ -123,6 +123,12 @@ def evaluate_supported_signals(
     if promoted:
         for alpha in promoted:
             name = alpha.get('alpha_name', alpha['alpha_id'])
+            # Early family check
+            _family_early = alpha.get('signal_template_family', 'unknown')
+            _allowed_early = regime_state.get('allowed_signal_families', [])
+            if _allowed_early and _family_early not in _allowed_early:
+                continue
+
             trigger_expr = alpha.get('trigger_definition') or alpha.get('signal_expression') or ''
             confirm_expr = alpha.get('confirmation_definition') or ''
             invalidate_expr = alpha.get('invalidation_definition') or ''
@@ -178,6 +184,11 @@ def evaluate_supported_signals(
         for sig in catalog:
             name = sig['signal_id']
             family = sig.get('family', 'unknown')
+            # Early family check
+            _allowed_early = regime_state.get('allowed_signal_families', [])
+            if _allowed_early and family not in _allowed_early:
+                continue
+
             template = templates_by_family.get(family, {})
             regime_ok = _regime_allowed(sig, regime_state)
             

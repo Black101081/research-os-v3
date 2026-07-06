@@ -197,8 +197,9 @@ def build_risk_packet_v1(
         rejection_reasons.append('kill_switch_active')
     if not logic_ready:
         rejection_reasons.append('strategy_not_active')
-    if not tradable:
-        rejection_reasons.append('regime_not_tradable')
+    # regime_not_tradable is now gated upstream by logic_ready + family_allowed checks.
+    # Only block here if regime is completely non-tradable AND strategy is not logic_ready.
+    # This avoids double-blocking the new 'cautious' tier.
     if not last_price:
         rejection_reasons.append('missing_last_price')
 
