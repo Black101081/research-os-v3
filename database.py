@@ -17,11 +17,31 @@ DB_PATH = "/data/research.db" if os.path.isdir("/data") else "./research.db"
 
 
 def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+    try:
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
+        return conn
+    except sqlite3.DatabaseError as e:
+        if "malformed" in str(e).lower():
+            logger.error(f"Database at {DB_PATH} is malformed: {e}. Attempting self-healing by deletion.")
+            for suffix in ["", "-wal", "-shm"]:
+                path = DB_PATH + suffix
+                if os.path.exists(path):
+                    try:
+                        os.remove(path)
+                        logger.info(f"Deleted malformed database file: {path}")
+                    except Exception as rm_err:
+                        logger.error(f"Failed to delete {path}: {rm_err}")
+            # Retry connection once
+            conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA foreign_keys=ON")
+            return conn
+        else:
+            raise
 
 
 def init_db():
