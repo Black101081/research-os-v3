@@ -201,13 +201,10 @@ class ResearchEngine:
         )
         self._mtf = MultiTFEngine(asset_config, max_bars_per_tf)
         self._asset_config = asset_config
-        # Initialize Quality Gate
-        self._quality_gate = QualityGate(
-            config=QualityGateConfig(),
-            mtf_engine=self._mtf
-        )
-        import globals as _globals
-        _globals.quality_gate = self._quality_gate
+        # Initialize Orchestrator and Quality Gate
+        from signal_orchestrator import SignalOrchestrator
+        self._orchestrator = SignalOrchestrator(mtf_engine=self._mtf, paper_broker=None)
+        self._quality_gate = self._orchestrator._quality_gate
         # Crypto-native history buffers (per symbol)
         from collections import deque as _deque
         self._funding_history: dict = {
@@ -884,38 +881,14 @@ class ResearchEngine:
 
     def _emit_signal(self, signal: "SignalResult") -> bool:
         """
-        Run signal through QualityGate before forwarding to paper_broker.
+        Run signal through QualityGate via SignalOrchestrator before forwarding to paper_broker.
         Only QualifiedSignal objects reach the broker.
         GateRejection objects are logged and discarded.
         """
-        import logging
-        log = logging.getLogger(__name__)
-
-        result = self._quality_gate.evaluate(signal)
-
-        if isinstance(result, GateRejection):
-            log.debug(
-                f"[SIGNAL_REJECTED] {signal.symbol} {signal.family} "
-                f"{signal.direction} | blocked_by={result.blocked_by_layer} "
-                f"| reason={result.block_reason}"
-            )
-            return False
-
-        # result is QualifiedSignal — forward to paper_broker
-        if hasattr(self, "_paper_broker") and self._paper_broker:
-            try:
-                res = self._paper_broker.on_qualified_signal(result)
-                return bool(res)
-            except AttributeError:
-                try:
-                    res = self._paper_broker.on_signal(result.to_dict())
-                    return bool(res)
-                except Exception as exc:
-                    log.error(f"[SIGNAL_EMIT_ERROR] {exc}")
-                    return False
-            except Exception as exc:
-                log.error(f"[SIGNAL_EMIT_ERROR] {exc}")
-                return False
+        if hasattr(self, "_orchestrator") and self._orchestrator:
+            self._orchestrator._paper_broker = self._paper_broker
+            self._orchestrator._emit_signal(signal)
+            return signal.signal_id in self._quality_gate._active_signals
         return False
 
     def on_trade_closed(self, signal_id: str, pnl_usd: float = 0.0) -> None:
