@@ -542,11 +542,13 @@ class ResearchEngine:
             tf_state = mtf_sym.get_tf(signal_interval) if mtf_sym else None
             tf_indicators = tf_state.indicators if tf_state else state.indicators
 
-            # SL từ risk packet
-            stop_loss = risk_packet.get('stop_policy', {}).get('initial_stop_price')
+            # SL từ signal info (Tầng 3), then fallback to risk packet, then ATR fallback
+            stop_loss = signal_info.get('stop_loss') if isinstance(signal_info, dict) else getattr(signal_info, 'stop_loss', None)
+            if not stop_loss or stop_loss == 0.0:
+                stop_loss = risk_packet.get('stop_policy', {}).get('initial_stop_price')
 
             # ── FIX 2: ATR-based SL fallback khi risk packet không có SL ──
-            if stop_loss is None:
+            if stop_loss is None or stop_loss == 0.0:
                 atr_val = tf_indicators.get('atr_14_pct')
                 if atr_val is not None:
                     atr_pct = atr_val / 100.0
@@ -558,9 +560,11 @@ class ResearchEngine:
                 else:
                     stop_loss = round(last_price * (1 + sl_pct), 6)
 
-            # TP từ risk packet hoặc fallback Bollinger Width
-            take_profit = risk_packet.get('take_profit_price')
-            if take_profit is None:
+            # TP từ signal info (Tầng 3), then fallback to risk packet, then fallback Bollinger Width
+            take_profit = signal_info.get('take_profit') if isinstance(signal_info, dict) else getattr(signal_info, 'take_profit', None)
+            if not take_profit or take_profit == 0.0:
+                take_profit = risk_packet.get('take_profit_price')
+            if take_profit is None or take_profit == 0.0:
                 bb_val = tf_indicators.get('bb_width_20')
                 if bb_val is not None:
                     bb_width = bb_val / 100.0
@@ -661,7 +665,16 @@ class ResearchEngine:
 
     def _compute_signals(self, state: SymbolState):
         last_close = state.latest_close()
-        state.signals = evaluate_supported_signals(state.symbol, state.factors, state.indicators, state.regime_state, last_close, state.prev_bollinger_width)
+        sym_state = self._mtf.get(state.symbol) if hasattr(self, '_mtf') else None
+        state.signals = evaluate_supported_signals(
+            state.symbol,
+            state.factors,
+            state.indicators,
+            state.regime_state,
+            last_close,
+            state.prev_bollinger_width,
+            sym_state=sym_state
+        )
 
     def _compute_strategies(self, state: SymbolState):
         strategies = {}

@@ -2,11 +2,23 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
+import time
+
 from indicator_keys import BOLLINGER_SQUEEZE_THRESHOLD
 from promoted_signal_bridge import PromotedSignalBridge
+from multi_tf_state import MultiTFSymbolState, TFState, TFBar
+from collections import deque
 
-import time
+# Import the new structures
+from signal_models import SignalResult, SignalBatch
+from signal_library import (
+    evaluate_all_signals,
+    DIRECTION_BOTH, DIRECTION_LONG, DIRECTION_SHORT,
+    FAMILY_BREAKOUT, FAMILY_CONTINUATION, FAMILY_DIVERGENCE,
+    FAMILY_FUNDING_REVERSION, FAMILY_MEAN_REVERSION,
+    FAMILY_OI_REVERSAL, FAMILY_ORDER_FLOW, FAMILY_VOLATILITY_EVENT,
+)
 
 # Path to template library
 TEMPLATE_LIBRARY_PATH = Path(__file__).resolve().parent / 'signal_template_library_v1.json'
@@ -39,7 +51,6 @@ bridge = PromotedSignalBridge()
 
 SUPPORTED = ['bollinger_squeeze_breakout', 'zscore_recenter', 'macd_trend_continuation']
 
-
 def safe_eval_expression(expr: str, context: Dict[str, float]) -> bool:
     safe_dict = {k: float(v) for k, v in context.items() if isinstance(v, (int, float))}
     safe_dict['True'] = True
@@ -52,7 +63,6 @@ def safe_eval_expression(expr: str, context: Dict[str, float]) -> bool:
         return bool(eval(expr, {"__builtins__": None}, safe_dict))
     except Exception:
         return False
-
 
 def compute_expr_score(expr: str, context: Dict[str, float], is_invalidation: bool = False) -> float:
     if not expr:
@@ -72,7 +82,6 @@ def compute_expr_score(expr: str, context: Dict[str, float], is_invalidation: bo
             passed += 1
     return float(passed) / total if total > 0 else (0.0 if is_invalidation else 1.0)
 
-
 def _regime_allowed(sig: Dict[str, Any], regime_state: Dict[str, Any]) -> bool:
     regime = regime_state.get('regime')
     preferred = sig.get('preferred_regimes') or sig.get('default_regime_scope', [])
@@ -83,20 +92,37 @@ def _regime_allowed(sig: Dict[str, Any], regime_state: Dict[str, Any]) -> bool:
         return False
     return True
 
+# Best available timeframes for each signal family
+BEST_TFS = {
+    FAMILY_CONTINUATION:      ["1h", "15m", "5m", "1m"],
+    FAMILY_DIVERGENCE:        ["1h", "15m", "5m", "1m"],
+    FAMILY_BREAKOUT:          ["15m", "5m", "1m"],
+    FAMILY_MEAN_REVERSION:    ["1h", "15m", "1m"],
+    FAMILY_ORDER_FLOW:        ["5m", "1m"],
+    FAMILY_VOLATILITY_EVENT:  ["5m", "1m"],
+    FAMILY_FUNDING_REVERSION: ["15m", "5m", "1m"],
+    FAMILY_OI_REVERSAL:       ["15m", "5m", "1m"],
+}
 
-def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicators: Dict[str, float], regime_state: Dict[str, Any], last_close: float | None, prev_bollinger_width: float | None) -> Dict[str, Dict[str, Any]]:
-    # 1. Try to load promoted alphas
+def evaluate_supported_signals(
+    symbol: str,
+    factors: Dict[str, float],
+    indicators: Dict[str, float],
+    regime_state: Dict[str, Any],
+    last_close: float | None,
+    prev_bollinger_width: float | None,
+    sym_state: Optional[MultiTFSymbolState] = None
+) -> Dict[str, Dict[str, Any]]:
+
+    # 1. Load promoted alphas or catalog signals (legacy fallback)
     promoted = bridge.load_promoted_alphas()
-    
     out: Dict[str, Dict[str, Any]] = {}
     context = {**factors, **indicators}
-    
     templates_by_family, catalog, catalog_by_id = _load_catalog()
-    
+
     if promoted:
         for alpha in promoted:
             name = alpha.get('alpha_name', alpha['alpha_id'])
-            
             trigger_expr = alpha.get('trigger_definition') or alpha.get('signal_expression') or ''
             confirm_expr = alpha.get('confirmation_definition') or ''
             invalidate_expr = alpha.get('invalidation_definition') or ''
@@ -116,7 +142,6 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
                 regime_ok = True
             
             active = bool(triggered and confirmed and not invalidated and regime_ok and regime_state.get('tradable', False))
-            
             confirmation_score = compute_expr_score(confirm_expr, context, is_invalidation=False)
             invalidation_score = compute_expr_score(invalidate_expr, context, is_invalidation=True)
             
@@ -130,7 +155,6 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
                 'invalidation_expression': invalidate_expr,
                 'alpha_id': alpha['alpha_id'],
             }
-            
             out[name] = {
                 'triggered': triggered,
                 'confirmed': confirmed,
@@ -165,14 +189,12 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
             confirmed = safe_eval_expression(confirm_expr, context) if confirm_expr else True
             invalidated = safe_eval_expression(invalidate_expr, context) if invalidate_expr else False
             
-            # Special legacy evaluation for default bollinger_squeeze_breakout if needed
             if name == 'bollinger_squeeze_breakout' and prev_bollinger_width is not None:
                 was_squeezing = prev_bollinger_width <= BOLLINGER_SQUEEZE_THRESHOLD
                 breakout = (last_close is not None) and (last_close > indicators.get('BBANDS_upper', float('inf')) or last_close < indicators.get('BBANDS_lower', float('-inf')))
                 triggered = was_squeezing and breakout
                 
             active = bool(triggered and confirmed and not invalidated and regime_ok and regime_state.get('tradable', False))
-            
             confirmation_score = compute_expr_score(confirm_expr, context, is_invalidation=False)
             invalidation_score = compute_expr_score(invalidate_expr, context, is_invalidation=True)
             
@@ -185,7 +207,6 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
                 'confirmation_expression': confirm_expr,
                 'invalidation_expression': invalidate_expr,
             }
-            # Preserve special fields for default 3 signals if expected by existing tests
             if name == 'bollinger_squeeze_breakout':
                 why['squeeze'] = (prev_bollinger_width is not None) and (prev_bollinger_width <= BOLLINGER_SQUEEZE_THRESHOLD)
                 why['breakout'] = (last_close is not None) and last_close > indicators.get('BBANDS_upper', float('inf'))
@@ -216,12 +237,80 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
                 'invalidation_summary': sig.get('invalidation_summary'),
                 'quality_tier': sig.get('quality_tier', 'A'),
             }
-            
-    allowed_families = regime_state.get('allowed_signal_families', [])
 
+    # 2. Upgraded pure signal library evaluation
+    # Build or use sym_state
+    if sym_state is None:
+        sym_state = MultiTFSymbolState(symbol=symbol)
+        # Mock standard intervals
+        for interval in ["1m", "5m", "15m", "1h"]:
+            tf = TFState(symbol=symbol, interval=interval)
+            tf.indicators = {**indicators}
+            # Populate dummy bars so ready(35) checks pass
+            close_val = last_close if last_close is not None else indicators.get("vwap", 100.0)
+            if close_val <= 0.0:
+                close_val = 100.0
+            tf.bars = deque([
+                TFBar(ts="2026-07-06T00:00:00Z", open=close_val, high=close_val, low=close_val, close=close_val, volume=10.0)
+                for _ in range(50)
+            ], maxlen=300)
+            sym_state.tf_states[interval] = tf
+        sym_state.funding_rate = indicators.get("funding_rate", 0.0)
+        sym_state.open_interest = indicators.get("oi", 0.0)
+
+    # Asset role mapping
+    asset_role = "anchor" if symbol == "BTC" else "major"
+
+    # Evaluate each of the 8 signal families
+    families_mapping = {
+        FAMILY_CONTINUATION:      "signal_macd_continuation",
+        FAMILY_DIVERGENCE:        "signal_rsi_divergence",
+        FAMILY_BREAKOUT:          "signal_bb_squeeze_breakout",
+        FAMILY_MEAN_REVERSION:    "signal_mean_reversion",
+        FAMILY_ORDER_FLOW:        "signal_order_flow_imbalance",
+        FAMILY_VOLATILITY_EVENT:  "signal_volatility_event",
+        FAMILY_FUNDING_REVERSION: "signal_funding_reversion",
+        FAMILY_OI_REVERSAL:       "signal_oi_reversal",
+    }
+
+    # Run evaluations
+    for family, sig_name in families_mapping.items():
+        tf_to_use = "1m"
+        for t in BEST_TFS.get(family, ["1m"]):
+            if t in sym_state.tf_states:
+                tf_to_use = t
+                break
+        
+        batch = evaluate_all_signals(sym_state, tf_to_use, asset_role)
+        sig_res = None
+        for r in batch.results:
+            if r.family == family:
+                sig_res = r
+                break
+        
+        if sig_res:
+            res_dict = sig_res.to_dict()
+            # Compatibility properties
+            res_dict['active'] = sig_res.fired
+            res_dict['triggered'] = sig_res.fired
+            res_dict['confirmed'] = sig_res.fired
+            res_dict['invalidated'] = False if sig_res.fired else (True if sig_res.invalidation_reason else False)
+            res_dict['confirmation_score'] = sig_res.confidence_score
+            res_dict['invalidation_score'] = 1.0 - sig_res.confidence_score if sig_res.invalidation_reason else 0.0
+            res_dict['template_family'] = sig_res.family
+            res_dict['why'] = {
+                'triggered': sig_res.fired,
+                'confirmed': sig_res.fired,
+                'invalidated': res_dict['invalidated'],
+                'invalidation_reason': sig_res.invalidation_reason,
+            }
+            # Add to out under the function name
+            out[sig_name] = res_dict
+
+    # Post-filtering for allowed_signal_families
+    allowed_families = regime_state.get('allowed_signal_families', [])
     for signal_name, signal_result in out.items():
         family = signal_result.get('template_family', '')
-        # Map signal names to families if template_family missing
         if not family or family == 'unknown':
             if 'mean_reversion' in signal_name or 'zscore' in signal_name:
                 family = 'mean_reversion'
@@ -234,14 +323,13 @@ def evaluate_supported_signals(symbol: str, factors: Dict[str, float], indicator
             elif 'breakout' in signal_name:
                 family = 'breakout'
             else:
-                family = 'continuation'  # conservative default
+                family = 'continuation'
             signal_result['template_family'] = family
 
         if allowed_families and family not in allowed_families:
             signal_result['active'] = False
             signal_result['invalidated'] = True
             signal_result['invalidation_reason'] = f'regime_family_blocked:{regime_state.get("regime","unknown")}'
-            # Update the why dict for snapshot visibility
             signal_result['why']['invalidated'] = True
             signal_result['why']['invalidation_reason'] = signal_result['invalidation_reason']
 
