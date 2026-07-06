@@ -117,9 +117,9 @@ async def writer_loop() -> None:
                         tp_pct = max(0.01, bb_width)  # ít nhất 1%, scale theo vol
                         tp = current_price * (1 + tp_pct) if side == 'long' else current_price * (1 - tp_pct)
                     
-                    # GUARD: chỉ execute nếu qty hợp lệ VÀ không có Quality Gate
+                    # Execute order only when Quality Gate is NOT present AND kill switch is off
                     import globals as _globals
-                    if qty > 0 and _globals.quality_gate is None:
+                    if qty > 0 and _globals.quality_gate is None and not _globals.kill_switch_active:
                         broker.execute_order(
                             symbol=symbol,
                             direction=side,
