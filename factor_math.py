@@ -283,7 +283,7 @@ def compute_divergence(
     if not _HAS_SCIPY and not _HAS_SCIPY:
         # nếu dùng argrelextrema fallback thì vẫn chạy được
         pass
-    if len(closes) < 5 or len(indicator_values) < 5:
+    if len(closes) < 10 or len(indicator_values) < 10:
         return 0.0
 
     try:

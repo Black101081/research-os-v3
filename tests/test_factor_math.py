@@ -111,16 +111,16 @@ class TestFactorMath(unittest.TestCase):
         self.assertAlmostEqual(res, 4.0) # True range is consistently 4
         
     def test_compute_divergence(self):
-        # 1. Bearish Divergence
-        closes = [10.0, 11.0, 12.0, 11.0, 10.0, 11.0, 13.0, 11.0, 10.0]
-        indicator = [5.0, 6.0, 7.0, 6.0, 5.0, 5.5, 6.5, 5.5, 4.0]
+        # 1. Bearish Divergence (length 10)
+        closes = [10.0, 11.0, 12.0, 11.0, 10.0, 11.0, 13.0, 11.0, 10.0, 9.0]
+        indicator = [5.0, 6.0, 7.0, 6.0, 5.0, 5.5, 6.5, 5.5, 4.0, 3.5]
         score = compute_divergence(closes, indicator, fractal_window=2, max_lookback=30)
         self.assertTrue(score > 0.0)
         self.assertAlmostEqual(score, 0.595238, places=4)
 
-        # 2. Bullish Divergence
-        closes_bull = [20.0, 19.0, 18.0, 19.0, 20.0, 18.0, 17.0, 18.0, 20.0]
-        indicator_bull = [5.0, 4.0, 3.0, 4.0, 5.0, 4.5, 3.5, 4.5, 6.0]
+        # 2. Bullish Divergence (length 10)
+        closes_bull = [20.0, 19.0, 18.0, 19.0, 20.0, 18.0, 17.0, 18.0, 20.0, 21.0]
+        indicator_bull = [5.0, 4.0, 3.0, 4.0, 5.0, 4.5, 3.5, 4.5, 6.0, 7.0]
         score_bull = compute_divergence(closes_bull, indicator_bull, fractal_window=2, max_lookback=30)
         self.assertTrue(score_bull < 0.0)
         self.assertAlmostEqual(score_bull, -0.925925, places=4)
