@@ -87,6 +87,9 @@ class GlobalsModule(ModuleType):
             except Exception:
                 pass
 
+# Quality Gate — được set bởi SignalOrchestrator khi khởi tạo
+quality_gate = None  # type: ignore
+
 # Replace this module in sys.modules
 current_module = sys.modules[__name__]
 globals_module = GlobalsModule(__name__)

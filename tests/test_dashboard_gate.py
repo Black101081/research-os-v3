@@ -323,3 +323,41 @@ def test_get_dashboard_payload(monkeypatch):
     payload = get_dashboard_payload()
     assert "gate" in payload
     assert payload["gate"]["gate_enabled"] is True
+
+
+# ── Tests: HTTP endpoints ─────────────────────────────────────────────
+
+def test_http_gate_endpoints(monkeypatch):
+    from fastapi.testclient import TestClient
+    from app import app
+
+    gate = make_mock_gate(heat=3.5, regime="trending")
+    monkeypatch.setattr(_globals, "quality_gate", gate)
+
+    mock_engine, mock_broker, mock_telemetry = make_mock_globals()
+    monkeypatch.setattr(_globals, "engine",    mock_engine)
+    monkeypatch.setattr(_globals, "broker",    mock_broker)
+    monkeypatch.setattr(_globals, "telemetry", mock_telemetry)
+    monkeypatch.setattr(_globals, "trading_mode",       "paper")
+    monkeypatch.setattr(_globals, "kill_switch_active", False)
+    monkeypatch.setattr(_globals, "CONFIG", {
+        "symbols": ["BTC"], "candle_interval": "15m",
+    })
+
+    client = TestClient(app)
+
+    # 1. Test GET /api/gate
+    response = client.get("/api/gate")
+    assert response.status_code == 200
+    data = response.json()
+    assert "gate_summary" in data
+    assert data["gate_summary"]["market_regime"] == "trending"
+    assert data["gate_summary"]["portfolio_heat_pct"] == 3.5
+
+    # 2. Test GET /api/gate/rejections
+    response = client.get("/api/gate/rejections?limit=10")
+    assert response.status_code == 200
+    data = response.json()
+    assert "rejections" in data
+    assert "total_count" in data
+
