@@ -618,6 +618,15 @@ def get_telemetry() -> Dict[str, Any]:
 
 
 
+@app.get('/api/debug-db')
+def debug_db():
+    conn = db.get_connection()
+    tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
+    tables_list = [t[0] for t in tables]
+    conn.close()
+    return {"tables": tables_list, "db_path": db.DB_PATH}
+
+
 @app.get('/')
 def dashboard() -> FileResponse:
     return FileResponse(BASE / 'static' / 'index.html')
