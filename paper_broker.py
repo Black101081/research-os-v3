@@ -25,6 +25,11 @@ class PaperBroker:
         self.positions: Dict[str, Dict[str, Any]] = db.load_positions()
         self.trade_history: List[Dict[str, Any]] = db.load_trade_history()
         self._last_equity_save = None  # will be set on first tick
+
+        from collections import deque
+        self._qualified_signals: deque = deque(maxlen=200)
+        self._qs_by_id: dict = {}
+
         logger.info(
             f"[PaperBroker] Loaded {len(self.positions)} positions, "
             f"{len(self.trade_history)} trades from DB"
@@ -96,6 +101,7 @@ class PaperBroker:
         take_profit: float | None = None,
         time_str: str | None = None,
         signal_source: str = "unknown",
+        extra: dict = None,
     ) -> bool:
         if symbol in self.positions:
             db.save_order_log(symbol, direction, quantity, price,
@@ -134,6 +140,8 @@ class PaperBroker:
             "signal_source": signal_source,
             "signal_id":     None,  # default placeholder
         }
+        if extra:
+            pos.update(extra)
         self.positions[symbol] = pos
         db.save_position(pos)
         db.save_broker_state(self.balance, self.equity)
@@ -146,47 +154,53 @@ class PaperBroker:
                           accepted=True, reject_reason=None)
         return True
 
-    def on_qualified_signal(self, qualified: QualifiedSignal) -> bool:
-        """Process qualified signal from quality gate."""
-        entry_price = qualified.signal.entry_price
-        if entry_price <= 0:
-            return False
-        qty = round(qualified.position_size_usd / entry_price, 6)
-        if symbol_in := qualified.signal.symbol in self.positions:
-            return False
-        
-        cost = qty * entry_price
-        if cost > self.balance * 2.0:
-            return False
+    def on_qualified_signal(self, qs: "QualifiedSignal") -> bool:
+        """
+        Entry point mới từ signal_orchestrator sau Tầng 4.
+        Thay thế execute_order() cho signals đến từ QualityGate.
+        Gọi execute_order() bên trong với sizing từ QualifiedSignal.
+        """
+        sig = qs.signal
+        self._qualified_signals.append(qs)
+        self._qs_by_id[sig.signal_id] = qs
 
-        entry_fee = cost * 0.0005
-        self.balance = round(self.balance - entry_fee, 4)
+        # Lấy current price từ mid price nếu có
+        import globals
+        snap = globals.engine.snapshot()
+        state = snap.get(sig.symbol, {})
+        current_price = state.get("last_trade") or state.get("mid")
+        if current_price is None:
+            current_price = sig.entry_price
 
-        pos = {
-            "symbol":        qualified.signal.symbol,
-            "direction":     qualified.signal.direction,
-            "quantity":      qty,
-            "entry_price":   entry_price,
-            "current_price": entry_price,
-            "stop_loss":     qualified.signal.stop_loss,
-            "take_profit":   qualified.signal.take_profit,
-            "entry_time":    qualified.qualified_at,
-            "unrealized_pnl": 0.0,
-            "entry_fee":     round(entry_fee, 4),
-            "signal_source": qualified.signal.family,
-            "signal_id":     qualified.signal.signal_id,
-        }
-        self.positions[qualified.signal.symbol] = pos
-        db.save_position(pos)
-        db.save_broker_state(self.balance, self.equity)
-        logger.info(
-            f"[PaperBroker] OPENED QUALIFIED {qualified.signal.direction.upper()} {qualified.signal.symbol} "
-            f"qty={qty} price={entry_price} SL={qualified.signal.stop_loss} via {qualified.signal.family}"
+        # Tính quantity từ position_size_usd và current_price
+        quantity = qs.position_size_usd / current_price if current_price > 0 else 0.0
+
+        return self.execute_order(
+            symbol=sig.symbol,
+            direction=sig.direction,
+            quantity=quantity,
+            price=current_price,
+            stop_loss=sig.stop_loss,
+            take_profit=sig.take_profit,
+            time_str=qs.qualified_at,
+            signal_source=sig.signal_id,
+            # Pass extra metadata để lưu cùng position
+            extra={
+                "position_size_pct": qs.position_size_pct,
+                "position_size_usd": qs.position_size_usd,
+                "risk_amount_usd":   qs.risk_amount_usd,
+                "expected_value_r":  qs.expected_value_r,
+                "market_regime":     qs.market_regime,
+                "btc_structure":     qs.btc_structure,
+                "session_name":      qs.session_name,
+                "confidence_score":  sig.confidence_score,
+                "risk_reward_ratio": sig.risk_reward_ratio,
+                "family":            sig.family,
+                "interval":          sig.interval,
+                "cooldown_key":      qs.cooldown_key,
+                "signal_id":         sig.signal_id,
+            }
         )
-        db.save_order_log(qualified.signal.symbol, qualified.signal.direction, qty, entry_price,
-                          qualified.signal.stop_loss, qualified.signal.take_profit, qualified.signal.family,
-                          accepted=True, reject_reason=None)
-        return True
 
     def on_signal(self, signal_dict: Dict[str, Any]) -> bool:
         """Fallback processing for dictionary-based signals."""
@@ -206,6 +220,20 @@ class PaperBroker:
             time_str=signal_dict.get("qualified_at") or signal_dict.get("fired_at"),
             signal_source=signal_dict.get("family", "unknown"),
         )
+
+    def get_qualified_signals(self, limit: int = 50) -> list:
+        """
+        Trả về danh sách QualifiedSignal gần nhất dưới dạng dict.
+        Dashboard gọi method này để hiển thị qualified signal feed.
+        """
+        signals = list(self._qualified_signals)[-limit:]
+        result = []
+        for qs in reversed(signals):   # mới nhất trước
+            try:
+                result.append(qs.to_dict())
+            except Exception:
+                pass
+        return result
 
     def close_position(
         self,

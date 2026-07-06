@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
-from collections import defaultdict
+from collections import defaultdict, deque
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Set, Tuple, Union
 
@@ -467,6 +467,14 @@ class QualityGate:
         # Portfolio heat: total % at risk
         self._portfolio_heat: float = 0.0
 
+        # Rejection log — giữ tối đa 100 rejections gần nhất
+        self.rejection_log: deque = deque(maxlen=100)
+
+        # Cache regime state cuối cùng (để dashboard đọc nhanh)
+        self._last_regime: str = "unknown"
+        self._last_btc_structure: str = "neutral"
+        self._last_session: str = "unknown"
+
     # ── Public API ────────────────────────────────────────────────────
 
     def evaluate(
@@ -494,12 +502,15 @@ class QualityGate:
         layer_results.append(l1)
         if l1.verdict == GATE_BLOCK:
             return self._reject(signal, l1, layer_results)
+        self._last_session = l1.metadata.get("session_name", "unknown")
 
         # ── Layer 2: Regime ───────────────────────────────────────
         l2 = _layer_regime(signal, self._mtf, self._cfg)
         layer_results.append(l2)
         if l2.verdict == GATE_BLOCK:
             return self._reject(signal, l2, layer_results)
+        self._last_regime       = l2.metadata.get("regime", "unknown")
+        self._last_btc_structure= l2.metadata.get("btc_structure", "neutral")
 
         # ── Layer 3: Portfolio ────────────────────────────────────
         active_signal_ids = list(self._active_signals.keys())
@@ -581,6 +592,22 @@ class QualityGate:
         self._cfg.sizing.account_equity = equity_usd
 
     @property
+    def gate_summary(self) -> dict:
+        """Snapshot nhanh để dashboard đọc — không lock, không tính lại."""
+        return {
+            "active_signal_count":   self.active_signal_count,
+            "portfolio_heat_pct":    round(self._portfolio_heat, 2),
+            "account_equity_usd":    self._cfg.sizing.account_equity,
+            "market_regime":         self._last_regime,
+            "btc_structure":         self._last_btc_structure,
+            "session_name":          self._last_session,
+            "max_concurrent":        self._cfg.portfolio.max_concurrent_signals,
+            "max_heat_pct":          self._cfg.portfolio.max_portfolio_heat_pct,
+            "gate_enabled":          self._cfg.enabled,
+            "cooldown_count":        len(self._cooldown),
+        }
+
+    @property
     def active_signal_count(self) -> int:
         return len(self._active_signals)
 
@@ -593,12 +620,7 @@ class QualityGate:
     def _reject(self, signal: SignalResult,
                 blocking_layer: LayerResult,
                 all_layers: List[LayerResult]) -> GateRejection:
-        log.debug(
-            f"[GATE_BLOCK] {signal.symbol} {signal.family} "
-            f"{signal.direction} | layer={blocking_layer.layer_name} | "
-            f"reason={blocking_layer.reason}"
-        )
-        return GateRejection(
+        rejection = GateRejection(
             signal_id=signal.signal_id,
             symbol=signal.symbol,
             family=signal.family,
@@ -607,6 +629,13 @@ class QualityGate:
             block_reason=blocking_layer.reason,
             layer_results=all_layers,
         )
+        self.rejection_log.append(rejection)
+        log.debug(
+            f"[GATE_BLOCK] {signal.symbol} {signal.family} "
+            f"{signal.direction} | layer={blocking_layer.layer_name} | "
+            f"reason={blocking_layer.reason}"
+        )
+        return rejection
 
     def _register_signal(self, signal: SignalResult,
                          cooldown_key: str,

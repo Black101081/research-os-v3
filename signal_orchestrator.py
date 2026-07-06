@@ -346,6 +346,8 @@ class SignalOrchestrator:
             config=QualityGateConfig(),
             mtf_engine=self._mtf,
         )
+        import globals as _globals
+        _globals.quality_gate = self._quality_gate
 
     def _emit_signal(self, signal: "SignalResult") -> None:
         """

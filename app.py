@@ -29,7 +29,11 @@ db.prune_old_records(keep_days=30)
 from globals import CONFIG, engine, registry, telemetry, broker, BASE
 engine._paper_broker = broker
 from routers import presets, brief, playbook, live_control
-from dashboard_presenter import get_dashboard_payload, get_overview_payload, get_signals_payload, get_signal_detail
+from dashboard_presenter import (
+    get_dashboard_payload, get_overview_payload,
+    get_signals_payload, get_signal_detail,
+    get_gate_payload, get_rejections_payload,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -330,6 +334,25 @@ def get_signal_route_detail(symbol: str, signal_id: str) -> JSONResponse:
     if detail is None:
         return JSONResponse({'status': 'error', 'message': f'Signal {signal_id} for symbol {symbol} not found'}, status_code=404)
     return JSONResponse(detail)
+
+
+@app.get("/api/gate")
+def get_gate_status() -> JSONResponse:
+    """
+    Quality Gate state: portfolio heat, cooldowns, active slots,
+    qualified signal feed, và gate config.
+    """
+    return JSONResponse(get_gate_payload())
+
+
+@app.get("/api/gate/rejections")
+def get_gate_rejections(limit: int = 50) -> JSONResponse:
+    """
+    Danh sách GateRejection gần nhất để debug.
+    ?limit=N để giới hạn số lượng (default 50, max 100).
+    """
+    actual_limit = min(limit, 100)
+    return JSONResponse(get_rejections_payload(limit=actual_limit))
 
 
 @app.get('/snapshot')

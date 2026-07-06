@@ -206,6 +206,8 @@ class ResearchEngine:
             config=QualityGateConfig(),
             mtf_engine=self._mtf
         )
+        import globals as _globals
+        _globals.quality_gate = self._quality_gate
         # Crypto-native history buffers (per symbol)
         from collections import deque as _deque
         self._funding_history: dict = {

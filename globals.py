@@ -47,6 +47,7 @@ class GlobalsModule(ModuleType):
         super().__init__(name)
         self._kill_switch_active = False
         self._trading_mode = 'paper'
+        self.quality_gate = None
 
         # Restore from DB on boot
         try:
