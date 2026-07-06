@@ -358,26 +358,13 @@ class SignalOrchestrator:
         import logging
         log = logging.getLogger(__name__)
 
-        from quality_gate_models import GateRejection
+        from quality_gate_models import QualifiedSignal
         result = self._quality_gate.evaluate(signal)
-
-        if isinstance(result, GateRejection):
-            log.debug(
-                f"[SIGNAL_REJECTED] {signal.symbol} {signal.family} "
-                f"{signal.direction} | blocked_by={result.blocked_by_layer} "
-                f"| reason={result.block_reason}"
-            )
-            return
-
-        # result is QualifiedSignal — forward to paper_broker
-        if hasattr(self, "_paper_broker") and self._paper_broker:
-            try:
-                self._paper_broker.on_qualified_signal(result)
-            except AttributeError:
-                # Fallback: paper_broker still uses old interface
-                self._paper_broker.on_signal(result.to_dict())
-            except Exception as exc:
-                log.error(f"[SIGNAL_EMIT_ERROR] {exc}")
+        if isinstance(result, QualifiedSignal):
+            # Forward QualifiedSignal sang PaperBroker để mở position
+            import globals as _globals
+            _globals.broker.on_qualified_signal(result)
+            _globals.quality_gate = self._quality_gate
 
     def on_trade_closed(self, signal_id: str, pnl_usd: float = 0.0) -> None:
         """Called by paper_broker when a trade closes."""

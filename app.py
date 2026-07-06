@@ -117,16 +117,19 @@ async def writer_loop() -> None:
                         tp_pct = max(0.01, bb_width)  # ít nhất 1%, scale theo vol
                         tp = current_price * (1 + tp_pct) if side == 'long' else current_price * (1 - tp_pct)
                     
-                    broker.execute_order(
-                        symbol=symbol,
-                        direction=side,
-                        quantity=qty,
-                        price=current_price,
-                        stop_loss=sl,
-                        take_profit=tp,
-                        time_str=current_time,
-                        signal_source=strategy_name
-                    )
+                    # GUARD: chỉ execute nếu qty hợp lệ VÀ không có Quality Gate
+                    import globals as _globals
+                    if qty > 0 and _globals.quality_gate is None:
+                        broker.execute_order(
+                            symbol=symbol,
+                            direction=side,
+                            quantity=qty,
+                            price=current_price,
+                            stop_loss=sl,
+                            take_profit=tp,
+                            time_str=current_time,
+                            signal_source=strategy_name
+                        )
 
         specs, packets = build_specs_and_packets(snapshot)
         try:
