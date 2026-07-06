@@ -246,7 +246,12 @@ def init_db():
         """)
         migrate_schema(conn)
     conn.close()
-    logger.info(f"[DB] Initialized SQLite at {DB_PATH}")
+    import os
+    env = os.getenv("APP_ENV", "production")
+    if "SPACE_ID" in os.environ:
+        env = "production"
+    persistent = os.path.isdir("/data")
+    logger.info(f"[DB] Initialized SQLite at {DB_PATH} | Env: {env.upper()} | Persistent: {persistent}")
 
 
 # ── PaperBroker persistence helpers ──────────────────────────────────────────

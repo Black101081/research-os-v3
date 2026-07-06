@@ -2,13 +2,25 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+import os
 import logging
 from realtime_engine import ResearchEngine
 from async_registry_writer import AsyncRegistryWriter
 from telemetry import TelemetryTracker
 from paper_broker import PaperBroker
 
-logging.basicConfig(level=logging.INFO)
+# Determine Environment (Docker DEV vs HF Space PROD)
+APP_ENV = os.getenv("APP_ENV", "production")
+if "SPACE_ID" in os.environ:
+    APP_ENV = "production"
+
+if APP_ENV == "development":
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("websockets").setLevel(logging.INFO)
+else:
+    logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).resolve().parent
