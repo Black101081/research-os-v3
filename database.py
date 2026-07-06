@@ -44,6 +44,44 @@ def get_connection() -> sqlite3.Connection:
             raise
 
 
+def migrate_schema(conn):
+    """
+    Thêm các columns mới vào bảng cũ nếu chưa có.
+    SQLite không hỗ trợ ADD COLUMN IF NOT EXISTS nên phải try/except.
+    """
+    migrations = [
+        "ALTER TABLE trade_history ADD COLUMN position_size_pct REAL DEFAULT 0.0",
+        "ALTER TABLE trade_history ADD COLUMN risk_amount_usd    REAL DEFAULT 0.0",
+        "ALTER TABLE trade_history ADD COLUMN expected_value_r   REAL DEFAULT 0.0",
+        "ALTER TABLE trade_history ADD COLUMN market_regime      TEXT DEFAULT 'unknown'",
+        "ALTER TABLE trade_history ADD COLUMN btc_structure      TEXT DEFAULT 'neutral'",
+        "ALTER TABLE trade_history ADD COLUMN session_name       TEXT DEFAULT 'unknown'",
+        "ALTER TABLE trade_history ADD COLUMN family             TEXT DEFAULT 'unknown'",
+        "ALTER TABLE trade_history ADD COLUMN confidence_score   REAL DEFAULT 0.0",
+        "ALTER TABLE trade_history ADD COLUMN signal_id          TEXT DEFAULT ''",
+        # paper_positions table cũng cần migrate tương tự
+        "ALTER TABLE paper_positions ADD COLUMN position_size_pct  REAL DEFAULT 0.0",
+        "ALTER TABLE paper_positions ADD COLUMN position_size_usd  REAL DEFAULT 0.0",
+        "ALTER TABLE paper_positions ADD COLUMN risk_amount_usd    REAL DEFAULT 0.0",
+        "ALTER TABLE paper_positions ADD COLUMN expected_value_r   REAL DEFAULT 0.0",
+        "ALTER TABLE paper_positions ADD COLUMN market_regime      TEXT DEFAULT 'unknown'",
+        "ALTER TABLE paper_positions ADD COLUMN btc_structure      TEXT DEFAULT 'neutral'",
+        "ALTER TABLE paper_positions ADD COLUMN session_name       TEXT DEFAULT 'unknown'",
+        "ALTER TABLE paper_positions ADD COLUMN confidence_score   REAL DEFAULT 0.0",
+        "ALTER TABLE paper_positions ADD COLUMN risk_reward_ratio  REAL DEFAULT 0.0",
+        "ALTER TABLE paper_positions ADD COLUMN family             TEXT DEFAULT 'unknown'",
+        "ALTER TABLE paper_positions ADD COLUMN interval           TEXT DEFAULT 'unknown'",
+        "ALTER TABLE paper_positions ADD COLUMN cooldown_key       TEXT DEFAULT ''",
+        "ALTER TABLE paper_positions ADD COLUMN signal_id          TEXT DEFAULT ''",
+    ]
+    for sql in migrations:
+        try:
+            conn.execute(sql)
+        except Exception:
+            pass   # Column đã tồn tại → bỏ qua
+    conn.commit()
+
+
 def init_db():
     """Create all tables if not exist. Safe to call on every startup."""
     conn = get_connection()
@@ -67,7 +105,20 @@ def init_db():
             entry_time    TEXT NOT NULL,
             entry_fee     REAL NOT NULL DEFAULT 0.0,
             unrealized_pnl REAL NOT NULL DEFAULT 0.0,
-            signal_source TEXT NOT NULL DEFAULT 'unknown'
+            signal_source TEXT NOT NULL DEFAULT 'unknown',
+            position_size_pct  REAL DEFAULT 0.0,
+            position_size_usd  REAL DEFAULT 0.0,
+            risk_amount_usd    REAL DEFAULT 0.0,
+            expected_value_r   REAL DEFAULT 0.0,
+            market_regime      TEXT DEFAULT 'unknown',
+            btc_structure      TEXT DEFAULT 'neutral',
+            session_name       TEXT DEFAULT 'unknown',
+            confidence_score   REAL DEFAULT 0.0,
+            risk_reward_ratio  REAL DEFAULT 0.0,
+            family             TEXT DEFAULT 'unknown',
+            interval           TEXT DEFAULT 'unknown',
+            cooldown_key       TEXT DEFAULT '',
+            signal_id          TEXT DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS trade_history (
@@ -82,7 +133,17 @@ def init_db():
             pnl          REAL NOT NULL,
             fees         REAL NOT NULL DEFAULT 0.0,
             reason       TEXT NOT NULL DEFAULT 'Market Close',
-            signal_source TEXT NOT NULL DEFAULT 'unknown'
+            signal_source TEXT NOT NULL DEFAULT 'unknown',
+            position_size_pct  REAL DEFAULT 0.0,
+            risk_amount_usd    REAL DEFAULT 0.0,
+            expected_value_r   REAL DEFAULT 0.0,
+            market_regime      TEXT DEFAULT 'unknown',
+            btc_structure      TEXT DEFAULT 'neutral',
+            session_name       TEXT DEFAULT 'unknown',
+            family             TEXT DEFAULT 'unknown',
+            confidence_score   REAL DEFAULT 0.0,
+            signal_id          TEXT DEFAULT '',
+            created_at   TEXT DEFAULT (datetime('now'))
         );
 
         CREATE TABLE IF NOT EXISTS signal_snapshots (
@@ -183,6 +244,7 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_trade_history_symbol 
             ON trade_history(symbol);
         """)
+        migrate_schema(conn)
     conn.close()
     logger.info(f"[DB] Initialized SQLite at {DB_PATH}")
 
@@ -221,8 +283,11 @@ def save_position(pos: Dict[str, Any]):
             INSERT INTO paper_positions
                 (symbol, direction, quantity, entry_price, current_price,
                  stop_loss, take_profit, entry_time, entry_fee,
-                 unrealized_pnl, signal_source)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                 unrealized_pnl, signal_source,
+                 position_size_pct, position_size_usd, risk_amount_usd, expected_value_r,
+                 market_regime, btc_structure, session_name, confidence_score,
+                 risk_reward_ratio, family, interval, cooldown_key, signal_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(symbol) DO UPDATE SET
                 direction=excluded.direction,
                 quantity=excluded.quantity,
@@ -233,13 +298,33 @@ def save_position(pos: Dict[str, Any]):
                 entry_time=excluded.entry_time,
                 entry_fee=excluded.entry_fee,
                 unrealized_pnl=excluded.unrealized_pnl,
-                signal_source=excluded.signal_source
+                signal_source=excluded.signal_source,
+                position_size_pct=excluded.position_size_pct,
+                position_size_usd=excluded.position_size_usd,
+                risk_amount_usd=excluded.risk_amount_usd,
+                expected_value_r=excluded.expected_value_r,
+                market_regime=excluded.market_regime,
+                btc_structure=excluded.btc_structure,
+                session_name=excluded.session_name,
+                confidence_score=excluded.confidence_score,
+                risk_reward_ratio=excluded.risk_reward_ratio,
+                family=excluded.family,
+                interval=excluded.interval,
+                cooldown_key=excluded.cooldown_key,
+                signal_id=excluded.signal_id
         """, (
             pos["symbol"], pos["direction"], pos["quantity"],
             pos["entry_price"], pos["current_price"],
             pos.get("stop_loss"), pos.get("take_profit"),
             pos["entry_time"], pos.get("entry_fee", 0.0),
-            pos.get("unrealized_pnl", 0.0), pos.get("signal_source", "unknown")
+            pos.get("unrealized_pnl", 0.0), pos.get("signal_source", "unknown"),
+            pos.get("position_size_pct", 0.0), pos.get("position_size_usd", 0.0),
+            pos.get("risk_amount_usd", 0.0), pos.get("expected_value_r", 0.0),
+            pos.get("market_regime", "unknown"), pos.get("btc_structure", "neutral"),
+            pos.get("session_name", "unknown"), pos.get("confidence_score", 0.0),
+            pos.get("risk_reward_ratio", 0.0), pos.get("family", "unknown"),
+            pos.get("interval", "unknown"), pos.get("cooldown_key", ""),
+            pos.get("signal_id", "")
         ))
     conn.close()
 
@@ -264,15 +349,26 @@ def save_trade(trade: Dict[str, Any]):
         conn.execute("""
             INSERT INTO trade_history
                 (symbol, direction, quantity, entry_price, exit_price,
-                 entry_time, exit_time, pnl, fees, reason, signal_source)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                 entry_time, exit_time, pnl, fees, reason, signal_source,
+                 position_size_pct, risk_amount_usd, expected_value_r,
+                 market_regime, btc_structure, session_name, family, confidence_score, signal_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (
             trade["symbol"], trade["direction"], trade["quantity"],
             trade["entry_price"], trade["exit_price"],
             trade["entry_time"], trade["exit_time"],
             trade["pnl"], trade.get("fees", 0.0),
             trade.get("reason", "Market Close"),
-            trade.get("signal_source", "unknown")
+            trade.get("signal_source", "unknown"),
+            trade.get("position_size_pct", 0.0),
+            trade.get("risk_amount_usd", 0.0),
+            trade.get("expected_value_r", 0.0),
+            trade.get("market_regime", "unknown"),
+            trade.get("btc_structure", "neutral"),
+            trade.get("session_name", "unknown"),
+            trade.get("family", "unknown"),
+            trade.get("confidence_score", 0.0),
+            trade.get("signal_id", "")
         ))
     conn.close()
 
