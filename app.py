@@ -415,7 +415,15 @@ def replay_demo() -> JSONResponse:
 def validator_report() -> JSONResponse:
     global _validator_cache
     if _validator_cache is None:
-        _validator_cache = run_validator()
+        saved_file = BASE / 'runtime' / 'research_validator_report.json'
+        if saved_file.exists():
+            try:
+                _validator_cache = json.loads(saved_file.read_text(encoding='utf-8'))
+                logger.info("[CACHE] Loaded research_validator_report from file")
+            except Exception as e:
+                logger.error(f"[CACHE] Failed to load research_validator_report from file: {e}")
+        if _validator_cache is None:
+            _validator_cache = run_validator()
     return JSONResponse(_validator_cache)
 
 
@@ -430,7 +438,15 @@ def backtest_bridge_demo() -> JSONResponse:
 def backtest_runner_demo() -> JSONResponse:
     global _backtest_cache
     if _backtest_cache is None:
-        _backtest_cache = run_backtest_runner_demo()
+        saved_file = BASE / 'runtime' / 'backtest_runner_demo.json'
+        if saved_file.exists():
+            try:
+                _backtest_cache = json.loads(saved_file.read_text(encoding='utf-8'))
+                logger.info("[CACHE] Loaded backtest_runner_demo from file")
+            except Exception as e:
+                logger.error(f"[CACHE] Failed to load backtest_runner_demo from file: {e}")
+        if _backtest_cache is None:
+            _backtest_cache = run_backtest_runner_demo()
     return JSONResponse(_backtest_cache)
 
 
@@ -448,10 +464,10 @@ def get_ranking() -> Dict[str, Any]:
     snap = engine.snapshot()
     backtest_data = {}
     
-    backtest_file = Path('data/backtest_runner_demo.json')
+    backtest_file = BASE / 'runtime' / 'backtest_runner_demo.json'
     if backtest_file.exists():
         try:
-            bt_results = json.loads(backtest_file.read_text())
+            bt_results = json.loads(backtest_file.read_text(encoding='utf-8'))
             for res in bt_results.get('results', []):
                 backtest_data[res.get('strategy_family')] = res.get('runner_metrics', {})
         except Exception:
