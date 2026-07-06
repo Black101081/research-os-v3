@@ -47,7 +47,8 @@ class GlobalsModule(ModuleType):
         super().__init__(name)
         self._kill_switch_active = False
         self._trading_mode = 'paper'
-        self.quality_gate = None
+        orig = sys.modules.get(name)
+        self.quality_gate = getattr(orig, "quality_gate", None) if orig else None
 
         # Restore from DB on boot
         try:
@@ -88,7 +89,8 @@ class GlobalsModule(ModuleType):
                 pass
 
 # Quality Gate — được set bởi SignalOrchestrator khi khởi tạo
-quality_gate = None  # type: ignore
+if not hasattr(sys.modules[__name__], 'quality_gate'):
+    quality_gate = None  # type: ignore
 
 # Replace this module in sys.modules
 current_module = sys.modules[__name__]
