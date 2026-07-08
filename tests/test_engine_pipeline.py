@@ -50,7 +50,7 @@ class EnginePipelineTests(unittest.TestCase):
         engine.process_message({'channel': 'trades', 'data': [{'coin': 'BTC', 'px': 110.81}]})
         snap = engine.snapshot()['BTC']
         self.assertIn('MACD', snap['indicators'])
-        self.assertEqual(snap['regime_state']['regime'], 'uptrend')
+        self.assertEqual(snap['regime_state']['regime'], 'bull_low_normal_vol')
         self.assertTrue(snap['signals']['macd_trend_continuation']['active'])
         self.assertTrue(snap['strategies']['macd_trend_continuation']['execution_ready'])
         spec = build_strategy_spec_v1('BTC', 'macd_trend_continuation', snap['signals']['macd_trend_continuation'], snap, self.config)

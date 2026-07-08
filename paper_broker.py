@@ -29,6 +29,7 @@ class PaperBroker:
         from collections import deque
         self._qualified_signals: deque = deque(maxlen=200)
         self._qs_by_id: dict = {}
+        self.pending_orders: List[Dict[str, Any]] = []
 
         logger.info(
             f"[PaperBroker] Loaded {len(self.positions)} positions, "
@@ -36,8 +37,51 @@ class PaperBroker:
         )
 
     def process_tick(self, symbol: str, current_price: float, current_time: str):
-        if symbol in self.positions:
-            pos = self.positions[symbol]
+        # ── 1. Update pending limit orders (Post-Only + Chasing simulation) ──
+        still_pending = []
+        for order in getattr(self, "pending_orders", []):
+            if order["symbol"] != symbol:
+                still_pending.append(order)
+                continue
+                
+            filled = False
+            if order["direction"] == "long" or order["direction"] == "buy":
+                if current_price <= order["limit_price"]:
+                    filled = True
+            else:
+                if current_price >= order["limit_price"]:
+                    filled = True
+                    
+            if filled:
+                self._fill_pending_order(order, order["limit_price"], 0.0, current_time)
+                continue
+                
+            order["ticks_waiting"] += 1
+            if order["ticks_waiting"] >= 5:
+                if order["chase_count"] < 3:
+                    order["chase_count"] += 1
+                    order["ticks_waiting"] = 0
+                    order["limit_price"] = current_price
+                    logger.info(f"[PaperBroker] CHASE #{order['chase_count']} for {symbol}: new limit_price={current_price}")
+                    still_pending.append(order)
+                else:
+                    taker_fee_pct = 0.0005
+                    total_slippage = 0.0003
+                    if order["direction"] == "long" or order["direction"] == "buy":
+                        fill_price = current_price * (1 + total_slippage)
+                    else:
+                        fill_price = current_price * (1 - total_slippage)
+                    logger.info(f"[PaperBroker] CHASE MAXED OUT. Filling as Taker for {symbol} at {fill_price}")
+                    self._fill_pending_order(order, fill_price, taker_fee_pct, current_time)
+            else:
+                still_pending.append(order)
+                
+        self.pending_orders = still_pending
+
+        # ── 2. Standard position SL/TP checks ──
+        matching_keys = [k for k, p in self.positions.items() if p["symbol"] == symbol]
+        for key in matching_keys:
+            pos = self.positions[key]
             direction   = pos["direction"]
             entry_price = pos["entry_price"]
             quantity    = pos["quantity"]
@@ -71,7 +115,7 @@ class PaperBroker:
                     close_reason  = "Take Profit"
 
             if trigger_close:
-                self.close_position(symbol, current_price, current_time, close_reason)
+                self.close_position(symbol, pos.get("signal_source", "unknown"), current_price, current_time, close_reason)
             else:
                 db.save_position(pos)
 
@@ -103,7 +147,8 @@ class PaperBroker:
         signal_source: str = "unknown",
         extra: dict = None,
     ) -> bool:
-        if symbol in self.positions:
+        pos_key = f"{symbol}_{signal_source}"
+        if pos_key in self.positions:
             db.save_order_log(symbol, direction, quantity, price,
                               stop_loss, take_profit, signal_source,
                               accepted=False, reject_reason="Position already open")
@@ -142,7 +187,7 @@ class PaperBroker:
         }
         if extra:
             pos.update(extra)
-        self.positions[symbol] = pos
+        self.positions[pos_key] = pos
         db.save_position(pos)
         db.save_broker_state(self.balance, self.equity)
         logger.info(
@@ -170,7 +215,8 @@ class PaperBroker:
             return False
 
         # Guard: không mở duplicate position
-        if sig.symbol in self.positions:
+        pos_key = f"{sig.symbol}_{sig.family}"
+        if pos_key in self.positions:
             db.save_order_log(
                 sig.symbol, sig.direction,
                 0, entry_price,
@@ -193,24 +239,57 @@ class PaperBroker:
             )
             return False
 
-        entry_fee    = cost * 0.0005
-        self.balance = round(self.balance - entry_fee, 4)
+        # --- Limit Post-Only Execution Simulation ---
+        pending_order = {
+            "symbol": sig.symbol,
+            "direction": sig.direction,
+            "qty": qty,
+            "limit_price": entry_price,
+            "stop_loss": sig.stop_loss,
+            "take_profit": sig.take_profit,
+            "family": sig.family,
+            "signal_id": sig.signal_id or f"{sig.symbol}_{sig.family}_{getattr(sig, 'interval', 'unknown')}",
+            "signal_res": sig,
+            "qualified": qualified,
+            "chase_count": 0,
+            "ticks_waiting": 0,
+            "extra": {
+                "execution_style": "limit_post_only"
+            }
+        }
+        self.pending_orders.append(pending_order)
+        
+        logger.info(
+            f"[PaperBroker] QUALIFIED LIMIT SUBMITTED {sig.direction.upper()} {sig.symbol} "
+            f"qty={qty} @ {entry_price} | size=${qualified.position_size_usd:.0f}"
+        )
+        return True
 
+    def _fill_pending_order(self, order: dict, fill_price: float, fee_pct: float, fill_time: str):
+        symbol = order["symbol"]
+        direction = order["direction"]
+        qty = order["qty"]
+        sig = order["signal_res"]
+        qualified = order["qualified"]
+        
+        pos_key = f"{symbol}_{sig.family}"
+        cost = qty * fill_price
+        entry_fee = cost * fee_pct
+        self.balance = round(self.balance - entry_fee, 4)
+        
         pos = {
-            # ── Core position fields ──
-            "symbol":           sig.symbol,
-            "direction":        sig.direction,
+            "symbol":           symbol,
+            "direction":        direction,
             "quantity":         qty,
-            "entry_price":      entry_price,
-            "current_price":    entry_price,
-            "stop_loss":        sig.stop_loss,
-            "take_profit":      sig.take_profit,
-            "entry_time":       qualified.qualified_at,
+            "entry_price":      fill_price,
+            "current_price":    fill_price,
+            "stop_loss":        order["stop_loss"],
+            "take_profit":      order["take_profit"],
+            "entry_time":       fill_time,
             "unrealized_pnl":   0.0,
             "entry_fee":        round(entry_fee, 4),
             "signal_source":    sig.family,
-            "signal_id":        sig.signal_id,
-            # ── Quality Gate metadata ──
+            "signal_id":        order["signal_id"],
             "position_size_pct":  qualified.position_size_pct,
             "position_size_usd":  qualified.position_size_usd,
             "risk_amount_usd":    qualified.risk_amount_usd,
@@ -224,24 +303,19 @@ class PaperBroker:
             "interval":           getattr(sig, "interval", "unknown"),
             "cooldown_key":       qualified.cooldown_key,
         }
-        self.positions[sig.symbol] = pos
-        self._qualified_signals.append(qualified)   # ← lưu để dashboard đọc
-
+        self.positions[pos_key] = pos
+        self._qualified_signals.append(qualified)
+        
         db.save_position(pos)
         db.save_broker_state(self.balance, self.equity)
-
+        
         logger.info(
-            f"[PaperBroker] QUALIFIED OPEN {sig.direction.upper()} {sig.symbol} "
-            f"qty={qty} @ {entry_price} | "
-            f"size={qualified.position_size_pct:.2f}% (${qualified.position_size_usd:.0f}) | "
-            f"risk=${qualified.risk_amount_usd:.0f} | EV={qualified.expected_value_r:.3f}R | "
-            f"regime={qualified.market_regime} | session={qualified.session_name}"
+            f"[PaperBroker] QUALIFIED OPEN (FILLED LIMIT) {direction.upper()} {symbol} "
+            f"qty={qty} @ {fill_price} | size=${qualified.position_size_usd:.0f} | fee={entry_fee:.4f}"
         )
-        db.save_order_log(
-            sig.symbol, sig.direction, qty, entry_price,
-            sig.stop_loss, sig.take_profit, sig.family,
-            accepted=True, reject_reason=None
-        )
+        db.save_order_log(symbol, direction, qty, fill_price,
+                          order["stop_loss"], order["take_profit"], sig.family,
+                          accepted=True, reject_reason=None)
         return True
 
     def on_signal(self, signal_dict: Dict[str, Any]) -> bool:
@@ -281,14 +355,16 @@ class PaperBroker:
     def close_position(
         self,
         symbol: str,
+        signal_source: str,
         price: float,
         time_str: str | None = None,
         reason: str = "Market Close",
     ):
-        if symbol not in self.positions:
+        pos_key = f"{symbol}_{signal_source}"
+        if pos_key not in self.positions:
             return
 
-        pos         = self.positions.pop(symbol)
+        pos         = self.positions.pop(pos_key)
         direction   = pos["direction"]
         entry_price = pos["entry_price"]
         quantity    = pos["quantity"]
@@ -325,10 +401,18 @@ class PaperBroker:
         }
         self.trade_history.append(trade)
 
-        db.delete_position(symbol)
+        db.delete_position(symbol, signal_source)
         db.save_trade(trade)
         db.save_broker_state(self.balance, self.equity)
-        logger.info(f"[PaperBroker] CLOSED {symbol} at {price}. Net PnL: {net_pnl} ({reason})")
+        logger.info(f"[PaperBroker] CLOSED {symbol} ({signal_source}) at {price}. Net PnL: {net_pnl} ({reason})")
+
+    def clear_all_positions(self):
+        self.positions.clear()
+        conn = db.get_connection()
+        with conn:
+            conn.execute("DELETE FROM paper_positions")
+        conn.close()
+        logger.info("[PaperBroker] Cleared all open positions from memory and database.")
 
     def get_summary(self) -> Dict[str, Any]:
         return {

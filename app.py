@@ -61,7 +61,6 @@ def build_subscriptions() -> List[Dict[str, Any]]:
             subs.append({"type": "candle", "coin": symbol, "interval": interval})
             subs.append({"type": "trades", "coin": symbol})
             subs.append({"type": "bbo",    "coin": symbol})
-        subs.append({"type": "allMids"})
         return subs
 
     # Multi-TF subscription
@@ -75,7 +74,6 @@ def build_subscriptions() -> List[Dict[str, Any]]:
         if cfg.get("subscribe_active_asset_ctx", False):
             subs.append({"type": "activeAssetCtx", "coin": symbol})
 
-    subs.append({"type": "allMids"})
     return subs
 
 
@@ -96,62 +94,6 @@ async def writer_loop() -> None:
     while True:
         snapshot = engine.snapshot()
         
-        # Process live paper broker ticks & entries
-        for symbol, state in snapshot.items():
-            current_price = state.get('last_trade') or state.get('mid')
-            current_time = state.get('updated_at')
-            if current_price:
-                broker.process_tick(symbol, current_price, current_time)
-                
-            for strategy_name, strategy_state in state.get('strategies', {}).items():
-                if strategy_state.get('execution_ready'):
-                    risk = state.get('risk_packets', {}).get(strategy_name, {})
-                    qty = risk.get('target_quantity', 0.0)
-                    side = strategy_state.get('entry_side', 'long')
-                    stop_policy = risk.get('stop_policy', {})
-                    sl = stop_policy.get('initial_stop_price')
-                    # Lấy từ risk packet trước
-                    tp = risk.get('take_profit_price')
-                    if tp is None:
-                        bb_width = state.get('indicators', {}).get('BollingerWidth', 0.03)
-                        tp_pct = max(0.01, bb_width)  # ít nhất 1%, scale theo vol
-                        tp = current_price * (1 + tp_pct) if side == 'long' else current_price * (1 - tp_pct)
-                    
-                    # Execute order only when Quality Gate is NOT present AND kill switch is off
-                    import globals as _globals
-                    if qty > 0 and _globals.quality_gate is None and not _globals.kill_switch_active:
-                        broker.execute_order(
-                            symbol=symbol,
-                            direction=side,
-                            quantity=qty,
-                            price=current_price,
-                            stop_loss=sl,
-                            take_profit=tp,
-                            time_str=current_time,
-                            signal_source=strategy_name
-                        )
-                    elif qty > 0 and _globals.quality_gate is not None and not _globals.kill_switch_active:
-                        try:
-                            from signal_models import SignalResult
-                            from quality_gate_models import QualifiedSignal
-                            sig = SignalResult(
-                                signal_id=f"{symbol}_{strategy_name}_{current_time or 'now'}",
-                                symbol=symbol,
-                                family=strategy_name,
-                                direction=side,
-                                entry_price=current_price,
-                                stop_loss=sl if sl else 0.0,
-                                take_profit=tp if tp else 0.0,
-                                confidence_score=strategy_state.get('confidence_score', 0.6),
-                                risk_reward_ratio=risk.get('risk_reward_ratio', 1.5),
-                                asset_role=CONFIG.get('asset_config', {}).get(symbol, {}).get('role', 'altcoin'),
-                            )
-                            result = _globals.quality_gate.evaluate(sig)
-                            if isinstance(result, QualifiedSignal):
-                                broker.on_qualified_signal(result)
-                        except Exception as _qge:
-                            logger.warning(f"[writer_loop] quality_gate.evaluate failed for {symbol}/{strategy_name}: {_qge}")
-
         specs, packets = build_specs_and_packets(snapshot)
         try:
             await asyncio.wait_for(registry.write_snapshot(snapshot), timeout=5.0)
@@ -196,7 +138,13 @@ async def writer_loop() -> None:
 async def lifespan(app: FastAPI):
     global ws_client, ws_task, writer_task, registry_task
     try:
-        warmup_engine(engine, CONFIG['symbols'], CONFIG['candle_interval'], CONFIG['runtime']['warmup_bars'])
+        warmup_engine(
+            engine,
+            CONFIG['symbols'],
+            CONFIG['candle_interval'],
+            CONFIG['runtime']['warmup_bars'],
+            asset_config=CONFIG.get('asset_config')
+        )
     except Exception as e:
         logger.error(f"Warmup failed: {e}. Proceeding without warmup.")
     async def on_message_wrapper(msg):
@@ -315,7 +263,13 @@ async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
         
         # 4. Perform Warmup Bootstrap
         try:
-            warmup_engine(engine, new_symbols, new_interval, CONFIG['runtime']['warmup_bars'])
+            warmup_engine(
+                engine,
+                new_symbols,
+                new_interval,
+                CONFIG['runtime']['warmup_bars'],
+                asset_config=CONFIG.get('asset_config')
+            )
         except Exception as e:
             logger.error(f"Warmup failed during reload: {e}")
             

@@ -26,11 +26,35 @@ FAMILY_VOLATILITY_EVENT  = "volatility_event"
 FAMILY_FUNDING_REVERSION = "funding_reversion"
 FAMILY_OI_REVERSAL       = "oi_reversal"
 
+# The 18 Specific Strategy Families
+FAMILY_MACD_CONTINUATION          = "macd_trend_continuation"
+FAMILY_EMA_PULLBACK_BUY            = "ema_pullback_buy"
+FAMILY_OBV_ACCUMULATION            = "obv_accumulation_breakout"
+FAMILY_HIGH_VOL_BREAKOUT           = "high_vol_breakout"
+FAMILY_MOMENTUM_CHASING            = "momentum_chasing"
+FAMILY_VWAP_REVERSION_FADE         = "vwap_reversion_fade"
+FAMILY_RANGE_BOUNDARY_FADE         = "range_boundary_fade"
+FAMILY_LIQUIDITY_SWEEP             = "liquidity_sweep_hunt"
+FAMILY_HFT_ORDER_FLOW              = "hft_order_flow_momentum"
+FAMILY_HIGH_VOL_BREAKDOWN          = "high_vol_breakdown"
+FAMILY_SHORT_MOMENTUM              = "short_momentum_chase"
+FAMILY_OVERSOLD_BOUNCE             = "oversold_bounce"
+FAMILY_BEAR_TREND_CONTINUATION     = "bearish_trend_continuation"
+FAMILY_EMA_PULLBACK_SELL           = "ema_pullback_sell"
+FAMILY_OBV_DISTRIBUTION            = "obv_distribution_breakdown"
+FAMILY_MEAN_REVERSION_SQUEEZE      = "mean_reversion_squeeze"
+
 # All valid families — used for validation
 ALL_FAMILIES = {
     FAMILY_ORDER_FLOW, FAMILY_BREAKOUT, FAMILY_MEAN_REVERSION,
     FAMILY_CONTINUATION, FAMILY_DIVERGENCE, FAMILY_VOLATILITY_EVENT,
     FAMILY_FUNDING_REVERSION, FAMILY_OI_REVERSAL,
+    FAMILY_MACD_CONTINUATION, FAMILY_EMA_PULLBACK_BUY, FAMILY_OBV_ACCUMULATION,
+    FAMILY_HIGH_VOL_BREAKOUT, FAMILY_MOMENTUM_CHASING, FAMILY_VWAP_REVERSION_FADE,
+    FAMILY_RANGE_BOUNDARY_FADE, FAMILY_LIQUIDITY_SWEEP, FAMILY_HFT_ORDER_FLOW,
+    FAMILY_HIGH_VOL_BREAKDOWN, FAMILY_SHORT_MOMENTUM, FAMILY_OVERSOLD_BOUNCE,
+    FAMILY_BEAR_TREND_CONTINUATION, FAMILY_EMA_PULLBACK_SELL, FAMILY_OBV_DISTRIBUTION,
+    FAMILY_MEAN_REVERSION_SQUEEZE
 }
 
 

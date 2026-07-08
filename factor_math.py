@@ -830,3 +830,386 @@ def calc_spread_bps(best_bid: float, best_ask: float) -> float:
         return 0.0
     mid = (best_bid + best_ask) / 2
     return float((best_ask - best_bid) / mid * 10000) if mid else 0.0
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A4. CANDLESTICK PATTERN RECOGNITION
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_candle_patterns(opens: list, highs: list, lows: list, closes: list) -> Dict[str, float]:
+    """
+    Recognize candlestick patterns on the most recent bars.
+    Returns a dict with 1.0 (pattern present) or 0.0 (absent).
+    Supported: hammer, shooting_star, bull_engulfing, bear_engulfing, inside_bar, doji, pinbar.
+    """
+    out = {
+        "hammer": 0.0, "shooting_star": 0.0, "bull_engulfing": 0.0,
+        "bear_engulfing": 0.0, "inside_bar": 0.0, "doji": 0.0, "pinbar": 0.0
+    }
+    if len(closes) < 2:
+        return out
+    
+    o = np.array(opens[-2:], dtype=float)
+    h = np.array(highs[-2:], dtype=float)
+    l = np.array(lows[-2:], dtype=float)
+    c = np.array(closes[-2:], dtype=float)
+
+    # Current bar metrics
+    body = abs(c[1] - o[1])
+    range_bar = h[1] - l[1]
+    if range_bar == 0:
+        return out
+
+    # Shadows
+    lower_shadow = min(c[1], o[1]) - l[1]
+    upper_shadow = h[1] - max(c[1], o[1])
+
+    # 1. Doji (extremely small body)
+    if body <= range_bar * 0.10:
+        out["doji"] = 1.0
+
+    # 2. Hammer (long lower shadow, small body near top)
+    if lower_shadow > body * 2.0 and upper_shadow < range_bar * 0.15:
+        out["hammer"] = 1.0
+
+    # 3. Shooting Star (long upper shadow, small body near bottom)
+    if upper_shadow > body * 2.0 and lower_shadow < range_bar * 0.15:
+        out["shooting_star"] = 1.0
+
+    # 4. Bullish Engulfing
+    if c[0] < o[0] and c[1] > o[1] and c[1] >= o[0] and o[1] <= c[0]:
+        out["bull_engulfing"] = 1.0
+
+    # 5. Bearish Engulfing
+    if c[0] > o[0] and c[1] < o[1] and c[1] <= o[0] and o[1] >= c[0]:
+        out["bear_engulfing"] = 1.0
+
+    # 6. Inside Bar
+    if h[1] < h[0] and l[1] > l[0]:
+        out["inside_bar"] = 1.0
+
+    # 7. Pinbar
+    is_bull_pin = (lower_shadow > range_bar * 0.60) and (body < range_bar * 0.35)
+    is_bear_pin = (upper_shadow > range_bar * 0.60) and (body < range_bar * 0.35)
+    if is_bull_pin or is_bear_pin:
+        out["pinbar"] = 1.0
+
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A5. ADVANCED VOLATILITY & CHANNELS
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_parkinson_volatility(highs: list, lows: list, period: int = 20) -> float:
+    """
+    Parkinson Volatility based on High/Low range.
+    """
+    if len(highs) < period:
+        return 0.0
+    h = np.array(highs[-period:], dtype=float)
+    l = np.array(lows[-period:], dtype=float)
+    if (l <= 0).any():
+        return 0.0
+    # log(h/l)^2
+    log_ratio_sq = np.log(h / l) ** 2
+    vol = np.sqrt(log_ratio_sq.sum() / (4.0 * np.log(2.0) * period))
+    return float(vol)
+
+
+def calc_keltner_channels(highs: list, lows: list, closes: list,
+                          ema_period: int = 20, atr_period: int = 10,
+                          multiplier: float = 2.0) -> Dict[str, float]:
+    """
+    Keltner Channels: EMA of closes ± multiplier * ATR.
+    """
+    if len(closes) < max(ema_period, atr_period):
+        return {"kc_mid": 0.0, "kc_upper": 0.0, "kc_lower": 0.0}
+    
+    mid = calc_ema(closes, ema_period)
+    atr = calc_atr(highs, lows, closes, atr_period)
+    upper = mid + multiplier * atr
+    lower = mid - multiplier * atr
+    return {"kc_mid": mid, "kc_upper": upper, "kc_lower": lower}
+
+
+def calc_cmo(closes: list, period: int = 9) -> float:
+    """
+    Chande Momentum Oscillator (CMO).
+    """
+    if len(closes) < period + 1:
+        return 0.0
+    c = np.array(closes[-period-1:], dtype=float)
+    deltas = np.diff(c)
+    gains = np.where(deltas > 0, deltas, 0.0)
+    losses = np.where(deltas < 0, -deltas, 0.0)
+    sum_g = gains.sum()
+    sum_l = losses.sum()
+    denom = sum_g + sum_l
+    return float((sum_g - sum_l) / denom * 100) if denom else 0.0
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A6. NEW TREND / MOMENTUM
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_supertrend(highs: list, lows: list, closes: list,
+                    period: int = 10, multiplier: float = 3.0) -> tuple[float, float]:
+    """
+    SuperTrend indicator. Returns (supertrend_value, direction).
+    direction: 1.0 (bullish), -1.0 (bearish).
+    """
+    if len(closes) < period + 1:
+        return float(closes[-1]) if closes else 0.0, 1.0
+
+    h = np.array(highs, dtype=float)
+    l = np.array(lows, dtype=float)
+    c = np.array(closes, dtype=float)
+    n = c.size
+
+    # True Range
+    tr = np.zeros(n)
+    tr[0] = h[0] - l[0]
+    for i in range(1, n):
+        tr[i] = max(h[i] - l[i], abs(h[i] - c[i-1]), abs(l[i] - c[i-1]))
+    
+    # ATR Wilder smoothing
+    atr = np.zeros(n)
+    atr[period] = tr[1:period+1].mean()
+    for i in range(period + 1, n):
+        atr[i] = (atr[i-1] * (period - 1) + tr[i]) / period
+
+    hl2 = (h + l) / 2
+    basic_ub = hl2 + multiplier * atr
+    basic_lb = hl2 - multiplier * atr
+
+    final_ub = np.zeros(n)
+    final_lb = np.zeros(n)
+    st = np.zeros(n)
+    dir_arr = np.zeros(n)
+
+    dir_arr[period] = 1.0
+    st[period] = basic_ub[period]
+
+    for i in range(period + 1, n):
+        # Upper band adjustment
+        if basic_ub[i] < final_ub[i-1] or c[i-1] > final_ub[i-1]:
+            final_ub[i] = basic_ub[i]
+        else:
+            final_ub[i] = final_ub[i-1]
+
+        # Lower band adjustment
+        if basic_lb[i] > final_lb[i-1] or c[i-1] < final_lb[i-1]:
+            final_lb[i] = basic_lb[i]
+        else:
+            final_lb[i] = final_lb[i-1]
+
+        # Direction calculation
+        if st[i-1] == final_ub[i-1]:
+            dir_arr[i] = -1.0 if c[i] <= final_ub[i] else 1.0
+        else:
+            dir_arr[i] = 1.0 if c[i] >= final_lb[i] else -1.0
+
+        st[i] = final_ub[i] if dir_arr[i] == -1.0 else final_lb[i]
+
+    return float(st[-1]), float(dir_arr[-1])
+
+
+def calc_stochastic_oscillator(highs: list, lows: list, closes: list,
+                              k_period: int = 14, d_period: int = 3) -> tuple[float, float]:
+    """
+    Stochastic Oscillator (%K, %D).
+    """
+    if len(closes) < k_period + d_period:
+        return 50.0, 50.0
+    h = np.array(highs, dtype=float)
+    l = np.array(lows, dtype=float)
+    c = np.array(closes, dtype=float)
+
+    # %K series
+    k_vals = []
+    for i in range(len(c) - d_period - 2, len(c)):
+        start_idx = max(0, i - k_period + 1)
+        sub_h = h[start_idx:i + 1]
+        sub_l = l[start_idx:i + 1]
+        sub_c = c[i]
+        highest_h = sub_h.max() if len(sub_h) > 0 else sub_c
+        lowest_l = sub_l.min() if len(sub_l) > 0 else sub_c
+        denom = highest_h - lowest_l
+        k_val = (sub_c - lowest_l) / denom * 100 if denom else 50.0
+        k_vals.append(k_val)
+
+    # %D is SMA of %K
+    k = k_vals[-1]
+    d = sum(k_vals[-d_period:]) / d_period
+    return float(k), float(d)
+
+
+def calc_cci(highs: list, lows: list, closes: list, period: int = 20) -> float:
+    """
+    Commodity Channel Index (CCI).
+    """
+    if len(closes) < period:
+        return 0.0
+    h = np.array(highs[-period:], dtype=float)
+    l = np.array(lows[-period:], dtype=float)
+    c = np.array(closes[-period:], dtype=float)
+    
+    tp = (h + l + c) / 3
+    sma_tp = tp.mean()
+    mean_dev = np.abs(tp - sma_tp).mean()
+    if mean_dev == 0:
+        return 0.0
+    cci = (tp[-1] - sma_tp) / (0.015 * mean_dev)
+    return float(cci)
+
+
+# ─────────────────────────────────────────────────────────────────────
+# A7. NEW VOLUME INDICATORS
+# ─────────────────────────────────────────────────────────────────────
+
+def calc_mfi(highs: list, lows: list, closes: list, volumes: list, period: int = 14) -> float:
+    """
+    Money Flow Index (MFI).
+    """
+    if len(closes) < period + 1:
+        return 50.0
+    h = np.array(highs[-period-1:], dtype=float)
+    l = np.array(lows[-period-1:], dtype=float)
+    c = np.array(closes[-period-1:], dtype=float)
+    v = np.array(volumes[-period-1:], dtype=float)
+
+    tp = (h + l + c) / 3
+    rmf = tp * v
+
+    pos_flow = 0.0
+    neg_flow = 0.0
+    for i in range(1, len(tp)):
+        if tp[i] > tp[i-1]:
+            pos_flow += rmf[i]
+        elif tp[i] < tp[i-1]:
+            neg_flow += rmf[i]
+
+    if neg_flow == 0:
+        return 100.0 if pos_flow > 0 else 50.0
+    mfr = pos_flow / neg_flow
+    return float(100.0 - 100.0 / (1.0 + mfr))
+
+
+def calc_ease_of_movement(highs: list, lows: list, volumes: list, period: int = 14) -> float:
+    """
+    Ease of Movement (EMV) smoothed.
+    """
+    if len(highs) < period + 1:
+        return 0.0
+    h = np.array(highs, dtype=float)
+    l = np.array(lows, dtype=float)
+    v = np.array(volumes, dtype=float)
+    
+    hl2 = (h + l) / 2
+    dm = hl2[1:] - hl2[:-1]
+    box_ratio = (v[1:] / 100000000.0) / (h[1:] - l[1:])
+    emv_raw = np.where(h[1:] - l[1:] > 0, dm / box_ratio, 0.0)
+    
+    # Return smoothed EMV (SMA of raw EMV)
+    if len(emv_raw) < period:
+        return 0.0
+    return float(emv_raw[-period:].mean())
+
+
+def calc_volume_profile_va(closes: list, volumes: list, bins: int = 20,
+                           value_area_pct: float = 0.70) -> Dict[str, float]:
+    """
+    Calculate Point of Control (POC), Value Area High (VAH), and Value Area Low (VAL).
+    """
+    out = {"poc": 0.0, "vah": 0.0, "val": 0.0}
+    if len(closes) < 10:
+        val = float(closes[-1]) if closes else 0.0
+        return {"poc": val, "vah": val, "val": val}
+
+    c = np.array(closes, dtype=float)
+    v = np.array(volumes, dtype=float)
+    lo, hi = c.min(), c.max()
+    if hi == lo:
+        return {"poc": lo, "vah": lo, "val": lo}
+
+    edges = np.linspace(lo, hi, bins + 1)
+    bin_vols = np.zeros(bins)
+    for price, vol in zip(c, v):
+        idx = min(int((price - lo) / (hi - lo) * bins), bins - 1)
+        bin_vols[idx] += vol
+
+    # 1. Find POC (bin with highest volume)
+    poc_idx = int(np.argmax(bin_vols))
+    poc_price = (edges[poc_idx] + edges[poc_idx + 1]) / 2
+    out["poc"] = float(poc_price)
+
+    # 2. Grow Value Area around POC
+    total_vol = bin_vols.sum()
+    target_vol = total_vol * value_area_pct
+    current_vol = bin_vols[poc_idx]
+
+    left_idx = poc_idx
+    right_idx = poc_idx
+
+    while current_vol < target_vol:
+        # volume to add on the left side
+        left_vol = bin_vols[left_idx - 1] if left_idx > 0 else 0
+        # volume to add on the right side
+        right_vol = bin_vols[right_idx + 1] if right_idx < bins - 1 else 0
+
+        if left_vol == 0 and right_vol == 0:
+            break
+
+        if left_vol >= right_vol:
+            left_idx -= 1
+            current_vol += left_vol
+        else:
+            right_idx += 1
+            current_vol += right_vol
+
+    out["val"] = float(edges[left_idx])
+    out["vah"] = float(edges[right_idx + 1])
+    return out
+
+
+# ── CVD Slope & Decayed OFI/TFI ──────────────────────────────────
+def calc_cvd_slope(prices: List[float], sizes: List[float], sides: List[str], window: int = 20) -> float:
+    """
+    Calculates the linear regression slope of CVD over a specified rolling window of trades.
+    """
+    if len(sizes) < window or len(sides) < window:
+        return 0.0
+    
+    sz = np.asarray(sizes, dtype=np.float64)
+    sd = sides
+    signs = np.where(np.array(sd) == "B", 1.0, np.where(np.array(sd) == "A", -1.0, 0.0))
+    cvd_ticks = np.cumsum(sz * signs)
+    
+    y = cvd_ticks[-window:]
+    x = np.arange(window, dtype=np.float64)
+    
+    x_mean = np.mean(x)
+    y_mean = np.mean(y)
+    numerator = np.sum((x - x_mean) * (y - y_mean))
+    denominator = np.sum((x - x_mean) ** 2)
+    if denominator == 0.0:
+        return 0.0
+    return float(numerator / denominator)
+
+
+def calc_decayed_flow_imbalance(sizes: List[float], sides: List[str], window: int = 20, lambda_val: float = 0.05) -> float:
+    """
+    Calculates exponentially time-decayed Trade Flow Imbalance.
+    """
+    if len(sizes) < window or len(sides) < window:
+        return 0.0
+    sz = np.asarray(sizes[-window:], dtype=np.float64)
+    sd = sides[-window:]
+    signs = np.where(np.array(sd) == "B", 1.0, np.where(np.array(sd) == "A", -1.0, 0.0))
+    
+    weights = np.exp(-lambda_val * np.arange(window)[::-1])
+    weighted_delta = sz * signs * weights
+    total_weighted = np.sum(sz * weights)
+    
+    return float(np.sum(weighted_delta) / total_weighted) if total_weighted else 0.0

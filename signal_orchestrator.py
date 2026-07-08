@@ -11,14 +11,20 @@ from multi_tf_state import MultiTFSymbolState, TFState, TFBar
 from collections import deque
 
 # Import the new structures
-from signal_models import SignalResult, SignalBatch
-from signal_library import (
-    evaluate_all_signals,
+from signal_models import (
+    SignalResult, SignalBatch,
     DIRECTION_BOTH, DIRECTION_LONG, DIRECTION_SHORT,
     FAMILY_BREAKOUT, FAMILY_CONTINUATION, FAMILY_DIVERGENCE,
     FAMILY_FUNDING_REVERSION, FAMILY_MEAN_REVERSION,
     FAMILY_OI_REVERSAL, FAMILY_ORDER_FLOW, FAMILY_VOLATILITY_EVENT,
+    FAMILY_MACD_CONTINUATION, FAMILY_EMA_PULLBACK_BUY, FAMILY_OBV_ACCUMULATION,
+    FAMILY_HIGH_VOL_BREAKOUT, FAMILY_MOMENTUM_CHASING, FAMILY_VWAP_REVERSION_FADE,
+    FAMILY_RANGE_BOUNDARY_FADE, FAMILY_LIQUIDITY_SWEEP, FAMILY_HFT_ORDER_FLOW,
+    FAMILY_HIGH_VOL_BREAKDOWN, FAMILY_SHORT_MOMENTUM, FAMILY_OVERSOLD_BOUNCE,
+    FAMILY_BEAR_TREND_CONTINUATION, FAMILY_EMA_PULLBACK_SELL, FAMILY_OBV_DISTRIBUTION,
+    FAMILY_MEAN_REVERSION_SQUEEZE
 )
+from signal_library import evaluate_all_signals
 
 # Path to template library
 TEMPLATE_LIBRARY_PATH = Path(__file__).resolve().parent / 'signal_template_library_v1.json'
@@ -84,12 +90,22 @@ def compute_expr_score(expr: str, context: Dict[str, float], is_invalidation: bo
 
 def _regime_allowed(sig: Dict[str, Any], regime_state: Dict[str, Any]) -> bool:
     regime = regime_state.get('regime')
+    legacy_map = {
+        'bull_low_normal_vol': 'uptrend',
+        'bull_high_vol': 'uptrend',
+        'bear_low_normal_vol': 'downtrend',
+        'bear_high_vol': 'downtrend',
+        'sideways_low_normal_vol': 'range_chop',
+        'sideways_high_vol': 'high_volatility',
+    }
+    legacy_regime = legacy_map.get(regime, regime)
     preferred = sig.get('preferred_regimes') or sig.get('default_regime_scope', [])
     avoid = sig.get('avoid_regimes', [])
-    if regime in avoid:
+    if regime in avoid or legacy_regime in avoid:
         return False
-    if preferred and regime not in preferred:
-        return False
+    if preferred:
+        if regime not in preferred and legacy_regime not in preferred:
+            return False
     return True
 
 # Best available timeframes for each signal family
@@ -102,6 +118,23 @@ BEST_TFS = {
     FAMILY_VOLATILITY_EVENT:  ["5m", "1m"],
     FAMILY_FUNDING_REVERSION: ["15m", "5m", "1m"],
     FAMILY_OI_REVERSAL:       ["15m", "5m", "1m"],
+    # 18 strategy mappings
+    FAMILY_MACD_CONTINUATION:          ["1h", "15m", "5m", "1m"],
+    FAMILY_EMA_PULLBACK_BUY:            ["1h", "15m", "5m", "1m"],
+    FAMILY_OBV_ACCUMULATION:            ["15m", "5m", "1m"],
+    FAMILY_HIGH_VOL_BREAKOUT:           ["15m", "5m", "1m"],
+    FAMILY_MOMENTUM_CHASING:            ["15m", "5m", "1m"],
+    FAMILY_VWAP_REVERSION_FADE:         ["1h", "15m", "1m"],
+    FAMILY_RANGE_BOUNDARY_FADE:         ["1h", "15m", "1m"],
+    FAMILY_LIQUIDITY_SWEEP:             ["1h", "15m", "1m"],
+    FAMILY_HFT_ORDER_FLOW:              ["5m", "1m"],
+    FAMILY_HIGH_VOL_BREAKDOWN:          ["15m", "5m", "1m"],
+    FAMILY_SHORT_MOMENTUM:              ["15m", "5m", "1m"],
+    FAMILY_OVERSOLD_BOUNCE:             ["1h", "15m", "1m"],
+    FAMILY_BEAR_TREND_CONTINUATION:     ["1h", "15m", "5m", "1m"],
+    FAMILY_EMA_PULLBACK_SELL:           ["1h", "15m", "5m", "1m"],
+    FAMILY_OBV_DISTRIBUTION:            ["15m", "5m", "1m"],
+    FAMILY_MEAN_REVERSION_SQUEEZE:      ["1h", "15m", "1m"],
 }
 
 def evaluate_supported_signals(
@@ -137,15 +170,7 @@ def evaluate_supported_signals(
             confirmed = safe_eval_expression(confirm_expr, context) if confirm_expr else True
             invalidated = safe_eval_expression(invalidate_expr, context) if invalidate_expr else False
             
-            preferred = alpha.get('preferred_regimes') or alpha.get('regime_scope') or []
-            avoid = alpha.get('avoid_regimes', [])
-            current_regime = regime_state.get('regime')
-            if avoid and current_regime in avoid:
-                regime_ok = False
-            elif preferred and current_regime not in preferred:
-                regime_ok = False
-            else:
-                regime_ok = True
+            regime_ok = _regime_allowed(alpha, regime_state)
             
             active = bool(triggered and confirmed and not invalidated and regime_ok and regime_state.get('tradable', False))
             confirmation_score = compute_expr_score(confirm_expr, context, is_invalidation=False)
@@ -252,10 +277,22 @@ def evaluate_supported_signals(
     # 2. Upgraded pure signal library evaluation
     # Build or use sym_state
     if sym_state is None:
-        # Cannot build meaningful sym_state without real bar history.
-        # Skip signal library evaluation entirely to avoid false negatives
-        # from flat mock bars (ATR=0, MACD=0 kill every signal).
-        pass
+        sym_state = MultiTFSymbolState(symbol=symbol)
+        # We populate the standard intervals
+        for interval in ["1m", "5m", "15m", "1h"]:
+            tf = TFState(symbol=symbol, interval=interval)
+            tf.indicators = indicators
+            close_px = last_close or indicators.get("vwap", 100.0) or 100.0
+            if close_px <= 0:
+                close_px = 100.0
+            tf.bars = deque([
+                TFBar(ts="2026-07-06T00:00:00Z", open=close_px, high=close_px, low=close_px, close=close_px, volume=10.0)
+                for _ in range(100)
+            ], maxlen=300)
+            sym_state.tf_states[interval] = tf
+        
+        sym_state.funding_rate = indicators.get("funding_rate", 0.0)
+        sym_state.open_interest = indicators.get("oi", 0.0)
     
     if sym_state is not None:
         # Asset role mapping
@@ -263,14 +300,24 @@ def evaluate_supported_signals(
 
         # Evaluate each of the 8 signal families
         families_mapping = {
-            FAMILY_CONTINUATION:      "signal_macd_continuation",
-            FAMILY_DIVERGENCE:        "signal_rsi_divergence",
-            FAMILY_BREAKOUT:          "signal_bb_squeeze_breakout",
-            FAMILY_MEAN_REVERSION:    "signal_mean_reversion",
-            FAMILY_ORDER_FLOW:        "signal_order_flow_imbalance",
-            FAMILY_VOLATILITY_EVENT:  "signal_volatility_event",
-            FAMILY_FUNDING_REVERSION: "signal_funding_reversion",
-            FAMILY_OI_REVERSAL:       "signal_oi_reversal",
+            FAMILY_MACD_CONTINUATION:          "signal_macd_continuation",
+            FAMILY_EMA_PULLBACK_BUY:            "signal_ema_pullback_buy",
+            FAMILY_OBV_ACCUMULATION:            "signal_obv_accumulation_breakout",
+            FAMILY_HIGH_VOL_BREAKOUT:           "signal_high_vol_breakout",
+            FAMILY_MOMENTUM_CHASING:            "signal_momentum_chasing",
+            FAMILY_VWAP_REVERSION_FADE:         "signal_vwap_reversion_fade",
+            FAMILY_RANGE_BOUNDARY_FADE:         "signal_range_boundary_fade",
+            FAMILY_LIQUIDITY_SWEEP:             "signal_liquidity_sweep_hunt",
+            FAMILY_HFT_ORDER_FLOW:              "signal_hft_order_flow_momentum",
+            FAMILY_HIGH_VOL_BREAKDOWN:          "signal_high_vol_breakdown",
+            FAMILY_SHORT_MOMENTUM:              "signal_short_momentum_chase",
+            FAMILY_OVERSOLD_BOUNCE:             "signal_oversold_bounce",
+            FAMILY_BEAR_TREND_CONTINUATION:     "signal_bearish_trend_continuation",
+            FAMILY_EMA_PULLBACK_SELL:           "signal_ema_pullback_sell",
+            FAMILY_OBV_DISTRIBUTION:            "signal_obv_distribution_breakdown",
+            FAMILY_MEAN_REVERSION_SQUEEZE:      "signal_mean_reversion_squeeze",
+            FAMILY_FUNDING_REVERSION:           "signal_funding_reversion",
+            FAMILY_OI_REVERSAL:                 "signal_oi_reversal",
         }
 
         # Call evaluate_all_signals ONCE per timeframe, cache results

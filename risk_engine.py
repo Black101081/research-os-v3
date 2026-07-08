@@ -20,7 +20,8 @@ def compute_position_size(
     last_price: float,
     indicators: dict,
     risk_config: dict,
-    portfolio_state: dict
+    portfolio_state: dict,
+    regime_state: dict | None = None
 ) -> dict:
     """
     Computes target_quantity using one of the configured sizing models.
@@ -70,72 +71,109 @@ def compute_position_size(
                     notes = f"ATR sizing. Risk amount: {risk_amount_usd:.2f}, Stop distance: {stop_distance_usd:.4f}"
 
         elif sizing_model == 'kelly':
-            # Default stats
-            trade_count = 0
-            win_rate = 0.5
-            avg_win_pct = 0.015
-            avg_loss_pct = 0.01
-
-            # Resolve stats from portfolio_state if possible
-            trade_history = portfolio_state.get('trade_history', portfolio_state.get('history', []))
-            if trade_history:
-                trade_count = len(trade_history)
-                wins = [t for t in trade_history if t.get('pnl', 0.0) > 0]
-                losses = [t for t in trade_history if t.get('pnl', 0.0) <= 0]
-                win_rate = len(wins) / trade_count if trade_count > 0 else 0.5
+            if regime_state:
+                # Regime-based Kelly sizing
+                regime_confidence = float(regime_state.get('confidence', 0.65))
+                family_win_rates = {
+                    "continuation": 0.52,
+                    "breakout": 0.48,
+                    "mean_reversion": 0.58,
+                    "funding_reversion": 0.55,
+                    "oi_reversal": 0.50
+                }
+                allowed_fams = regime_state.get('allowed_signal_families', [])
+                win_rate = 0.50
+                for f_name in allowed_fams:
+                    if f_name in family_win_rates:
+                        win_rate = family_win_rates[f_name]
+                        break
                 
-                win_pcts = []
-                for t in wins:
-                    entry_val = t.get('entry_price', 0) * t.get('quantity', 0)
-                    if entry_val > 0:
-                        win_pcts.append(t.get('pnl', 0.0) / entry_val)
-                avg_win_pct = sum(win_pcts) / len(win_pcts) if win_pcts else 0.015
+                rr = float(risk_config.get('rr_ratio', 2.0))
                 
-                loss_pcts = []
-                for t in losses:
-                    entry_val = t.get('entry_price', 0) * t.get('quantity', 0)
-                    if entry_val > 0:
-                        loss_pcts.append(abs(t.get('pnl', 0.0)) / entry_val)
-                avg_loss_pct = sum(loss_pcts) / len(loss_pcts) if loss_pcts else 0.01
-
-            if 'trade_count' in portfolio_state:
-                trade_count = int(portfolio_state['trade_count'])
-            if 'win_rate' in portfolio_state:
-                win_rate = float(portfolio_state['win_rate'])
-            if 'avg_win_pct' in portfolio_state:
-                avg_win_pct = float(portfolio_state['avg_win_pct'])
-            if 'avg_loss_pct' in portfolio_state:
-                avg_loss_pct = float(portfolio_state['avg_loss_pct'])
-
-            if trade_count < min_trades_for_kelly:
-                sizing_model_used = 'atr'
-                atr_pct_14 = indicators.get('atr_pct_14')
-                if atr_pct_14 is None or atr_pct_14 <= 0:
-                    sizing_model_used = 'fixed'
-                    notes = f"Kelly fallback to ATR, but atr_pct_14 <= 0 or None; fallback to fixed sizing (trades: {trade_count} < {min_trades_for_kelly})."
-                    target_quantity = fixed_quantity
+                # Kelly formula: f* = (p * R - q) / R
+                kelly_f = (win_rate * rr - (1.0 - win_rate)) / rr
+                
+                # Scale by regime confidence and Kelly fraction
+                fractional_kelly = kelly_f * kelly_fraction * regime_confidence
+                kelly_risk_fraction = max(0.0, min(fractional_kelly, max_kelly_pct))
+                
+                risk_amount_usd = balance * kelly_risk_fraction
+                atr_val = indicators.get('atr_pct_14') or indicators.get('atr_14_pct')
+                if atr_val and atr_val > 0:
+                    # If it's atr_14_pct, it's already in percent (e.g. 0.25 for 0.25%), convert if needed
+                    atr_pct = atr_val / 100.0 if atr_val > 0.5 else atr_val
+                    stop_distance_usd = atr_pct * last_price * atr_stop_multiplier
                 else:
-                    risk_amount_usd = balance * risk_pct_per_trade
-                    atr_distance = atr_pct_14 * last_price
-                    stop_distance_usd = atr_distance * atr_stop_multiplier
-                    if stop_distance_usd <= 0:
+                    stop_distance_usd = last_price * 0.015 * atr_stop_multiplier
+                
+                target_quantity = risk_amount_usd / stop_distance_usd if stop_distance_usd > 0 else fixed_quantity
+                notes = f"Regime Kelly. WinRate: {win_rate:.2f}, Conf: {regime_confidence:.2f}, kelly_f: {kelly_f:.4f}, target_qty: {target_quantity:.6f}"
+            else:
+                # Fallback to trade history-based Kelly
+                trade_count = 0
+                win_rate = 0.5
+                avg_win_pct = 0.015
+                avg_loss_pct = 0.01
+
+                trade_history = portfolio_state.get('trade_history', portfolio_state.get('history', []))
+                if trade_history:
+                    trade_count = len(trade_history)
+                    wins = [t for t in trade_history if t.get('pnl', 0.0) > 0]
+                    losses = [t for t in trade_history if t.get('pnl', 0.0) <= 0]
+                    win_rate = len(wins) / trade_count if trade_count > 0 else 0.5
+                    
+                    win_pcts = []
+                    for t in wins:
+                        entry_val = t.get('entry_price', 0) * t.get('quantity', 0)
+                        if entry_val > 0:
+                            win_pcts.append(t.get('pnl', 0.0) / entry_val)
+                    avg_win_pct = sum(win_pcts) / len(win_pcts) if win_pcts else 0.015
+                    
+                    loss_pcts = []
+                    for t in losses:
+                        entry_val = t.get('entry_price', 0) * t.get('quantity', 0)
+                        if entry_val > 0:
+                            loss_pcts.append(abs(t.get('pnl', 0.0)) / entry_val)
+                    avg_loss_pct = sum(loss_pcts) / len(loss_pcts) if loss_pcts else 0.01
+
+                if 'trade_count' in portfolio_state:
+                    trade_count = int(portfolio_state['trade_count'])
+                if 'win_rate' in portfolio_state:
+                    win_rate = float(portfolio_state['win_rate'])
+                if 'avg_win_pct' in portfolio_state:
+                    avg_win_pct = float(portfolio_state['avg_win_pct'])
+                if 'avg_loss_pct' in portfolio_state:
+                    avg_loss_pct = float(portfolio_state['avg_loss_pct'])
+
+                if trade_count < min_trades_for_kelly:
+                    sizing_model_used = 'atr'
+                    atr_pct_14 = indicators.get('atr_pct_14')
+                    if atr_pct_14 is None or atr_pct_14 <= 0:
                         sizing_model_used = 'fixed'
-                        notes = "stop_distance_usd <= 0; fallback to fixed sizing."
+                        notes = f"Kelly fallback to ATR, but atr_pct_14 <= 0 or None; fallback to fixed sizing (trades: {trade_count} < {min_trades_for_kelly})."
                         target_quantity = fixed_quantity
                     else:
-                        target_quantity = risk_amount_usd / stop_distance_usd
-                        notes = f"Kelly fallback to ATR (trades: {trade_count} < {min_trades_for_kelly}). Risk amount: {risk_amount_usd:.2f}, Stop distance: {stop_distance_usd:.4f}"
-            else:
-                if avg_win_pct <= 0:
-                    kelly_f = 0.0
+                        risk_amount_usd = balance * risk_pct_per_trade
+                        atr_distance = atr_pct_14 * last_price
+                        stop_distance_usd = atr_distance * atr_stop_multiplier
+                        if stop_distance_usd <= 0:
+                            sizing_model_used = 'fixed'
+                            notes = "stop_distance_usd <= 0; fallback to fixed sizing."
+                            target_quantity = fixed_quantity
+                        else:
+                            target_quantity = risk_amount_usd / stop_distance_usd
+                            notes = f"Kelly fallback to ATR (trades: {trade_count} < {min_trades_for_kelly}). Risk amount: {risk_amount_usd:.2f}, Stop distance: {stop_distance_usd:.4f}"
                 else:
-                    kelly_f = (win_rate * avg_win_pct - (1.0 - win_rate) * avg_loss_pct) / avg_win_pct
-                
-                fractional_kelly = kelly_f * kelly_fraction
-                kelly_risk_fraction = max(0.0, min(fractional_kelly, max_kelly_pct))
-                risk_amount_usd = balance * kelly_risk_fraction
-                target_quantity = risk_amount_usd / last_price
-                notes = f"Kelly sizing. kelly_f: {kelly_f:.4f}, fractional: {fractional_kelly:.4f}, risk fraction: {kelly_risk_fraction:.4f}"
+                    if avg_win_pct <= 0:
+                        kelly_f = 0.0
+                    else:
+                        kelly_f = (win_rate * avg_win_pct - (1.0 - win_rate) * avg_loss_pct) / avg_win_pct
+                    
+                    fractional_kelly = kelly_f * kelly_fraction
+                    kelly_risk_fraction = max(0.0, min(fractional_kelly, max_kelly_pct))
+                    risk_amount_usd = balance * kelly_risk_fraction
+                    target_quantity = risk_amount_usd / last_price
+                    notes = f"Kelly sizing. kelly_f: {kelly_f:.4f}, fractional: {fractional_kelly:.4f}, risk fraction: {kelly_risk_fraction:.4f}"
 
         else:
             sizing_model_used = 'fixed'
@@ -232,7 +270,8 @@ def build_risk_packet_v1(
         last_price=last_price or 0.0,
         indicators=indicators,
         risk_config=config,
-        portfolio_state=portfolio
+        portfolio_state=portfolio,
+        regime_state=regime_state
     )
     target_quantity = sizing_result["target_quantity"]
     target_notional = target_quantity * last_price if last_price and target_quantity else 0.0
@@ -245,19 +284,38 @@ def build_risk_packet_v1(
     take_profit_price = None
 
     if last_price:
-        if sizing_result["sizing_model_used"] == "atr" and sizing_result["atr_pct_14"] is not None:
-            atr_pct_14 = sizing_result["atr_pct_14"]
-            atr_stop_multiplier = float(config.get('atr_stop_multiplier', 1.5))
+        # Determine base Stop/TP multiplier and ratio
+        atr_stop_multiplier = float(config.get('atr_stop_multiplier', 1.5))
+        
+        # 1. Dynamic R:R Targets (ADX-based SL/TP scaling)
+        adx_14 = indicators.get('adx_14', 0.0)
+        if adx_14 > 30.0:
+            rr_ratio = 3.5  # Strong trend: run winners
+        elif adx_14 < 18.0:
+            rr_ratio = 1.3  # Choppy: tight take profits
+        else:
             rr_ratio = float(config.get('rr_ratio', 2.0))
+
+        # Check if ATR is available
+        atr_val = sizing_result.get("atr_pct_14") or indicators.get('atr_pct_14') or indicators.get('atr_14_pct')
+        if atr_val is not None and atr_val > 0:
+            atr_pct_14 = atr_val / 100.0 if atr_val > 0.5 else atr_val
             
-            suggested_stop_loss_pct = atr_pct_14 * atr_stop_multiplier
+            # 2. Spread-buffered Stop Loss
+            suggested_stop_loss_pct = atr_pct_14 * atr_stop_multiplier + (spread_bps / 10000.0)
             suggested_take_profit_pct = suggested_stop_loss_pct * rr_ratio
             
             stop_distance_fraction = suggested_stop_loss_pct
             stop_price = last_price * (1 - suggested_stop_loss_pct) if entry_side == 'long' else last_price * (1 + suggested_stop_loss_pct)
             take_profit_price = last_price * (1 + suggested_take_profit_pct) if entry_side == 'long' else last_price * (1 - suggested_take_profit_pct)
         else:
-            stop_price = last_price * (1 - stop_distance_fraction) if entry_side == 'long' else last_price * (1 + stop_distance_fraction)
+            # Fallback to standard stop_distance_fraction, adding spread buffer
+            suggested_stop_loss_pct = stop_distance_fraction + (spread_bps / 10000.0)
+            suggested_take_profit_pct = suggested_stop_loss_pct * rr_ratio
+            
+            stop_distance_fraction = suggested_stop_loss_pct
+            stop_price = last_price * (1 - suggested_stop_loss_pct) if entry_side == 'long' else last_price * (1 + suggested_stop_loss_pct)
+            take_profit_price = last_price * (1 + suggested_take_profit_pct) if entry_side == 'long' else last_price * (1 - suggested_take_profit_pct)
 
     if stop_distance_fraction > 0.02:
         advisory_flags.append('wide_stop_distance')

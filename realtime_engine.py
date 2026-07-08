@@ -19,7 +19,9 @@ from factor_math import (
     compute_divergence,
     flow_imbalance_np,
     macd_history_np,
-    rsi_history_np
+    rsi_history_np,
+    calc_cvd_slope,
+    calc_decayed_flow_imbalance
 )
 from multi_tf_state import MultiTFEngine
 from asset_tf_fitness import is_fitness_ok, fitness_summary, get_fitness
@@ -223,42 +225,47 @@ class ResearchEngine:
     def process_message(self, msg: Dict[str, Any]):
         channel = msg.get('channel')
         data = msg.get('data', {})
-        if channel == 'trades':
-            self._handle_trades(data)
-        elif channel == 'candle':
-            # Also forward to MultiTFEngine for all intervals
-            self._mtf.handle_candle(data)
-            self._handle_candle(data)   # existing handler (handles 1m SymbolState)
-            return                       # avoid double-call, wrap existing call
-        elif channel == 'bbo':
-            self._handle_bbo(data)
-        elif channel == 'allMids':
-            self._handle_all_mids(data)
-        elif channel == 'l2Book':
-            self._mtf.handle_l2book(data)
-        elif channel == 'activeAssetCtx':
-            self._mtf.handle_active_asset_ctx(data)
-            symbol = data.get("coin")
-            ctx = data.get("ctx", {})
-            if symbol and ctx:
-                fr = ctx.get("funding")
-                oi = ctx.get("openInterest")
-                if fr is not None:
-                    try:
-                        if symbol not in self._funding_history:
-                            from collections import deque as _deque
-                            self._funding_history[symbol] = _deque(maxlen=48)
-                        self._funding_history[symbol].append(float(fr))
-                    except (TypeError, ValueError):
-                        pass
-                if oi is not None:
-                    try:
-                        if symbol not in self._oi_history:
-                            from collections import deque as _deque
-                            self._oi_history[symbol] = _deque(maxlen=200)
-                        self._oi_history[symbol].append(float(oi))
-                    except (TypeError, ValueError):
-                        pass
+        
+        try:
+            if channel == 'trades':
+                self._handle_trades(data)
+            elif channel == 'candle':
+                # Also forward to MultiTFEngine for all intervals
+                self._mtf.handle_candle(data)
+                self._handle_candle(data)   # existing handler (handles 1m SymbolState)
+                return                       # avoid double-call, wrap existing call
+            elif channel == 'bbo':
+                self._handle_bbo(data)
+            elif channel == 'allMids':
+                self._handle_all_mids(data)
+            elif channel == 'l2Book':
+                self._mtf.handle_l2book(data)
+            elif channel == 'activeAssetCtx':
+                self._mtf.handle_active_asset_ctx(data)
+                symbol = data.get("coin")
+                ctx = data.get("ctx", {})
+                if symbol and ctx:
+                    fr = ctx.get("funding")
+                    oi = ctx.get("openInterest")
+                    if fr is not None:
+                        try:
+                            if symbol not in self._funding_history:
+                                from collections import deque as _deque
+                                self._funding_history[symbol] = _deque(maxlen=48)
+                            self._funding_history[symbol].append(float(fr))
+                        except (TypeError, ValueError):
+                            pass
+                    if oi is not None:
+                        try:
+                            if symbol not in self._oi_history:
+                                from collections import deque as _deque
+                                self._oi_history[symbol] = _deque(maxlen=200)
+                            self._oi_history[symbol].append(float(oi))
+                        except (TypeError, ValueError):
+                            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"[Ingest Error] Failed parsing {channel} message: {e}", exc_info=True)
 
     def _get_state(self, symbol: str) -> Optional[SymbolState]:
         return self.states.get(symbol)
@@ -411,7 +418,11 @@ class ResearchEngine:
         
         sizes = list(state.trade_sizes)
         sides = list(state.trade_sides)
+        pxs = list(state.trade_prices)
+        state.factors['trade_flow_imbalance_20'] = flow_imbalance_np(sizes, sides, 20)
         state.factors['trade_flow_imbalance_50'] = flow_imbalance_np(sizes, sides, 50)
+        state.factors['cvd_slope_20'] = calc_cvd_slope(pxs, sizes, sides, 20)
+        state.factors['decayed_flow_imbalance_20'] = calc_decayed_flow_imbalance(sizes, sides, 20, 0.05)
         
         if sizes:
             mean_sz = mean(sizes[-20:]) if len(sizes) >= 20 else mean(sizes)
@@ -475,6 +486,8 @@ class ResearchEngine:
         
         state.indicators['trade_flow_imbalance_20'] = state.factors.get('trade_flow_imbalance_20', 0.0)
         state.indicators['trade_flow_imbalance_50'] = state.factors.get('trade_flow_imbalance_50', 0.0)
+        state.indicators['cvd_slope_20'] = state.factors.get('cvd_slope_20', 0.0)
+        state.indicators['decayed_flow_imbalance_20'] = state.factors.get('decayed_flow_imbalance_20', 0.0)
         state.indicators['large_trade_ratio'] = state.factors.get('large_trade_ratio', 0.0)
         state.indicators['btc_ret_1'] = state.factors.get('btc_ret_1', 0.0)
         state.indicators['market_correlation_20'] = state.factors.get('market_correlation_20', 0.0)
@@ -529,8 +542,9 @@ class ResearchEngine:
 
             symbol = state.symbol
 
-            # Skip if already in position for this symbol
-            if symbol in self._paper_broker.positions:
+            # Skip if already in position for this strategy and symbol
+            pos_key = f"{symbol}_{strategy_name}"
+            if pos_key in self._paper_broker.positions:
                 continue
 
             direction = strategy_state.get('entry_side', 'long')
@@ -827,7 +841,7 @@ class ResearchEngine:
                     t.get('pnl', 0) for t in broker_summary.get('trade_history', [])
                 ),
                 'symbol_exposure': {
-                    p['symbol']: p.get('quantity', 0) * p.get('current_price', 0)
+                    p['symbol']: sum(x.get('quantity', 0) * x.get('current_price', 0) for x in broker_summary.get('positions', []) if x['symbol'] == p['symbol'])
                     for p in broker_summary.get('positions', [])
                 },
                 'trade_history': broker_summary.get('trade_history', []),

@@ -25,15 +25,24 @@ def get_connection() -> sqlite3.Connection:
         return conn
     except sqlite3.DatabaseError as e:
         if "malformed" in str(e).lower():
-            logger.error(f"Database at {DB_PATH} is malformed: {e}. Attempting self-healing by deletion.")
+            import time
+            import shutil
+            ts = int(time.time())
+            logger.error(f"Database at {DB_PATH} is malformed: {e}. Attempting self-healing by backing up and recreating.")
             for suffix in ["", "-wal", "-shm"]:
                 path = DB_PATH + suffix
                 if os.path.exists(path):
                     try:
-                        os.remove(path)
-                        logger.info(f"Deleted malformed database file: {path}")
-                    except Exception as rm_err:
-                        logger.error(f"Failed to delete {path}: {rm_err}")
+                        bak_path = f"{path}.corrupt_{ts}"
+                        shutil.move(path, bak_path)
+                        logger.info(f"Backed up malformed database file to: {bak_path}")
+                    except Exception as backup_err:
+                        logger.error(f"Failed to backup {path}: {backup_err}")
+                        try:
+                            os.remove(path)
+                            logger.info(f"Deleted malformed database file as fallback: {path}")
+                        except Exception as rm_err:
+                            logger.error(f"Failed to delete {path}: {rm_err}")
             # Retry connection once
             conn = sqlite3.connect(DB_PATH, check_same_thread=False)
             conn.row_factory = sqlite3.Row
@@ -49,6 +58,60 @@ def migrate_schema(conn):
     Thêm các columns mới vào bảng cũ nếu chưa có.
     SQLite không hỗ trợ ADD COLUMN IF NOT EXISTS nên phải try/except.
     """
+    # Check if paper_positions has single primary key on symbol, migrate if so
+    try:
+        cursor = conn.execute("PRAGMA table_info(paper_positions)")
+        columns = cursor.fetchall()
+        if columns:
+            pk_cols = [col["name"] for col in columns if col["pk"] > 0]
+            if len(pk_cols) == 1 and pk_cols[0] == "symbol":
+                logger.info("[DB Migration] Upgrading paper_positions to composite primary key (symbol, signal_source)")
+                conn.execute("ALTER TABLE paper_positions RENAME TO paper_positions_old")
+                conn.execute("""
+                    CREATE TABLE paper_positions (
+                        symbol        TEXT NOT NULL,
+                        direction     TEXT NOT NULL,
+                        quantity      REAL NOT NULL,
+                        entry_price   REAL NOT NULL,
+                        current_price REAL NOT NULL,
+                        stop_loss     REAL,
+                        take_profit   REAL,
+                        entry_time    TEXT NOT NULL,
+                        entry_fee     REAL NOT NULL DEFAULT 0.0,
+                        unrealized_pnl REAL NOT NULL DEFAULT 0.0,
+                        signal_source TEXT NOT NULL DEFAULT 'unknown',
+                        position_size_pct  REAL DEFAULT 0.0,
+                        position_size_usd  REAL DEFAULT 0.0,
+                        risk_amount_usd    REAL DEFAULT 0.0,
+                        expected_value_r   REAL DEFAULT 0.0,
+                        market_regime      TEXT DEFAULT 'unknown',
+                        btc_structure      TEXT DEFAULT 'neutral',
+                        session_name       TEXT DEFAULT 'unknown',
+                        confidence_score   REAL DEFAULT 0.0,
+                        risk_reward_ratio  REAL DEFAULT 0.0,
+                        family             TEXT DEFAULT 'unknown',
+                        interval           TEXT DEFAULT 'unknown',
+                        cooldown_key       TEXT DEFAULT '',
+                        signal_id          TEXT DEFAULT '',
+                        PRIMARY KEY (symbol, signal_source)
+                    )
+                """)
+                # Insert the old columns
+                conn.execute("""
+                    INSERT OR REPLACE INTO paper_positions 
+                    SELECT symbol, direction, quantity, entry_price, current_price,
+                           stop_loss, take_profit, entry_time, entry_fee,
+                           unrealized_pnl, signal_source,
+                           position_size_pct, position_size_usd, risk_amount_usd, expected_value_r,
+                           market_regime, btc_structure, session_name, confidence_score,
+                           risk_reward_ratio, family, interval, cooldown_key, signal_id
+                    FROM paper_positions_old
+                """)
+                conn.execute("DROP TABLE paper_positions_old")
+                logger.info("[DB Migration] paper_positions schema upgraded successfully")
+    except Exception as e:
+        logger.error(f"[DB Migration] Failed upgrading paper_positions: {e}")
+
     migrations = [
         "ALTER TABLE trade_history ADD COLUMN position_size_pct REAL DEFAULT 0.0",
         "ALTER TABLE trade_history ADD COLUMN risk_amount_usd    REAL DEFAULT 0.0",
@@ -95,7 +158,7 @@ def init_db():
         );
 
         CREATE TABLE IF NOT EXISTS paper_positions (
-            symbol        TEXT PRIMARY KEY,
+            symbol        TEXT,
             direction     TEXT NOT NULL,
             quantity      REAL NOT NULL,
             entry_price   REAL NOT NULL,
@@ -118,7 +181,8 @@ def init_db():
             family             TEXT DEFAULT 'unknown',
             interval           TEXT DEFAULT 'unknown',
             cooldown_key       TEXT DEFAULT '',
-            signal_id          TEXT DEFAULT ''
+            signal_id          TEXT DEFAULT '',
+            PRIMARY KEY (symbol, signal_source)
         );
 
         CREATE TABLE IF NOT EXISTS trade_history (
@@ -293,7 +357,7 @@ def save_position(pos: Dict[str, Any]):
                  market_regime, btc_structure, session_name, confidence_score,
                  risk_reward_ratio, family, interval, cooldown_key, signal_id)
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(symbol) DO UPDATE SET
+            ON CONFLICT(symbol, signal_source) DO UPDATE SET
                 direction=excluded.direction,
                 quantity=excluded.quantity,
                 entry_price=excluded.entry_price,
@@ -303,7 +367,6 @@ def save_position(pos: Dict[str, Any]):
                 entry_time=excluded.entry_time,
                 entry_fee=excluded.entry_fee,
                 unrealized_pnl=excluded.unrealized_pnl,
-                signal_source=excluded.signal_source,
                 position_size_pct=excluded.position_size_pct,
                 position_size_usd=excluded.position_size_usd,
                 risk_amount_usd=excluded.risk_amount_usd,
@@ -334,10 +397,10 @@ def save_position(pos: Dict[str, Any]):
     conn.close()
 
 
-def delete_position(symbol: str):
+def delete_position(symbol: str, signal_source: str):
     conn = get_connection()
     with conn:
-        conn.execute("DELETE FROM paper_positions WHERE symbol=?", (symbol,))
+        conn.execute("DELETE FROM paper_positions WHERE symbol=? AND signal_source=?", (symbol, signal_source))
     conn.close()
 
 
@@ -345,7 +408,7 @@ def load_positions() -> Dict[str, Dict[str, Any]]:
     conn = get_connection()
     rows = conn.execute("SELECT * FROM paper_positions").fetchall()
     conn.close()
-    return {row["symbol"]: dict(row) for row in rows}
+    return {f"{row['symbol']}_{row['signal_source']}": dict(row) for row in rows}
 
 
 def save_trade(trade: Dict[str, Any]):

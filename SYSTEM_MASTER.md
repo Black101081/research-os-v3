@@ -275,3 +275,13 @@ Hệ thống healthy khi:
 - Error rate < 5%
 - Bars >= 35 cho tất cả symbols
 - Ít nhất 1 trade trong 2 giờ đầu
+
+---
+
+## 10. Môi Trường Vận Hành & Deployment (Vĩnh Cửu)
+
+- **Môi trường DEV**: Vận hành và phát triển trên **Docker Desktop** cục bộ.
+- **Môi trường PRODUCTION**: Vận hành trực tiếp trên **Hugging Face (HF) Space**.
+- **Quy trình triển khai**:
+  1. Khi phát triển tính năng mới hoặc sửa lỗi, bắt buộc thực hiện kiểm thử trên môi trường **DEV (Docker Desktop)** trước.
+  2. Chỉ khi hệ thống hoạt động ổn định và vượt qua toàn bộ test suite trên Docker Desktop mới tiến hành deploy lên **PRODUCTION (HF Space)**.

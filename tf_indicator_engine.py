@@ -14,17 +14,27 @@ if TYPE_CHECKING:
 # Anything below → skip (do not write stale NaN-equivalent 0.0 for trend indicators)
 # ─────────────────────────────────────────────────────────────────────
 MIN_BARS: Dict[str, int] = {
-    "volume":      5,
-    "rsi":        15,
-    "macd":       35,
-    "adx":        29,   # 2 * 14 + 1
-    "bb":         20,
-    "stoch_rsi":  36,
-    "cmf":        20,
-    "obv":         5,
-    "vwap":        5,
-    "poc":         5,
-    "ema_spread":  21,
+    "volume":          5,
+    "rsi":            15,
+    "macd":           35,
+    "adx":            29,   # 2 * 14 + 1
+    "bb":             20,
+    "stoch_rsi":      36,
+    "cmf":            20,
+    "obv":             5,
+    "vwap":            5,
+    "poc":             5,
+    "ema_spread":      21,
+    "parkinson_vol":   20,
+    "keltner":         20,
+    "cmo":             10,
+    "supertrend":      11,
+    "stochastic":      17,
+    "cci":             20,
+    "mfi":             15,
+    "emv":             15,
+    "vol_profile_va":  10,
+    "candle_patterns":  2,
 }
 
 
@@ -40,25 +50,23 @@ def compute_tf_indicators(
     Compute all relevant indicators for a single (symbol, interval) TFState.
     Results are written directly into tf_state.indicators (dict).
     This function is idempotent — safe to call after every new bar.
-
-    Parameters
-    ----------
-    tf_state        : TFState object to read bars from and write indicators to.
-    sym_state       : Optional MultiTFSymbolState for crypto-native context.
-    funding_history : list of recent funding_rate snapshots (chronological).
-    oi_history      : list of recent open_interest snapshots (chronological).
-    best_bid        : current best bid price (for spread_bps).
-    best_ask        : current best ask price (for spread_bps).
     """
     ind = tf_state.indicators
     closes  = tf_state.closes()
     highs   = tf_state.highs()
     lows    = tf_state.lows()
+    opens   = tf_state.opens()
     volumes = tf_state.volumes()
     n = len(closes)
 
     if n < 2:
         return   # Nothing useful to compute
+
+    # ── CANDLESTICK PATTERNS ────────────────────────────────────────
+    if n >= MIN_BARS["candle_patterns"]:
+        patterns = fm.calc_candle_patterns(opens, highs, lows, closes)
+        for pat, val in patterns.items():
+            ind[f"pattern_{pat}"] = val
 
     # ── VOLUME INDICATORS ──────────────────────────────────────────
     if n >= MIN_BARS["vwap"]:
@@ -81,6 +89,18 @@ def compute_tf_indicators(
     if n >= MIN_BARS["cmf"]:
         ind["cmf_20"] = fm.calc_cmf(highs, lows, closes, volumes, period=20)
 
+    if n >= MIN_BARS["mfi"]:
+        ind["mfi_14"] = fm.calc_mfi(highs, lows, closes, volumes, period=14)
+
+    if n >= MIN_BARS["emv"]:
+        ind["emv_14"] = fm.calc_ease_of_movement(highs, lows, volumes, period=14)
+
+    if n >= MIN_BARS["vol_profile_va"]:
+        va = fm.calc_volume_profile_va(closes, volumes)
+        ind["vol_profile_poc"] = va["poc"]
+        ind["vol_profile_vah"] = va["vah"]
+        ind["vol_profile_val"] = va["val"]
+
     # ── VOLATILITY ─────────────────────────────────────────────────
     if n >= 15:
         ind["atr_14"]     = fm.calc_atr(highs, lows, closes, period=14)
@@ -89,6 +109,15 @@ def compute_tf_indicators(
     if n >= MIN_BARS["bb"]:
         ind["bb_width_20"]  = fm.calc_bb_width(closes, period=20)
         ind["bb_pct_20"]    = fm.calc_bb_pct(closes, period=20)
+
+    if n >= MIN_BARS["parkinson_vol"]:
+        ind["parkinson_volatility_20"] = fm.calc_parkinson_volatility(highs, lows, period=20)
+
+    if n >= MIN_BARS["keltner"]:
+        kc = fm.calc_keltner_channels(highs, lows, closes)
+        ind["kc_mid"]   = kc["kc_mid"]
+        ind["kc_upper"] = kc["kc_upper"]
+        ind["kc_lower"] = kc["kc_lower"]
 
     # ── RSI ────────────────────────────────────────────────────────
     if n >= MIN_BARS["rsi"]:
@@ -106,9 +135,25 @@ def compute_tf_indicators(
            -1.0 if (macd_line < signal_line and histogram < 0) else 0.0
         )
 
-    # ── ADX ────────────────────────────────────────────────────────
+    # ── ADX & TREND/MOMENTUM ───────────────────────────────────────
     if n >= MIN_BARS["adx"]:
         ind["adx_14"] = fm.calc_adx(highs, lows, closes, period=14)
+
+    if n >= MIN_BARS["cmo"]:
+        ind["cmo_9"] = fm.calc_cmo(closes, period=9)
+
+    if n >= MIN_BARS["supertrend"]:
+        st_val, st_dir = fm.calc_supertrend(highs, lows, closes)
+        ind["supertrend"] = st_val
+        ind["supertrend_direction"] = st_dir
+
+    if n >= MIN_BARS["stochastic"]:
+        stoch_k, stoch_d = fm.calc_stochastic_oscillator(highs, lows, closes)
+        ind["stoch_k"] = stoch_k
+        ind["stoch_d"] = stoch_d
+
+    if n >= MIN_BARS["cci"]:
+        ind["cci_20"] = fm.calc_cci(highs, lows, closes, period=20)
 
     # ── EMA SPREAD ─────────────────────────────────────────────────
     if n >= MIN_BARS["ema_spread"]:

@@ -34,7 +34,6 @@ class HyperliquidWSClient:
                 subs.append({"type": "candle", "coin": symbol, "interval": interval})
                 subs.append({"type": "trades", "coin": symbol})
                 subs.append({"type": "bbo",    "coin": symbol})
-            subs.append({"type": "allMids"})
             return subs
 
         # Multi-TF subscription
@@ -48,7 +47,6 @@ class HyperliquidWSClient:
             if cfg.get("subscribe_active_asset_ctx", False):
                 subs.append({"type": "activeAssetCtx", "coin": symbol})
 
-        subs.append({"type": "allMids"})
         return subs
 
     async def _send_subscriptions(self):
@@ -59,12 +57,18 @@ class HyperliquidWSClient:
 
     async def run_forever(self):
         self._running = True
+        current_reconnect_seconds = self.reconnect_seconds
+        
         while self._running:
             try:
                 logger.info("Connecting to %s", self.url)
                 async with websockets.connect(self.url, ping_interval=20, ping_timeout=20) as ws:
                     self._ws = ws
                     await self._send_subscriptions()
+                    
+                    # Reset backoff on successful connection
+                    current_reconnect_seconds = self.reconnect_seconds
+                    
                     async for raw in ws:
                         try:
                             message = json.loads(raw)
@@ -76,7 +80,10 @@ class HyperliquidWSClient:
                 raise
             except Exception as exc:
                 logger.exception("Websocket loop error: %s", exc)
-                await asyncio.sleep(self.reconnect_seconds)
+                logger.info(f"Reconnecting in {current_reconnect_seconds} seconds...")
+                await asyncio.sleep(current_reconnect_seconds)
+                # Exponential backoff capped at 60 seconds
+                current_reconnect_seconds = min(current_reconnect_seconds * 2, 60)
 
     def stop(self):
         self._running = False

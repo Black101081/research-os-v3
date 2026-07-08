@@ -1,0 +1,12 @@
+.git
+.gitignore
+.pytest_cache
+**/__pycache__
+**/*.db
+**/*.db.corrupt_*
+**/*.log
+runtime/
+sandbox_test_reports/
+.agents
+.gemini
+live_integration_test_*

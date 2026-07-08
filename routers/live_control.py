@@ -63,7 +63,7 @@ def post_kill_switch(request: Request, payload: Dict[str, Any] = Body(default={}
         
     # 3. Activate Kill Switch & Close open positions
     globals.kill_switch_active = True
-    globals.broker.positions.clear()
+    globals.broker.clear_all_positions()
     
     # 4. Log event with timestamp + user agent
     user_agent = request.headers.get('user-agent', 'unknown')

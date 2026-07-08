@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 BASE = Path(__file__).resolve().parent
-result = subprocess.run([sys.executable, '-m', 'unittest', 'discover', '-s', str(BASE / 'tests'), '-v'], capture_output=True, text=True)
+result = subprocess.run([sys.executable, '-m', 'unittest', 'discover', '-s', str(BASE / 'tests'), '-v'], capture_output=True, text=True, encoding='utf-8', errors='replace')
 summary = {
     'returncode': result.returncode,
     'stdout': result.stdout,
@@ -14,6 +14,6 @@ summary = {
 runtime = BASE / 'runtime'
 runtime.mkdir(exist_ok=True)
 (runtime / 'test_report.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
-md = '# Full Test Suite Report\n\n```text\n' + result.stdout + '\n' + result.stderr + '\n```\n'
+md = '# Full Test Suite Report\n\n```text\n' + (result.stdout or '') + '\n' + (result.stderr or '') + '\n```\n'
 (runtime / 'test_report.md').write_text(md, encoding='utf-8')
 print(json.dumps({'status': summary['status'], 'returncode': result.returncode}))

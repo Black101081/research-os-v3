@@ -27,7 +27,7 @@
     "risk_config_v1": {
       "account_equity": 10000.0,
       "cash_available": 10000.0,
-      "sizing_model": "atr",
+      "sizing_model": "kelly",
       "risk_pct_per_trade": 0.01,
       "atr_stop_multiplier": 2.0,
       "rr_ratio": 2.5,

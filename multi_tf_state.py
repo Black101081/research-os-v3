@@ -57,6 +57,9 @@ class TFState:
     regime: Dict[str, Any] = field(default_factory=dict)
     updated_at: Optional[str] = None
 
+    def opens(self) -> List[float]:
+        return [b.open for b in self.bars]
+
     def closes(self) -> List[float]:
         return [b.close for b in self.bars]
 

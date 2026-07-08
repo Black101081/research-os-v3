@@ -283,7 +283,7 @@ def test_evaluate_all_signals_dispatcher():
     state = _build_mock_state("BTC", "15m", "anchor", indicators)
     batch = evaluate_all_signals(state, "15m", "anchor")
     assert isinstance(batch, SignalBatch)
-    assert len(batch.results) == 8
+    assert len(batch.results) == 18
     fired = batch.fired_signals()
     assert len(fired) >= 1
     assert batch.best_signal() is not None

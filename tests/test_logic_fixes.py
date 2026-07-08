@@ -7,21 +7,21 @@ from realtime_engine import ResearchEngine, SymbolState
 
 class TestLogicFixes(unittest.TestCase):
     def test_range_chop_fires_with_nonzero_macd(self):
-        """range_chop must be reachable when bb narrow + z low, even if macd != 0"""
+        """range_chop equivalent (sideways_low_normal_vol) must be reachable when bb narrow + z low, even if macd != 0"""
         r = classify_regime(
             {'ret_5': 0.001, 'volatility_20': 0.008},
             {'MACD': 0.01, 'BollingerWidth': 0.02, 'ZScore_Close': 0.3}
         )
-        self.assertEqual(r['regime'], 'range_chop', f"Expected range_chop, got {r['regime']}")
+        self.assertEqual(r['regime'], 'sideways_low_normal_vol', f"Expected sideways_low_normal_vol, got {r['regime']}")
         self.assertTrue(r['tradable'])
 
     def test_uptrend_requires_min_ret5(self):
-        """ret_5 noise (0.0001) must NOT classify as uptrend"""
+        """ret_5 noise (0.0001) must NOT classify as uptrend equivalent (bull_low_normal_vol)"""
         r = classify_regime(
             {'ret_5': 0.0001, 'volatility_20': 0.01},
             {'MACD': 0.001, 'BollingerWidth': 0.05, 'ZScore_Close': 0.1}
         )
-        self.assertNotEqual(r['regime'], 'uptrend', f"Noise ret_5 should not trigger uptrend, got {r['regime']}")
+        self.assertNotIn(r['regime'], ['bull_low_normal_vol', 'bull_high_vol'], f"Noise ret_5 should not trigger bull trend, got {r['regime']}")
 
     def test_prev_bollinger_width_is_stale_not_current(self):
         """prev_bollinger_width must reflect PREVIOUS bar, not current"""

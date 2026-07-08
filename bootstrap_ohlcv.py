@@ -46,13 +46,32 @@ def fetch_candle_snapshot(coin: str, interval: str, lookback_bars: int = 240) ->
     return data if isinstance(data, list) else []
 
 
-def warmup_engine(engine, symbols: List[str], interval: str, lookback_bars: int = 240) -> Dict[str, int]:
+def warmup_engine(
+    engine,
+    symbols: List[str],
+    default_interval: str,
+    lookback_bars: int = 240,
+    asset_config: Dict[str, Any] | None = None
+) -> Dict[str, int]:
     counts: Dict[str, int] = {}
+    import logging
+    logger = logging.getLogger(__name__)
+
     for symbol in symbols:
-        candles = fetch_candle_snapshot(symbol, interval, lookback_bars)
-        inserted = 0
-        for candle in candles:
-            engine.process_message({'channel': 'candle', 'data': candle})
-            inserted += 1
-        counts[symbol] = inserted
+        intervals = [default_interval]
+        if asset_config and symbol in asset_config:
+            intervals = asset_config[symbol].get("candle_intervals", [default_interval])
+        
+        for interval in intervals:
+            try:
+                candles = fetch_candle_snapshot(symbol, interval, lookback_bars)
+                inserted = 0
+                for candle in candles:
+                    engine.process_message({'channel': 'candle', 'data': candle})
+                    inserted += 1
+                counts[f"{symbol}_{interval}"] = inserted
+                counts[symbol] = counts.get(symbol, 0) + inserted
+                logger.info(f"[Warmup] Loaded {inserted} bars for {symbol} on {interval}")
+            except Exception as e:
+                logger.error(f"[Warmup] Failed to load {symbol} on {interval}: {e}")
     return counts
