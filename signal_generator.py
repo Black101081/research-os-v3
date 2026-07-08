@@ -75,6 +75,12 @@ class SignalGenerator:
                 parts.append("abs(btc_ret_1) > 0.003")
             elif factor_id == 'market_correlation_20':
                 parts.append("market_correlation_20 > 0.7")
+            elif factor_id == 'book_imbalance_5':
+                parts.append("abs(book_imbalance_5) > 0.15")
+            elif factor_id == 'book_imbalance_10':
+                parts.append("abs(book_imbalance_10) > 0.10")
+            elif factor_id == 'book_imbalance_20':
+                parts.append("abs(book_imbalance_20) > 0.10")
             else:
                 parts.append(f"{factor_id} > 0")
         return " and ".join(parts)

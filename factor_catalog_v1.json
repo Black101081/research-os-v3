@@ -6,119 +6,914 @@
       "family_id": "trend",
       "description": "Trend-following and directional persistence factors",
       "factors": [
-        {"factor_id": "ret_1", "type": "bar_factor", "description": "1-bar return: (close[-1]/close[-2]) - 1", "min_bars": 2, "tags": ["return", "trend"], "dependencies": ["close"]},
-        {"factor_id": "ret_5", "type": "bar_factor", "description": "5-bar return: (close[-1]/close[-5]) - 1", "min_bars": 5, "tags": ["return", "trend"], "dependencies": ["close"]},
-        {"factor_id": "ret_20", "type": "bar_factor", "description": "20-bar return", "min_bars": 21, "tags": ["return", "trend"], "dependencies": ["close"]},
-        {"factor_id": "ema_spread_8_21", "type": "bar_factor", "description": "(EMA8 - EMA21) / close — normalized EMA crossover distance", "min_bars": 21, "tags": ["ema", "trend"], "dependencies": ["close"]},
-        {"factor_id": "ema_spread_21_55", "type": "bar_factor", "description": "(EMA21 - EMA55) / close — medium trend bias", "min_bars": 55, "tags": ["ema", "trend"], "dependencies": ["close"]},
-        {"factor_id": "price_vs_sma20", "type": "bar_factor", "description": "(close - SMA20) / SMA20 — distance above/below 20-bar mean", "min_bars": 20, "tags": ["sma", "trend"], "dependencies": ["close"]},
-        {"factor_id": "price_vs_sma50", "type": "bar_factor", "description": "(close - SMA50) / SMA50", "min_bars": 50, "tags": ["sma", "trend"], "dependencies": ["close"]},
-        {"factor_id": "MACD", "type": "indicator_alias", "tags": ["trend", "momentum"], "dependencies": ["close"]},
-        {"factor_id": "MACD_signal", "type": "indicator_alias", "tags": ["trend", "momentum"], "dependencies": ["close"]},
-        {"factor_id": "MACD_hist", "type": "indicator_alias", "description": "MACD histogram: MACD - MACD_signal. Sign change = crossover event.", "tags": ["trend", "momentum"], "dependencies": ["close"]},
-        {"factor_id": "macd_hist_slope", "type": "bar_factor", "description": "MACD_hist[-1] - MACD_hist[-2]: direction of histogram change", "min_bars": 35, "tags": ["momentum", "trend"], "dependencies": ["MACD_hist"]}
+        {
+          "factor_id": "ret_1",
+          "type": "bar_factor",
+          "description": "1-bar return: (close[-1]/close[-2]) - 1",
+          "min_bars": 2,
+          "tags": [
+            "return",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "ret_5",
+          "type": "bar_factor",
+          "description": "5-bar return: (close[-1]/close[-5]) - 1",
+          "min_bars": 5,
+          "tags": [
+            "return",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "ret_20",
+          "type": "bar_factor",
+          "description": "20-bar return",
+          "min_bars": 21,
+          "tags": [
+            "return",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "ema_spread_8_21",
+          "type": "bar_factor",
+          "description": "(EMA8 - EMA21) / close — normalized EMA crossover distance",
+          "min_bars": 21,
+          "tags": [
+            "ema",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "ema_spread_21_55",
+          "type": "bar_factor",
+          "description": "(EMA21 - EMA55) / close — medium trend bias",
+          "min_bars": 55,
+          "tags": [
+            "ema",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "price_vs_sma20",
+          "type": "bar_factor",
+          "description": "(close - SMA20) / SMA20 — distance above/below 20-bar mean",
+          "min_bars": 20,
+          "tags": [
+            "sma",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "price_vs_sma50",
+          "type": "bar_factor",
+          "description": "(close - SMA50) / SMA50",
+          "min_bars": 50,
+          "tags": [
+            "sma",
+            "trend"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "MACD",
+          "type": "indicator_alias",
+          "tags": [
+            "trend",
+            "momentum"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "MACD_signal",
+          "type": "indicator_alias",
+          "tags": [
+            "trend",
+            "momentum"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "MACD_hist",
+          "type": "indicator_alias",
+          "description": "MACD histogram: MACD - MACD_signal. Sign change = crossover event.",
+          "tags": [
+            "trend",
+            "momentum"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "macd_hist_slope",
+          "type": "bar_factor",
+          "description": "MACD_hist[-1] - MACD_hist[-2]: direction of histogram change",
+          "min_bars": 35,
+          "tags": [
+            "momentum",
+            "trend"
+          ],
+          "dependencies": [
+            "MACD_hist"
+          ]
+        }
       ]
     },
     {
       "family_id": "mean_reversion",
       "description": "Distance-from-center and normalization factors",
       "factors": [
-        {"factor_id": "zscore_close_20", "type": "bar_factor", "description": "Z-score of close vs 20-bar rolling mean/std", "min_bars": 20, "tags": ["zscore", "reversion"], "dependencies": ["close"]},
-        {"factor_id": "zscore_close_50", "type": "bar_factor", "description": "Z-score of close vs 50-bar rolling mean/std", "min_bars": 50, "tags": ["zscore", "reversion"], "dependencies": ["close"]},
-        {"factor_id": "trade_zscore_20", "type": "micro_factor", "description": "Z-score of last trade price vs 20 recent trades", "tags": ["zscore", "reversion", "intrabar"], "dependencies": ["trade_prices"]},
-        {"factor_id": "distance_from_vwap", "type": "micro_factor", "description": "(last_trade - VWAP) / VWAP — intrabar VWAP deviation", "tags": ["reversion", "intrabar"], "dependencies": ["trade_prices", "trade_sizes"]},
-        {"factor_id": "BBANDS_upper", "type": "indicator_alias", "tags": ["bands", "reversion"], "dependencies": ["close"]},
-        {"factor_id": "BBANDS_lower", "type": "indicator_alias", "tags": ["bands", "reversion"], "dependencies": ["close"]},
-        {"factor_id": "BBANDS_mid", "type": "indicator_alias", "tags": ["bands", "reversion"], "dependencies": ["close"]},
-        {"factor_id": "BollingerWidth", "type": "indicator_alias", "description": "(upper - lower) / mid — normalized band width", "tags": ["bands", "volatility"], "dependencies": ["close"]},
-        {"factor_id": "bb_pct_b", "type": "bar_factor", "description": "%B: (close - lower) / (upper - lower). 0=at lower, 1=at upper, 0.5=at mid", "min_bars": 20, "tags": ["bands", "reversion"], "dependencies": ["close", "BBANDS_upper", "BBANDS_lower"]},
-        {"factor_id": "rsi_14", "type": "bar_factor", "description": "RSI(14): 0-100 oscillator. >70 overbought, <30 oversold", "min_bars": 15, "tags": ["oscillator", "reversion"], "dependencies": ["close"]},
-        {"factor_id": "rsi_7", "type": "bar_factor", "description": "RSI(7): faster oscillator for intraday reversion", "min_bars": 8, "tags": ["oscillator", "reversion"], "dependencies": ["close"]}
+        {
+          "factor_id": "zscore_close_20",
+          "type": "bar_factor",
+          "description": "Z-score of close vs 20-bar rolling mean/std",
+          "min_bars": 20,
+          "tags": [
+            "zscore",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "zscore_close_50",
+          "type": "bar_factor",
+          "description": "Z-score of close vs 50-bar rolling mean/std",
+          "min_bars": 50,
+          "tags": [
+            "zscore",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "trade_zscore_20",
+          "type": "micro_factor",
+          "description": "Z-score of last trade price vs 20 recent trades",
+          "tags": [
+            "zscore",
+            "reversion",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "distance_from_vwap",
+          "type": "micro_factor",
+          "description": "(last_trade - VWAP) / VWAP — intrabar VWAP deviation",
+          "tags": [
+            "reversion",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_prices",
+            "trade_sizes"
+          ]
+        },
+        {
+          "factor_id": "BBANDS_upper",
+          "type": "indicator_alias",
+          "tags": [
+            "bands",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "BBANDS_lower",
+          "type": "indicator_alias",
+          "tags": [
+            "bands",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "BBANDS_mid",
+          "type": "indicator_alias",
+          "tags": [
+            "bands",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "BollingerWidth",
+          "type": "indicator_alias",
+          "description": "(upper - lower) / mid — normalized band width",
+          "tags": [
+            "bands",
+            "volatility"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "bb_pct_b",
+          "type": "bar_factor",
+          "description": "%B: (close - lower) / (upper - lower). 0=at lower, 1=at upper, 0.5=at mid",
+          "min_bars": 20,
+          "tags": [
+            "bands",
+            "reversion"
+          ],
+          "dependencies": [
+            "close",
+            "BBANDS_upper",
+            "BBANDS_lower"
+          ]
+        },
+        {
+          "factor_id": "rsi_14",
+          "type": "bar_factor",
+          "description": "RSI(14): 0-100 oscillator. >70 overbought, <30 oversold",
+          "min_bars": 15,
+          "tags": [
+            "oscillator",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "rsi_7",
+          "type": "bar_factor",
+          "description": "RSI(7): faster oscillator for intraday reversion",
+          "min_bars": 8,
+          "tags": [
+            "oscillator",
+            "reversion"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        }
       ]
     },
     {
       "family_id": "volume_flow",
       "description": "Participation and directional flow factors",
       "factors": [
-        {"factor_id": "rel_volume_20", "type": "bar_factor", "description": "volume[-1] / mean(volume[-20:-1]) — current bar vs recent average", "min_bars": 20, "tags": ["volume", "participation"], "dependencies": ["volume"]},
-        {"factor_id": "rel_volume_5", "type": "bar_factor", "description": "volume[-1] / mean(volume[-5:-1])", "min_bars": 5, "tags": ["volume", "participation"], "dependencies": ["volume"]},
-        {"factor_id": "volume_zscore_20", "type": "bar_factor", "description": "Z-score of current volume vs 20-bar distribution", "min_bars": 20, "tags": ["volume", "anomaly"], "dependencies": ["volume"]},
-        {"factor_id": "trade_flow_imbalance_20", "type": "micro_factor", "description": "(buy_volume - sell_volume) / total_volume over last 20 trades. +1=all buys, -1=all sells", "tags": ["flow", "intrabar"], "dependencies": ["trade_sizes", "trade_sides"]},
-        {"factor_id": "trade_flow_imbalance_50", "type": "micro_factor", "description": "Same as above but 50-trade window for smoother signal", "tags": ["flow", "intrabar"], "dependencies": ["trade_sizes", "trade_sides"]},
-        {"factor_id": "trade_size_mean_20", "type": "micro_factor", "tags": ["volume", "intrabar"], "dependencies": ["trade_sizes"]},
-        {"factor_id": "large_trade_ratio", "type": "micro_factor", "description": "Fraction of trades with size > 2x mean size in last 20 trades. Proxy for institutional activity.", "tags": ["flow", "intrabar", "anomaly"], "dependencies": ["trade_sizes"]},
-        {"factor_id": "RelativeVolume", "type": "indicator_alias", "tags": ["volume"], "dependencies": ["rel_volume_20"]},
-        {"factor_id": "TradeFlowImbalance", "type": "indicator_alias", "tags": ["flow", "intrabar"], "dependencies": ["trade_flow_imbalance_20"]}
+        {
+          "factor_id": "rel_volume_20",
+          "type": "bar_factor",
+          "description": "volume[-1] / mean(volume[-20:-1]) — current bar vs recent average",
+          "min_bars": 20,
+          "tags": [
+            "volume",
+            "participation"
+          ],
+          "dependencies": [
+            "volume"
+          ]
+        },
+        {
+          "factor_id": "rel_volume_5",
+          "type": "bar_factor",
+          "description": "volume[-1] / mean(volume[-5:-1])",
+          "min_bars": 5,
+          "tags": [
+            "volume",
+            "participation"
+          ],
+          "dependencies": [
+            "volume"
+          ]
+        },
+        {
+          "factor_id": "volume_zscore_20",
+          "type": "bar_factor",
+          "description": "Z-score of current volume vs 20-bar distribution",
+          "min_bars": 20,
+          "tags": [
+            "volume",
+            "anomaly"
+          ],
+          "dependencies": [
+            "volume"
+          ]
+        },
+        {
+          "factor_id": "trade_flow_imbalance_20",
+          "type": "micro_factor",
+          "description": "(buy_volume - sell_volume) / total_volume over last 20 trades. +1=all buys, -1=all sells",
+          "tags": [
+            "flow",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_sizes",
+            "trade_sides"
+          ]
+        },
+        {
+          "factor_id": "trade_flow_imbalance_50",
+          "type": "micro_factor",
+          "description": "Same as above but 50-trade window for smoother signal",
+          "tags": [
+            "flow",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_sizes",
+            "trade_sides"
+          ]
+        },
+        {
+          "factor_id": "trade_size_mean_20",
+          "type": "micro_factor",
+          "tags": [
+            "volume",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_sizes"
+          ]
+        },
+        {
+          "factor_id": "large_trade_ratio",
+          "type": "micro_factor",
+          "description": "Fraction of trades with size > 2x mean size in last 20 trades. Proxy for institutional activity.",
+          "tags": [
+            "flow",
+            "intrabar",
+            "anomaly"
+          ],
+          "dependencies": [
+            "trade_sizes"
+          ]
+        },
+        {
+          "factor_id": "RelativeVolume",
+          "type": "indicator_alias",
+          "tags": [
+            "volume"
+          ],
+          "dependencies": [
+            "rel_volume_20"
+          ]
+        },
+        {
+          "factor_id": "TradeFlowImbalance",
+          "type": "indicator_alias",
+          "tags": [
+            "flow",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_flow_imbalance_20"
+          ]
+        },
+        {
+          "factor_id": "book_imbalance_5",
+          "type": "orderbook_imbalance",
+          "description": "Order book depth 5 imbalance (bids vs asks)",
+          "tags": [
+            "order_book",
+            "l2",
+            "microstructure"
+          ],
+          "dependencies": []
+        },
+        {
+          "factor_id": "book_imbalance_10",
+          "type": "orderbook_imbalance",
+          "description": "Order book depth 10 imbalance (bids vs asks)",
+          "tags": [
+            "order_book",
+            "l2",
+            "microstructure"
+          ],
+          "dependencies": []
+        },
+        {
+          "factor_id": "book_imbalance_20",
+          "type": "orderbook_imbalance",
+          "description": "Order book depth 20 imbalance (bids vs asks)",
+          "tags": [
+            "order_book",
+            "l2",
+            "microstructure"
+          ],
+          "dependencies": []
+        }
       ]
     },
     {
       "family_id": "volatility_microstructure",
       "description": "Volatility and execution-sensitivity factors",
       "factors": [
-        {"factor_id": "volatility_20", "type": "bar_factor", "description": "std(close[-20:]) / mean(close[-20:]) — coefficient of variation", "min_bars": 20, "tags": ["volatility"], "dependencies": ["close"]},
-        {"factor_id": "volatility_5", "type": "bar_factor", "description": "Short-window realized volatility (5 bars)", "min_bars": 5, "tags": ["volatility"], "dependencies": ["close"]},
-        {"factor_id": "atr_14", "type": "bar_factor", "description": "Average True Range (14): mean(max(high-low, |high-prev_close|, |low-prev_close|)). Absolute volatility in price units.", "min_bars": 15, "tags": ["volatility", "range"], "dependencies": ["high", "low", "close"]},
-        {"factor_id": "atr_pct_14", "type": "bar_factor", "description": "ATR(14) / close — normalized ATR as % of price", "min_bars": 15, "tags": ["volatility", "range"], "dependencies": ["high", "low", "close"]},
-        {"factor_id": "micro_volatility_20", "type": "micro_factor", "tags": ["volatility", "intrabar"], "dependencies": ["trade_prices"]},
-        {"factor_id": "spread_bps", "type": "micro_factor", "description": "(ask - bid) / mid * 10000. Execution cost proxy.", "tags": ["spread", "microstructure"], "dependencies": ["bid", "ask", "mid"]},
-        {"factor_id": "last_trade_minus_mid_bps", "type": "micro_factor", "tags": ["microstructure", "intrabar"], "dependencies": ["last_trade", "mid"]},
-        {"factor_id": "bar_range_pct", "type": "bar_factor", "description": "(high - low) / close — intrabar range as % of close", "min_bars": 1, "tags": ["range", "volatility"], "dependencies": ["high", "low", "close"]},
-        {"factor_id": "volatility_ratio_5_20", "type": "bar_factor", "description": "volatility_5 / volatility_20 — vol expansion (>1) or contraction (<1)", "min_bars": 20, "tags": ["volatility", "regime"], "dependencies": ["close"]},
-        {"factor_id": "LiveReturnFromClose", "type": "indicator_alias", "tags": ["intrabar", "drift"], "dependencies": ["live_ret_from_last_close"]},
-        {"factor_id": "SpreadBps", "type": "indicator_alias", "tags": ["microstructure"], "dependencies": ["spread_bps"]},
-        {"factor_id": "MicroVolatility", "type": "indicator_alias", "tags": ["intrabar"], "dependencies": ["micro_volatility_20"]}
+        {
+          "factor_id": "volatility_20",
+          "type": "bar_factor",
+          "description": "std(close[-20:]) / mean(close[-20:]) — coefficient of variation",
+          "min_bars": 20,
+          "tags": [
+            "volatility"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "volatility_5",
+          "type": "bar_factor",
+          "description": "Short-window realized volatility (5 bars)",
+          "min_bars": 5,
+          "tags": [
+            "volatility"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "atr_14",
+          "type": "bar_factor",
+          "description": "Average True Range (14): mean(max(high-low, |high-prev_close|, |low-prev_close|)). Absolute volatility in price units.",
+          "min_bars": 15,
+          "tags": [
+            "volatility",
+            "range"
+          ],
+          "dependencies": [
+            "high",
+            "low",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "atr_pct_14",
+          "type": "bar_factor",
+          "description": "ATR(14) / close — normalized ATR as % of price",
+          "min_bars": 15,
+          "tags": [
+            "volatility",
+            "range"
+          ],
+          "dependencies": [
+            "high",
+            "low",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "micro_volatility_20",
+          "type": "micro_factor",
+          "tags": [
+            "volatility",
+            "intrabar"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "spread_bps",
+          "type": "micro_factor",
+          "description": "(ask - bid) / mid * 10000. Execution cost proxy.",
+          "tags": [
+            "spread",
+            "microstructure"
+          ],
+          "dependencies": [
+            "bid",
+            "ask",
+            "mid"
+          ]
+        },
+        {
+          "factor_id": "last_trade_minus_mid_bps",
+          "type": "micro_factor",
+          "tags": [
+            "microstructure",
+            "intrabar"
+          ],
+          "dependencies": [
+            "last_trade",
+            "mid"
+          ]
+        },
+        {
+          "factor_id": "bar_range_pct",
+          "type": "bar_factor",
+          "description": "(high - low) / close — intrabar range as % of close",
+          "min_bars": 1,
+          "tags": [
+            "range",
+            "volatility"
+          ],
+          "dependencies": [
+            "high",
+            "low",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "volatility_ratio_5_20",
+          "type": "bar_factor",
+          "description": "volatility_5 / volatility_20 — vol expansion (>1) or contraction (<1)",
+          "min_bars": 20,
+          "tags": [
+            "volatility",
+            "regime"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "LiveReturnFromClose",
+          "type": "indicator_alias",
+          "tags": [
+            "intrabar",
+            "drift"
+          ],
+          "dependencies": [
+            "live_ret_from_last_close"
+          ]
+        },
+        {
+          "factor_id": "SpreadBps",
+          "type": "indicator_alias",
+          "tags": [
+            "microstructure"
+          ],
+          "dependencies": [
+            "spread_bps"
+          ]
+        },
+        {
+          "factor_id": "MicroVolatility",
+          "type": "indicator_alias",
+          "tags": [
+            "intrabar"
+          ],
+          "dependencies": [
+            "micro_volatility_20"
+          ]
+        }
       ]
     },
     {
       "family_id": "regime_transition",
       "description": "Factors useful for transition and state-change detection",
       "factors": [
-        {"factor_id": "live_ret_from_last_close", "type": "micro_factor", "tags": ["intrabar", "transition"], "dependencies": ["last_trade", "close"]},
-        {"factor_id": "tick_ret_1", "type": "micro_factor", "tags": ["tick", "transition"], "dependencies": ["trade_prices"]},
-        {"factor_id": "tick_ret_5", "type": "micro_factor", "tags": ["tick", "transition"], "dependencies": ["trade_prices"]},
-        {"factor_id": "vol_regime_change", "type": "bar_factor", "description": "volatility_ratio_5_20 crossing above 1.5: early vol expansion signal", "min_bars": 20, "tags": ["regime", "transition"], "dependencies": ["close"]}
+        {
+          "factor_id": "live_ret_from_last_close",
+          "type": "micro_factor",
+          "tags": [
+            "intrabar",
+            "transition"
+          ],
+          "dependencies": [
+            "last_trade",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "tick_ret_1",
+          "type": "micro_factor",
+          "tags": [
+            "tick",
+            "transition"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "tick_ret_5",
+          "type": "micro_factor",
+          "tags": [
+            "tick",
+            "transition"
+          ],
+          "dependencies": [
+            "trade_prices"
+          ]
+        },
+        {
+          "factor_id": "vol_regime_change",
+          "type": "bar_factor",
+          "description": "volatility_ratio_5_20 crossing above 1.5: early vol expansion signal",
+          "min_bars": 20,
+          "tags": [
+            "regime",
+            "transition"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        }
       ]
     },
     {
       "family_id": "momentum_oscillator",
       "description": "Oscillators that measure momentum strength and exhaustion",
       "factors": [
-        {"factor_id": "roc_5", "type": "bar_factor", "description": "Rate of Change 5: (close[-1] - close[-5]) / close[-5] * 100", "min_bars": 5, "tags": ["momentum", "roc"], "dependencies": ["close"]},
-        {"factor_id": "roc_10", "type": "bar_factor", "description": "Rate of Change 10", "min_bars": 10, "tags": ["momentum", "roc"], "dependencies": ["close"]},
-        {"factor_id": "momentum_divergence", "type": "bar_factor", "description": "Price making higher high but MACD_hist making lower high = bearish divergence (and vice versa). +1 bullish, -1 bearish, 0 none.", "min_bars": 35, "tags": ["momentum", "divergence"], "dependencies": ["close", "MACD_hist"]},
-        {"factor_id": "stoch_k_14", "type": "bar_factor", "description": "Stochastic %K(14): (close - lowest_low_14) / (highest_high_14 - lowest_low_14) * 100", "min_bars": 14, "tags": ["oscillator", "momentum"], "dependencies": ["high", "low", "close"]},
-        {"factor_id": "williams_r_14", "type": "bar_factor", "description": "Williams %R(14): -100 to 0. Above -20 overbought, below -80 oversold.", "min_bars": 14, "tags": ["oscillator", "reversion"], "dependencies": ["high", "low", "close"]}
+        {
+          "factor_id": "roc_5",
+          "type": "bar_factor",
+          "description": "Rate of Change 5: (close[-1] - close[-5]) / close[-5] * 100",
+          "min_bars": 5,
+          "tags": [
+            "momentum",
+            "roc"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "roc_10",
+          "type": "bar_factor",
+          "description": "Rate of Change 10",
+          "min_bars": 10,
+          "tags": [
+            "momentum",
+            "roc"
+          ],
+          "dependencies": [
+            "close"
+          ]
+        },
+        {
+          "factor_id": "momentum_divergence",
+          "type": "bar_factor",
+          "description": "Price making higher high but MACD_hist making lower high = bearish divergence (and vice versa). +1 bullish, -1 bearish, 0 none.",
+          "min_bars": 35,
+          "tags": [
+            "momentum",
+            "divergence"
+          ],
+          "dependencies": [
+            "close",
+            "MACD_hist"
+          ]
+        },
+        {
+          "factor_id": "stoch_k_14",
+          "type": "bar_factor",
+          "description": "Stochastic %K(14): (close - lowest_low_14) / (highest_high_14 - lowest_low_14) * 100",
+          "min_bars": 14,
+          "tags": [
+            "oscillator",
+            "momentum"
+          ],
+          "dependencies": [
+            "high",
+            "low",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "williams_r_14",
+          "type": "bar_factor",
+          "description": "Williams %R(14): -100 to 0. Above -20 overbought, below -80 oversold.",
+          "min_bars": 14,
+          "tags": [
+            "oscillator",
+            "reversion"
+          ],
+          "dependencies": [
+            "high",
+            "low",
+            "close"
+          ]
+        }
       ]
     },
     {
       "family_id": "liquidity_depth",
       "description": "Order book and liquidity-based factors from BBO stream",
       "factors": [
-        {"factor_id": "bid_ask_imbalance", "type": "micro_factor", "description": "(bid_size - ask_size) / (bid_size + ask_size) from BBO. Positive = more bids = buy pressure.", "tags": ["liquidity", "intrabar", "microstructure"], "dependencies": ["bid", "ask"]},
-        {"factor_id": "mid_drift_5", "type": "micro_factor", "description": "Change in mid price over last 5 BBO updates — intrabar directional drift", "tags": ["liquidity", "intrabar"], "dependencies": ["mid"]},
-        {"factor_id": "spread_expansion", "type": "micro_factor", "description": "Current spread_bps vs 20-tick mean spread_bps. >1.5 = spread widening = liquidity thinning.", "tags": ["liquidity", "microstructure"], "dependencies": ["spread_bps"]}
+        {
+          "factor_id": "bid_ask_imbalance",
+          "type": "micro_factor",
+          "description": "(bid_size - ask_size) / (bid_size + ask_size) from BBO. Positive = more bids = buy pressure.",
+          "tags": [
+            "liquidity",
+            "intrabar",
+            "microstructure"
+          ],
+          "dependencies": [
+            "bid",
+            "ask"
+          ]
+        },
+        {
+          "factor_id": "mid_drift_5",
+          "type": "micro_factor",
+          "description": "Change in mid price over last 5 BBO updates — intrabar directional drift",
+          "tags": [
+            "liquidity",
+            "intrabar"
+          ],
+          "dependencies": [
+            "mid"
+          ]
+        },
+        {
+          "factor_id": "spread_expansion",
+          "type": "micro_factor",
+          "description": "Current spread_bps vs 20-tick mean spread_bps. >1.5 = spread widening = liquidity thinning.",
+          "tags": [
+            "liquidity",
+            "microstructure"
+          ],
+          "dependencies": [
+            "spread_bps"
+          ]
+        }
       ]
     },
     {
       "family_id": "cross_asset",
       "description": "Cross-symbol factors computed from allMids stream",
       "factors": [
-        {"factor_id": "btc_ret_1", "type": "cross_asset_factor", "description": "BTC 1-bar return — market beta proxy", "tags": ["cross_asset", "beta"], "dependencies": ["BTC:close"]},
-        {"factor_id": "eth_btc_spread", "type": "cross_asset_factor", "description": "ETH return - BTC return: relative strength of ETH vs BTC", "tags": ["cross_asset", "spread"], "dependencies": ["ETH:close", "BTC:close"]},
-        {"factor_id": "sol_dominance", "type": "cross_asset_factor", "description": "SOL return - mean(BTC,ETH return): SOL outperformance", "tags": ["cross_asset", "dominance"], "dependencies": ["SOL:close", "BTC:close", "ETH:close"]},
-        {"factor_id": "market_correlation_20", "type": "cross_asset_factor", "description": "Rolling 20-bar correlation of symbol return vs BTC return. High = beta-driven, Low = idiosyncratic.", "tags": ["cross_asset", "correlation"], "dependencies": ["close", "BTC:close"]}
+        {
+          "factor_id": "btc_ret_1",
+          "type": "cross_asset_factor",
+          "description": "BTC 1-bar return — market beta proxy",
+          "tags": [
+            "cross_asset",
+            "beta"
+          ],
+          "dependencies": [
+            "BTC:close"
+          ]
+        },
+        {
+          "factor_id": "eth_btc_spread",
+          "type": "cross_asset_factor",
+          "description": "ETH return - BTC return: relative strength of ETH vs BTC",
+          "tags": [
+            "cross_asset",
+            "spread"
+          ],
+          "dependencies": [
+            "ETH:close",
+            "BTC:close"
+          ]
+        },
+        {
+          "factor_id": "sol_dominance",
+          "type": "cross_asset_factor",
+          "description": "SOL return - mean(BTC,ETH return): SOL outperformance",
+          "tags": [
+            "cross_asset",
+            "dominance"
+          ],
+          "dependencies": [
+            "SOL:close",
+            "BTC:close",
+            "ETH:close"
+          ]
+        },
+        {
+          "factor_id": "market_correlation_20",
+          "type": "cross_asset_factor",
+          "description": "Rolling 20-bar correlation of symbol return vs BTC return. High = beta-driven, Low = idiosyncratic.",
+          "tags": [
+            "cross_asset",
+            "correlation"
+          ],
+          "dependencies": [
+            "close",
+            "BTC:close"
+          ]
+        }
       ]
     },
     {
       "family_id": "pattern_structure",
       "description": "Higher-order structural patterns derived from bar sequences",
       "factors": [
-        {"factor_id": "higher_high", "type": "bar_factor", "description": "1 if current high > previous bar high, else 0", "min_bars": 2, "tags": ["pattern", "structure"], "dependencies": ["high"]},
-        {"factor_id": "lower_low", "type": "bar_factor", "description": "1 if current low < previous bar low, else 0", "min_bars": 2, "tags": ["pattern", "structure"], "dependencies": ["low"]},
-        {"factor_id": "consecutive_up_bars", "type": "bar_factor", "description": "Number of consecutive bars where close > open (up to 5)", "min_bars": 5, "tags": ["pattern", "momentum"], "dependencies": ["open", "close"]},
-        {"factor_id": "consecutive_down_bars", "type": "bar_factor", "description": "Number of consecutive bars where close < open", "min_bars": 5, "tags": ["pattern", "momentum"], "dependencies": ["open", "close"]},
-        {"factor_id": "inside_bar", "type": "bar_factor", "description": "1 if current high < prev high AND current low > prev low — compression pattern", "min_bars": 2, "tags": ["pattern", "compression"], "dependencies": ["high", "low"]},
-        {"factor_id": "pin_bar_ratio", "type": "bar_factor", "description": "Wick length / body length. >3 = strong rejection candle (pin bar)", "min_bars": 1, "tags": ["pattern", "rejection"], "dependencies": ["open", "high", "low", "close"]}
+        {
+          "factor_id": "higher_high",
+          "type": "bar_factor",
+          "description": "1 if current high > previous bar high, else 0",
+          "min_bars": 2,
+          "tags": [
+            "pattern",
+            "structure"
+          ],
+          "dependencies": [
+            "high"
+          ]
+        },
+        {
+          "factor_id": "lower_low",
+          "type": "bar_factor",
+          "description": "1 if current low < previous bar low, else 0",
+          "min_bars": 2,
+          "tags": [
+            "pattern",
+            "structure"
+          ],
+          "dependencies": [
+            "low"
+          ]
+        },
+        {
+          "factor_id": "consecutive_up_bars",
+          "type": "bar_factor",
+          "description": "Number of consecutive bars where close > open (up to 5)",
+          "min_bars": 5,
+          "tags": [
+            "pattern",
+            "momentum"
+          ],
+          "dependencies": [
+            "open",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "consecutive_down_bars",
+          "type": "bar_factor",
+          "description": "Number of consecutive bars where close < open",
+          "min_bars": 5,
+          "tags": [
+            "pattern",
+            "momentum"
+          ],
+          "dependencies": [
+            "open",
+            "close"
+          ]
+        },
+        {
+          "factor_id": "inside_bar",
+          "type": "bar_factor",
+          "description": "1 if current high < prev high AND current low > prev low — compression pattern",
+          "min_bars": 2,
+          "tags": [
+            "pattern",
+            "compression"
+          ],
+          "dependencies": [
+            "high",
+            "low"
+          ]
+        },
+        {
+          "factor_id": "pin_bar_ratio",
+          "type": "bar_factor",
+          "description": "Wick length / body length. >3 = strong rejection candle (pin bar)",
+          "min_bars": 1,
+          "tags": [
+            "pattern",
+            "rejection"
+          ],
+          "dependencies": [
+            "open",
+            "high",
+            "low",
+            "close"
+          ]
+        }
       ]
     }
   ],

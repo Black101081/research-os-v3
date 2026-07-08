@@ -34,6 +34,15 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def calc_book_imbalance(bids: list, asks: list, depth: int) -> float:
+    sub_bids = bids[:depth]
+    sub_asks = asks[:depth]
+    bid_sz = sum(sz for _, sz in sub_bids)
+    ask_sz = sum(sz for _, sz in sub_asks)
+    total = bid_sz + ask_sz
+    return (bid_sz - ask_sz) / total if total > 0.0 else 0.0
+
+
 def ema(values: List[float], period: int) -> Optional[float]:
     if not values:
         return None
@@ -491,6 +500,14 @@ class ResearchEngine:
         state.indicators['large_trade_ratio'] = state.factors.get('large_trade_ratio', 0.0)
         state.indicators['btc_ret_1'] = state.factors.get('btc_ret_1', 0.0)
         state.indicators['market_correlation_20'] = state.factors.get('market_correlation_20', 0.0)
+        
+        # Calculate Order Book Imbalances
+        mtf_sym = self._mtf.get(state.symbol) if hasattr(self, '_mtf') else None
+        bids = mtf_sym.bid_levels if mtf_sym else []
+        asks = mtf_sym.ask_levels if mtf_sym else []
+        state.indicators['book_imbalance_5'] = calc_book_imbalance(bids, asks, 5)
+        state.indicators['book_imbalance_10'] = calc_book_imbalance(bids, asks, 10)
+        state.indicators['book_imbalance_20'] = calc_book_imbalance(bids, asks, 20)
         
         self._compute_regime(state)
         self._compute_signals(state)

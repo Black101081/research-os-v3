@@ -6,15 +6,30 @@
       "template_id": "breakout_basic_v1",
       "family": "breakout",
       "description": "Volatility compression followed by directional expansion break",
-      "required_inputs": ["BollingerWidth", "live_ret_from_last_close"],
-      "allowed_expression_types": ["threshold", "directional_change", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop"],
+      "required_inputs": [
+        "BollingerWidth",
+        "live_ret_from_last_close"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "directional_change",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Volatility compression (squeeze) followed by sharp directional expansion",
         "entry_logic": "Previous bar had BollingerWidth below squeeze threshold; current bar closes beyond upper or lower band with above-average volume",
         "failure_mode": "False break in range or illiquid conditions — price re-enters band immediately",
-        "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "micro_volatility_20"
+        ],
         "ideal_regime": "Pre-breakout: range_chop or transition; Post-trigger: uptrend or downtrend",
         "hold_duration_bars": "3-12"
       },
@@ -26,8 +41,14 @@
         "Invalidate if the price closes back inside the Bollinger Bands mid-channel",
         "Invalidate if bid/ask spread expands beyond limits during the breakout"
       ],
-      "default_confirmation_inputs": ["RelativeVolume", "TradeFlowImbalance"],
-      "default_invalidation_inputs": ["bb_pct_b", "SpreadBps"],
+      "default_confirmation_inputs": [
+        "RelativeVolume",
+        "TradeFlowImbalance"
+      ],
+      "default_invalidation_inputs": [
+        "bb_pct_b",
+        "SpreadBps"
+      ],
       "signal_quality_notes": [
         "Highly sensitive to low-liquidity spikes. Always check spread.",
         "Breakouts without volume support have a 70% failure rate."
@@ -46,15 +67,31 @@
       "template_id": "breakout_volume_confirm_v1",
       "family": "breakout",
       "description": "Breakout with explicit volume surge confirmation — higher conviction than basic",
-      "required_inputs": ["BollingerWidth", "rel_volume_20", "BBANDS_upper", "BBANDS_lower"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop", "high_volatility"],
+      "required_inputs": [
+        "BollingerWidth",
+        "rel_volume_20",
+        "BBANDS_upper",
+        "BBANDS_lower"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "high_volatility"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Breakout backed by significant participation surge (smart money entry)",
         "entry_logic": "BollingerWidth was squeezed, current bar breaks band AND rel_volume >= 2.0",
         "failure_mode": "Volume spike from stop-run with no directional follow-through",
-        "execution_sensitivities": ["spread_bps"],
+        "execution_sensitivities": [
+          "spread_bps"
+        ],
         "ideal_regime": "uptrend or downtrend with increasing volume",
         "hold_duration_bars": "5-20"
       },
@@ -66,8 +103,14 @@
         "Invalidate if price closes back inside the opposite band within 2 bars",
         "Invalidate if relative volume drops below average on the next bar"
       ],
-      "default_confirmation_inputs": ["large_trade_ratio", "ema_spread_8_21"],
-      "default_invalidation_inputs": ["bb_pct_b", "rel_volume_20"],
+      "default_confirmation_inputs": [
+        "large_trade_ratio",
+        "ema_spread_8_21"
+      ],
+      "default_invalidation_inputs": [
+        "bb_pct_b",
+        "rel_volume_20"
+      ],
       "signal_quality_notes": [
         "Very high conviction. False positives are rare but costly.",
         "Ensure the volume surge is not an isolated block trade."
@@ -86,15 +129,29 @@
       "template_id": "mean_reversion_basic_v1",
       "family": "mean_reversion",
       "description": "Extreme z-score displacement with probability of re-centering",
-      "required_inputs": ["zscore_close_20"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["range_chop"],
-      "avoid_regimes": ["high_volatility", "uptrend", "downtrend"],
+      "required_inputs": [
+        "zscore_close_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "high_volatility",
+        "uptrend",
+        "downtrend"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Statistical overextension from mean — price expected to revert",
         "entry_logic": "zscore_close_20 <= -1.5 (long) or >= +1.5 (short) in non-trending regime",
         "failure_mode": "Trend continuation — entering against a strong persistent trend disguised as reversion",
-        "execution_sensitivities": ["micro_volatility_20", "trade_flow_imbalance_20"],
+        "execution_sensitivities": [
+          "micro_volatility_20",
+          "trade_flow_imbalance_20"
+        ],
         "ideal_regime": "range_chop with low BollingerWidth",
         "hold_duration_bars": "2-8"
       },
@@ -106,8 +163,14 @@
         "Invalidate if a strong trend develops (ema_spread expands)",
         "Invalidate if the price moves further out of bounds (zscore continues expanding)"
       ],
-      "default_confirmation_inputs": ["rsi_14", "TradeFlowImbalance"],
-      "default_invalidation_inputs": ["ema_spread_8_21", "zscore_close_20"],
+      "default_confirmation_inputs": [
+        "rsi_14",
+        "TradeFlowImbalance"
+      ],
+      "default_invalidation_inputs": [
+        "ema_spread_8_21",
+        "zscore_close_20"
+      ],
       "signal_quality_notes": [
         "Do not trade during high-volatility regime. Reversion fails in trends.",
         "Look for divergence signs to improve win-rate."
@@ -126,15 +189,31 @@
       "template_id": "mean_reversion_bb_v1",
       "family": "mean_reversion",
       "description": "Bollinger Band touch/pierce reversion — price at extreme band",
-      "required_inputs": ["bb_pct_b", "rsi_14", "trade_flow_imbalance_20"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["range_chop"],
-      "avoid_regimes": ["high_volatility", "uptrend", "downtrend"],
+      "required_inputs": [
+        "bb_pct_b",
+        "rsi_14",
+        "trade_flow_imbalance_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "high_volatility",
+        "uptrend",
+        "downtrend"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Price at Bollinger extreme with RSI confirmation and flow exhaustion",
         "entry_logic": "bb_pct_b <= 0.05 (near lower band) AND rsi_14 <= 35 AND trade_flow_imbalance_20 > -0.3 (selling exhausting)",
         "failure_mode": "Band walking — strong trend causes price to hug band",
-        "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "micro_volatility_20"
+        ],
         "ideal_regime": "range_chop",
         "hold_duration_bars": "2-6"
       },
@@ -146,8 +225,14 @@
         "Invalidate if price walks the band (bb_pct_b remains close to 0 or 1)",
         "Invalidate if ATR expands rapidly during entry"
       ],
-      "default_confirmation_inputs": ["TradeFlowImbalance", "volatility_ratio_5_20"],
-      "default_invalidation_inputs": ["bb_pct_b", "atr_pct_14"],
+      "default_confirmation_inputs": [
+        "TradeFlowImbalance",
+        "volatility_ratio_5_20"
+      ],
+      "default_invalidation_inputs": [
+        "bb_pct_b",
+        "atr_pct_14"
+      ],
       "signal_quality_notes": [
         "Band walking is the biggest risk. Tight stop is mandatory.",
         "Check for support/resistance levels."
@@ -166,15 +251,31 @@
       "template_id": "continuation_basic_v1",
       "family": "continuation",
       "description": "MACD momentum alignment with directional confirmation",
-      "required_inputs": ["MACD", "MACD_signal", "ema_spread_8_21"],
-      "allowed_expression_types": ["cross", "comparison", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop", "high_volatility"],
+      "required_inputs": [
+        "MACD",
+        "MACD_signal",
+        "ema_spread_8_21"
+      ],
+      "allowed_expression_types": [
+        "cross",
+        "comparison",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "high_volatility"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Persistent directional move with momentum confirmation — riding the trend",
         "entry_logic": "MACD > MACD_signal AND MACD > 0 AND ema_spread_8_21 > 0 for long; reverse for short",
         "failure_mode": "Late entry after trend exhaustion — MACD lagging divergence",
-        "execution_sensitivities": ["spread_bps"],
+        "execution_sensitivities": [
+          "spread_bps"
+        ],
         "ideal_regime": "uptrend (long) or downtrend (short) with increasing MACD_hist",
         "hold_duration_bars": "5-30"
       },
@@ -186,8 +287,14 @@
         "Invalidate if MACD crosses back over the signal line",
         "Invalidate if price falls below the SMA20 line"
       ],
-      "default_confirmation_inputs": ["MACD_hist", "rel_volume_20"],
-      "default_invalidation_inputs": ["MACD", "price_vs_sma20"],
+      "default_confirmation_inputs": [
+        "MACD_hist",
+        "rel_volume_20"
+      ],
+      "default_invalidation_inputs": [
+        "MACD",
+        "price_vs_sma20"
+      ],
       "signal_quality_notes": [
         "Rely on trend stability metrics. Avoid late trends.",
         "Works best when entering near the beginning of a regime transition."
@@ -206,15 +313,32 @@
       "template_id": "continuation_pullback_v1",
       "family": "continuation",
       "description": "Trend continuation after shallow pullback to EMA",
-      "required_inputs": ["price_vs_sma20", "ema_spread_8_21", "rsi_14", "rel_volume_20"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop", "high_volatility"],
+      "required_inputs": [
+        "price_vs_sma20",
+        "ema_spread_8_21",
+        "rsi_14",
+        "rel_volume_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "high_volatility"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Higher-probability re-entry after pullback to support in established trend",
         "entry_logic": "price_vs_sma20 within -0.01 to +0.01 (touching SMA) AND ema_spread_8_21 > 0 (uptrend intact) AND rsi bounced from 40-50 zone",
         "failure_mode": "Trend reversal disguised as pullback",
-        "execution_sensitivities": ["spread_bps", "trade_flow_imbalance_20"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "trade_flow_imbalance_20"
+        ],
         "ideal_regime": "uptrend or downtrend, medium BollingerWidth",
         "hold_duration_bars": "8-30"
       },
@@ -226,8 +350,14 @@
         "Invalidate if price breaks and closes below the SMA20 by more than 1%",
         "Invalidate if ema_spread turns negative (trend shift)"
       ],
-      "default_confirmation_inputs": ["TradeFlowImbalance", "rel_volume_20"],
-      "default_invalidation_inputs": ["price_vs_sma20", "ema_spread_8_21"],
+      "default_confirmation_inputs": [
+        "TradeFlowImbalance",
+        "rel_volume_20"
+      ],
+      "default_invalidation_inputs": [
+        "price_vs_sma20",
+        "ema_spread_8_21"
+      ],
       "signal_quality_notes": [
         "Pullback should occur on lower volume. Volume expansion on pullback indicates breakdown.",
         "Verify regime support."
@@ -246,15 +376,27 @@
       "template_id": "volatility_event_basic_v1",
       "family": "volatility_event",
       "description": "Detect rapid change in micro-volatility or liquidity state",
-      "required_inputs": ["micro_volatility_20", "spread_bps"],
-      "allowed_expression_types": ["threshold", "directional_change", "conjunction"],
-      "default_regime_scope": ["transition_ambiguous"],
+      "required_inputs": [
+        "micro_volatility_20",
+        "spread_bps"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "directional_change",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Microstructure instability preceding larger directional move",
         "entry_logic": "micro_volatility_20 spike AND spread_bps within normal range (liquidity still present)",
         "failure_mode": "Noise spikes with no follow-through — volatility event without directional resolve",
-        "execution_sensitivities": ["spread_bps", "trade_flow_imbalance_20"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "trade_flow_imbalance_20"
+        ],
         "ideal_regime": "transition_ambiguous — early detection before regime flip",
         "hold_duration_bars": "1-5"
       },
@@ -266,8 +408,14 @@
         "Invalidate if the volatility spike collapses back to average immediately",
         "Invalidate if spread expands too wide to execute safely"
       ],
-      "default_confirmation_inputs": ["rel_volume_20", "volatility_ratio_5_20"],
-      "default_invalidation_inputs": ["micro_volatility_20", "SpreadBps"],
+      "default_confirmation_inputs": [
+        "rel_volume_20",
+        "volatility_ratio_5_20"
+      ],
+      "default_invalidation_inputs": [
+        "micro_volatility_20",
+        "SpreadBps"
+      ],
       "signal_quality_notes": [
         "Extremely short-term. Avoid holding overnight.",
         "Spread wide is the main hazard. Do not enter if spread > 10 bps."
@@ -286,15 +434,27 @@
       "template_id": "volatility_contraction_v1",
       "family": "volatility_event",
       "description": "Detect volatility regime shift from high to low — setup for squeeze",
-      "required_inputs": ["volatility_ratio_5_20", "BollingerWidth", "atr_pct_14"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["range_chop", "transition_ambiguous"],
+      "required_inputs": [
+        "volatility_ratio_5_20",
+        "BollingerWidth",
+        "atr_pct_14"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Volatility regime transitioning from expansion to contraction — anticipating next squeeze breakout",
         "entry_logic": "volatility_ratio_5_20 < 0.7 AND BollingerWidth declining over 3 bars",
         "failure_mode": "Volatility stays low indefinitely — no breakout follows",
-        "execution_sensitivities": ["spread_bps"],
+        "execution_sensitivities": [
+          "spread_bps"
+        ],
         "ideal_regime": "Post high_volatility transitioning to range_chop",
         "hold_duration_bars": "N/A — this is a setup detector, not a trade entry"
       },
@@ -306,8 +466,14 @@
         "Invalidate if a sudden volatility expansion occurs prematurely",
         "Invalidate if price breaks the range edges before squeeze completes"
       ],
-      "default_confirmation_inputs": ["SpreadBps", "rel_volume_20"],
-      "default_invalidation_inputs": ["volatility_ratio_5_20", "bb_pct_b"],
+      "default_confirmation_inputs": [
+        "SpreadBps",
+        "rel_volume_20"
+      ],
+      "default_invalidation_inputs": [
+        "volatility_ratio_5_20",
+        "bb_pct_b"
+      ],
       "signal_quality_notes": [
         "This is a monitoring signal. Never convert directly to trades.",
         "Squeeze can last for hours."
@@ -325,15 +491,28 @@
       "template_id": "regime_transition_basic_v1",
       "family": "regime_transition",
       "description": "Detect state shifts before bar-confirmed regime flip",
-      "required_inputs": ["tick_ret_5", "trade_flow_imbalance_20", "live_ret_from_last_close"],
-      "allowed_expression_types": ["threshold", "lag_relation", "conjunction"],
-      "default_regime_scope": ["transition_ambiguous"],
+      "required_inputs": [
+        "tick_ret_5",
+        "trade_flow_imbalance_20",
+        "live_ret_from_last_close"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "lag_relation",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Early state change signal before conventional indicators confirm regime flip",
         "entry_logic": "tick_ret_5 directional AND trade_flow_imbalance_20 aligned AND live_ret accelerating",
         "failure_mode": "Whipsaw around transition zone — intrabar signals reverse before bar closes",
-        "execution_sensitivities": ["micro_volatility_20", "spread_bps"],
+        "execution_sensitivities": [
+          "micro_volatility_20",
+          "spread_bps"
+        ],
         "ideal_regime": "transition_ambiguous — bet on regime direction before it's confirmed",
         "hold_duration_bars": "1-3"
       },
@@ -345,8 +524,14 @@
         "Invalidate if flow imbalance collapses to neutral",
         "Invalidate if price reverses back into old regime levels"
       ],
-      "default_confirmation_inputs": ["btc_ret_1", "rel_volume_20"],
-      "default_invalidation_inputs": ["TradeFlowImbalance", "LiveReturnFromClose"],
+      "default_confirmation_inputs": [
+        "btc_ret_1",
+        "rel_volume_20"
+      ],
+      "default_invalidation_inputs": [
+        "TradeFlowImbalance",
+        "LiveReturnFromClose"
+      ],
       "signal_quality_notes": [
         "High risk of whipsaw. Use very tight validation parameters.",
         "Do not hold past the bar close if trend does not materialize."
@@ -365,15 +550,30 @@
       "template_id": "momentum_divergence_v1",
       "family": "divergence",
       "description": "Price-momentum divergence: price and MACD/RSI moving in opposite directions",
-      "required_inputs": ["momentum_divergence", "rsi_14", "MACD_hist"],
-      "allowed_expression_types": ["divergence", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop"],
+      "required_inputs": [
+        "momentum_divergence",
+        "rsi_14",
+        "MACD_hist"
+      ],
+      "allowed_expression_types": [
+        "divergence",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Trend losing momentum before price reversal — early reversal warning",
         "entry_logic": "Price making higher high but MACD_hist making lower high (bearish divergence) = short entry",
         "failure_mode": "Divergence can persist many bars before resolving — requires patience and tight stops",
-        "execution_sensitivities": ["spread_bps", "atr_pct_14"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "atr_pct_14"
+        ],
         "ideal_regime": "Late stage uptrend or downtrend with decreasing MACD_hist",
         "hold_duration_bars": "5-20"
       },
@@ -385,8 +585,14 @@
         "Invalidate if price breaks above the divergence peak by more than 0.5%",
         "Invalidate if MACD histogram makes a fresh peak in the trend direction"
       ],
-      "default_confirmation_inputs": ["TradeFlowImbalance", "rel_volume_20"],
-      "default_invalidation_inputs": ["bb_pct_b", "MACD_hist"],
+      "default_confirmation_inputs": [
+        "TradeFlowImbalance",
+        "rel_volume_20"
+      ],
+      "default_invalidation_inputs": [
+        "bb_pct_b",
+        "MACD_hist"
+      ],
       "signal_quality_notes": [
         "Divergence needs time to play out. Patience is key.",
         "Look for multiple divergences (double or triple) to improve win-rate."
@@ -405,15 +611,31 @@
       "template_id": "flow_imbalance_entry_v1",
       "family": "order_flow",
       "description": "Entry on sustained order flow imbalance — aggressive buying or selling detected",
-      "required_inputs": ["trade_flow_imbalance_20", "trade_flow_imbalance_50", "large_trade_ratio"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend", "transition_ambiguous"],
-      "avoid_regimes": ["high_volatility"],
+      "required_inputs": [
+        "trade_flow_imbalance_20",
+        "trade_flow_imbalance_50",
+        "large_trade_ratio"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "Persistent directional order flow precedes price moves — follow smart money",
         "entry_logic": "trade_flow_imbalance_20 > 0.4 (strong buy imbalance) AND trade_flow_imbalance_50 > 0.2 (confirmed sustained) AND large_trade_ratio > 0.15 (institutional size present)",
         "failure_mode": "Spoofing or short-term imbalance that reverses quickly",
-        "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "micro_volatility_20"
+        ],
         "ideal_regime": "uptrend or transition with accelerating flow",
         "hold_duration_bars": "2-8"
       },
@@ -425,8 +647,14 @@
         "Invalidate if flow imbalance collapses below neutral within 10 trades",
         "Invalidate if spread expands and halts executions"
       ],
-      "default_confirmation_inputs": ["rel_volume_20", "LiveReturnFromClose"],
-      "default_invalidation_inputs": ["TradeFlowImbalance", "SpreadBps"],
+      "default_confirmation_inputs": [
+        "rel_volume_20",
+        "LiveReturnFromClose"
+      ],
+      "default_invalidation_inputs": [
+        "TradeFlowImbalance",
+        "SpreadBps"
+      ],
       "signal_quality_notes": [
         "Highly reactive. Keep execution slippage tight.",
         "Institutional block trades are positive but avoid retail clustering."
@@ -445,15 +673,30 @@
       "template_id": "cross_asset_beta_v1",
       "family": "cross_asset",
       "description": "Exploit BTC-driven beta moves on correlated assets",
-      "required_inputs": ["btc_ret_1", "market_correlation_20", "ema_spread_8_21"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["uptrend", "downtrend"],
-      "avoid_regimes": ["high_volatility"],
+      "required_inputs": [
+        "btc_ret_1",
+        "market_correlation_20",
+        "ema_spread_8_21"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "thesis_template": {
         "what_edge_it_targets": "When BTC makes a strong move, highly correlated assets follow with slight lag",
         "entry_logic": "btc_ret_1 > 0.003 (BTC strong up bar) AND market_correlation_20 > 0.7 (target is BTC-correlated) AND target ema_spread_8_21 > 0 (trend aligned)",
         "failure_mode": "Decorrelation event — asset diverges from BTC due to idiosyncratic news",
-        "execution_sensitivities": ["spread_bps", "micro_volatility_20"],
+        "execution_sensitivities": [
+          "spread_bps",
+          "micro_volatility_20"
+        ],
         "ideal_regime": "uptrend or downtrend with high correlation to BTC",
         "hold_duration_bars": "1-5"
       },
@@ -465,8 +708,14 @@
         "Invalidate if target asset moves opposite to BTC (decorrelation)",
         "Invalidate if BTC's move collapses or reverses"
       ],
-      "default_confirmation_inputs": ["TradeFlowImbalance", "rel_volume_20"],
-      "default_invalidation_inputs": ["market_correlation_20", "btc_ret_1"],
+      "default_confirmation_inputs": [
+        "TradeFlowImbalance",
+        "rel_volume_20"
+      ],
+      "default_invalidation_inputs": [
+        "market_correlation_20",
+        "btc_ret_1"
+      ],
       "signal_quality_notes": [
         "Only trade when correlation is established. Watch news feeds.",
         "Look for lagging assets with cleanest setups."
@@ -485,9 +734,21 @@
       "template_id": "perp_funding_v1",
       "family": "order_flow",
       "description": "Hyperliquid perpetual funding rate extremes — contrarian fade or confirmation",
-      "required_inputs": ["funding_rate_hourly", "open_interest_usd", "mark_vs_index_bps"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["range_chop", "uptrend", "downtrend", "transition_ambiguous"],
+      "required_inputs": [
+        "funding_rate_hourly",
+        "open_interest_usd",
+        "mark_vs_index_bps"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop",
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Funding rate extremes force crowded side to unwind — mechanical reversion",
@@ -495,16 +756,30 @@
         "failure_mode": "Trend so strong funding stays extreme for extended period",
         "ideal_regime": "Any regime — funding is regime-independent signal",
         "hold_duration_bars": "3-15",
-        "execution_sensitivities": ["spread_bps", "mark_vs_index_bps"]
+        "execution_sensitivities": [
+          "spread_bps",
+          "mark_vs_index_bps"
+        ]
       }
     },
     {
       "template_id": "liquidation_event_v1",
       "family": "mean_reversion",
       "description": "Forced liquidation cascade detection — snap-back after overshoot",
-      "required_inputs": ["atr_pct_14", "rel_volume_20", "rsi_14"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["high_volatility", "downtrend", "uptrend"],
+      "required_inputs": [
+        "atr_pct_14",
+        "rel_volume_20",
+        "rsi_14"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "high_volatility",
+        "downtrend",
+        "uptrend"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Liquidation cascades overshoot fair value — snap-back within 2-5 bars",
@@ -512,16 +787,31 @@
         "failure_mode": "Structural panic (not liquidation) — price continues one direction",
         "ideal_regime": "high_volatility with one-sided extreme",
         "hold_duration_bars": "2-5",
-        "execution_sensitivities": ["spread_bps", "atr_pct_14"]
+        "execution_sensitivities": [
+          "spread_bps",
+          "atr_pct_14"
+        ]
       }
     },
     {
       "template_id": "vwap_anchor_v1",
       "family": "mean_reversion",
       "description": "VWAP as institutional price anchor — deviation reversion",
-      "required_inputs": ["vwap_deviation_pct", "rel_volume_20", "rsi_14"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["range_chop", "uptrend", "downtrend", "transition_ambiguous"],
+      "required_inputs": [
+        "vwap_deviation_pct",
+        "rel_volume_20",
+        "rsi_14"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop",
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Institutional algos use VWAP anchors — deviation creates mechanical pull-back",
@@ -529,16 +819,29 @@
         "failure_mode": "Strong momentum ignores VWAP — trending away",
         "ideal_regime": "Any regime with moderate volume",
         "hold_duration_bars": "3-10",
-        "execution_sensitivities": ["spread_bps", "vwap_deviation_pct"]
+        "execution_sensitivities": [
+          "spread_bps",
+          "vwap_deviation_pct"
+        ]
       }
     },
     {
       "template_id": "high_vol_burst_v1",
       "family": "breakout",
       "description": "High volatility momentum burst — ride dominant force during vol expansion",
-      "required_inputs": ["atr_pct_14", "trade_flow_imbalance_20", "volatility_ratio_5_20"],
-      "allowed_expression_types": ["threshold", "conjunction"],
-      "default_regime_scope": ["high_volatility", "transition_ambiguous"],
+      "required_inputs": [
+        "atr_pct_14",
+        "trade_flow_imbalance_20",
+        "volatility_ratio_5_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "high_volatility",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "thesis_template": {
         "what_edge_it_targets": "Volatility expansion with dominant flow — momentum continues short-term",
@@ -546,8 +849,181 @@
         "failure_mode": "Exhaustion wick immediately reversing the move",
         "ideal_regime": "high_volatility with clear directional dominance",
         "hold_duration_bars": "2-8",
-        "execution_sensitivities": ["spread_bps", "atr_pct_14"]
+        "execution_sensitivities": [
+          "spread_bps",
+          "atr_pct_14"
+        ]
       }
+    },
+    {
+      "template_id": "vwap_deviation_fade_v1",
+      "family": "mean_reversion",
+      "description": "Fade extreme price deviation from session VWAP in low-volatility regimes",
+      "required_inputs": [
+        "distance_from_vwap",
+        "rsi_14"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Reversion to session VWAP when price is over-extended and buying/selling pressure is exhausted.",
+        "entry_logic": "Price is more than 2% away from VWAP and RSI is in extreme zone (<=30 or >=70).",
+        "failure_mode": "Strong momentum break through VWAP without structural exhaustion.",
+        "execution_sensitivities": [
+          "spread_bps",
+          "volatility_20"
+        ],
+        "ideal_regime": "range_chop",
+        "hold_duration_bars": "5-15"
+      },
+      "confirmation_logic_guidelines": [
+        "RSI is reversing from extreme zones"
+      ],
+      "invalidation_logic_guidelines": [
+        "Volatility ratio exceeds 1.5 indicating trend resumption"
+      ],
+      "default_confirmation_inputs": [
+        "rsi_14"
+      ],
+      "default_invalidation_inputs": [
+        "volatility_ratio_5_20"
+      ]
+    },
+    {
+      "template_id": "liquidity_sweep_v1",
+      "family": "breakout",
+      "description": "Fade breakout attempts that fail to hold key levels and exhibit delta divergence",
+      "required_inputs": [
+        "bb_pct_b",
+        "trade_flow_imbalance_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Liquidity sweep above/below key support/resistance levels.",
+        "entry_logic": "Price breaks outer Bollinger Band but fails to close outside, with negative trade flow delta.",
+        "failure_mode": "Persistent volume breakout and sustained trend.",
+        "execution_sensitivities": [
+          "spread_bps"
+        ],
+        "ideal_regime": "range_chop",
+        "hold_duration_bars": "4-10"
+      },
+      "confirmation_logic_guidelines": [
+        "Trade flow imbalance reverses direction"
+      ],
+      "invalidation_logic_guidelines": [
+        "Price closes decisively outside the bands"
+      ],
+      "default_confirmation_inputs": [
+        "TradeFlowImbalance"
+      ],
+      "default_invalidation_inputs": [
+        "bb_pct_b"
+      ]
+    },
+    {
+      "template_id": "orderbook_imbalance_fade_v1",
+      "family": "order_flow",
+      "description": "Mean reversion driven by extreme order book bid/ask volume imbalance at top depths",
+      "required_inputs": [
+        "book_imbalance_5",
+        "trade_flow_imbalance_50"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Microstructure limit order walls preventing price progression.",
+        "entry_logic": "Order book bid/ask volume imbalance at depth 5 exceeds 15% and trade flow imbalance confirms exhaustion.",
+        "failure_mode": "Large institutional market orders sweeping the limit order walls.",
+        "execution_sensitivities": [
+          "spread_bps",
+          "micro_volatility_20"
+        ],
+        "ideal_regime": "range_chop",
+        "hold_duration_bars": "3-8"
+      },
+      "confirmation_logic_guidelines": [
+        "OBI confirms significant wall presence"
+      ],
+      "invalidation_logic_guidelines": [
+        "Sustained high micro-volatility indicating wall clearing"
+      ],
+      "default_confirmation_inputs": [
+        "book_imbalance_5"
+      ],
+      "default_invalidation_inputs": [
+        "micro_volatility_20"
+      ]
+    },
+    {
+      "template_id": "cross_asset_lead_lag_v1",
+      "family": "cross_asset",
+      "description": "Trade asset momentum guided by lead asset price divergence",
+      "required_inputs": [
+        "btc_ret_1",
+        "market_correlation_20"
+      ],
+      "allowed_expression_types": [
+        "threshold",
+        "conjunction"
+      ],
+      "default_regime_scope": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop"
+      ],
+      "thesis_template": {
+        "what_edge_it_targets": "Lead-lag relationship where Altcoins follow anchor asset trends.",
+        "entry_logic": "BTC returns exceed 0.3% and target asset correlation is high (>0.7).",
+        "failure_mode": "Asset-specific divergence or decoupling from BTC.",
+        "execution_sensitivities": [
+          "spread_bps"
+        ],
+        "ideal_regime": "uptrend",
+        "hold_duration_bars": "10-30"
+      },
+      "confirmation_logic_guidelines": [
+        "High market correlation confirms lead-lag hold"
+      ],
+      "invalidation_logic_guidelines": [
+        "Correlation drops below 0.5"
+      ],
+      "default_confirmation_inputs": [
+        "market_correlation_20"
+      ],
+      "default_invalidation_inputs": [
+        "market_correlation_20"
+      ]
     }
   ],
   "signal_catalog": [
@@ -556,9 +1032,19 @@
       "family": "breakout",
       "template_id": "breakout_basic_v1",
       "description": "Band squeeze followed by directional breakout with volume confirmation",
-      "entry_factors": ["BollingerWidth", "BBANDS_upper", "BBANDS_lower", "RelativeVolume"],
-      "preferred_regimes": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop"],
+      "entry_factors": [
+        "BollingerWidth",
+        "BBANDS_upper",
+        "BBANDS_lower",
+        "RelativeVolume"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop"
+      ],
       "direction": "both",
       "min_bars": 35,
       "trigger_definition": "BollingerWidth <= 0.035",
@@ -578,9 +1064,16 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "Z-score extreme displacement with reversion expectation",
-      "entry_factors": ["ZScore_Close", "BollingerWidth"],
-      "preferred_regimes": ["range_chop"],
-      "avoid_regimes": ["high_volatility"],
+      "entry_factors": [
+        "ZScore_Close",
+        "BollingerWidth"
+      ],
+      "preferred_regimes": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "direction": "both",
       "min_bars": 20,
       "trigger_definition": "abs(zscore_close_20) >= 1.5",
@@ -600,9 +1093,18 @@
       "family": "continuation",
       "template_id": "continuation_basic_v1",
       "description": "MACD above signal line with positive histogram — trend momentum aligned",
-      "entry_factors": ["MACD", "MACD_signal", "MACD_hist"],
-      "preferred_regimes": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop"],
+      "entry_factors": [
+        "MACD",
+        "MACD_signal",
+        "MACD_hist"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop"
+      ],
       "direction": "both",
       "min_bars": 35,
       "trigger_definition": "MACD > MACD_signal",
@@ -622,9 +1124,17 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_bb_v1",
       "description": "Price at Bollinger extreme confirmed by RSI and flow exhaustion",
-      "entry_factors": ["bb_pct_b", "rsi_14", "TradeFlowImbalance"],
-      "preferred_regimes": ["range_chop"],
-      "avoid_regimes": ["high_volatility"],
+      "entry_factors": [
+        "bb_pct_b",
+        "rsi_14",
+        "TradeFlowImbalance"
+      ],
+      "preferred_regimes": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "direction": "both",
       "min_bars": 20,
       "trigger_definition": "bb_pct_b <= 0.08 or bb_pct_b >= 0.92",
@@ -644,9 +1154,19 @@
       "family": "continuation",
       "template_id": "continuation_pullback_v1",
       "description": "Pullback to SMA20 in established trend — re-entry signal",
-      "entry_factors": ["price_vs_sma20", "ema_spread_8_21", "rsi_14"],
-      "preferred_regimes": ["uptrend", "downtrend"],
-      "avoid_regimes": ["range_chop", "high_volatility"],
+      "entry_factors": [
+        "price_vs_sma20",
+        "ema_spread_8_21",
+        "rsi_14"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "range_chop",
+        "high_volatility"
+      ],
       "direction": "both",
       "min_bars": 21,
       "trigger_definition": "abs(price_vs_sma20) <= 0.005 and ema_spread_8_21 > 0",
@@ -666,8 +1186,16 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "RSI(14) extreme with bounce confirmation from flow",
-      "entry_factors": ["rsi_14", "TradeFlowImbalance", "BollingerWidth"],
-      "preferred_regimes": ["range_chop", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "rsi_14",
+        "TradeFlowImbalance",
+        "BollingerWidth"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "long",
       "min_bars": 15,
@@ -688,8 +1216,16 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "RSI(14) overbought with fade confirmation",
-      "entry_factors": ["rsi_14", "TradeFlowImbalance", "BollingerWidth"],
-      "preferred_regimes": ["range_chop", "uptrend", "transition_ambiguous"],
+      "entry_factors": [
+        "rsi_14",
+        "TradeFlowImbalance",
+        "BollingerWidth"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "uptrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "short",
       "min_bars": 15,
@@ -710,8 +1246,16 @@
       "family": "divergence",
       "template_id": "momentum_divergence_v1",
       "description": "MACD histogram sign change — momentum flip signal",
-      "entry_factors": ["MACD_hist", "macd_hist_slope", "rsi_14"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "MACD_hist",
+        "macd_hist_slope",
+        "rsi_14"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 36,
@@ -732,9 +1276,19 @@
       "family": "breakout",
       "template_id": "breakout_volume_confirm_v1",
       "description": "Volume surge > 2x average with directional bar — smart money entry",
-      "entry_factors": ["rel_volume_20", "volume_zscore_20", "LiveReturnFromClose"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
-      "avoid_regimes": ["range_chop"],
+      "entry_factors": [
+        "rel_volume_20",
+        "volume_zscore_20",
+        "LiveReturnFromClose"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "range_chop"
+      ],
       "direction": "both",
       "min_bars": 20,
       "trigger_definition": "rel_volume_20 >= 1.8",
@@ -754,8 +1308,16 @@
       "family": "order_flow",
       "template_id": "flow_imbalance_entry_v1",
       "description": "Sustained buy/sell flow imbalance with large trade participation",
-      "entry_factors": ["TradeFlowImbalance", "trade_flow_imbalance_50", "large_trade_ratio"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "TradeFlowImbalance",
+        "trade_flow_imbalance_50",
+        "large_trade_ratio"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 1,
@@ -776,8 +1338,15 @@
       "family": "volatility_event",
       "template_id": "volatility_contraction_v1",
       "description": "Volatility contraction setup — not a trade, but flags upcoming breakout candidate",
-      "entry_factors": ["volatility_ratio_5_20", "BollingerWidth", "atr_pct_14"],
-      "preferred_regimes": ["range_chop", "transition_ambiguous"],
+      "entry_factors": [
+        "volatility_ratio_5_20",
+        "BollingerWidth",
+        "atr_pct_14"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "signal_only",
       "min_bars": 20,
@@ -798,8 +1367,14 @@
       "family": "regime_transition",
       "template_id": "regime_transition_basic_v1",
       "description": "Intrabar tick/flow pattern suggesting imminent regime change",
-      "entry_factors": ["tick_ret_5", "TradeFlowImbalance", "LiveReturnFromClose"],
-      "preferred_regimes": ["transition_ambiguous"],
+      "entry_factors": [
+        "tick_ret_5",
+        "TradeFlowImbalance",
+        "LiveReturnFromClose"
+      ],
+      "preferred_regimes": [
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 1,
@@ -820,9 +1395,19 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "Stochastic %K below 20 with %D cross — classic oversold bounce",
-      "entry_factors": ["stoch_k_14", "rsi_7", "TradeFlowImbalance"],
-      "preferred_regimes": ["range_chop", "downtrend", "transition_ambiguous"],
-      "avoid_regimes": ["high_volatility"],
+      "entry_factors": [
+        "stoch_k_14",
+        "rsi_7",
+        "TradeFlowImbalance"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "downtrend",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "direction": "long",
       "min_bars": 14,
       "trigger_definition": "stoch_k_14 < 25",
@@ -842,8 +1427,14 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "Williams %R at extreme (-95 to -100 for oversold, 0 to -5 for overbought)",
-      "entry_factors": ["williams_r_14", "rsi_14"],
-      "preferred_regimes": ["range_chop", "transition_ambiguous"],
+      "entry_factors": [
+        "williams_r_14",
+        "rsi_14"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 14,
@@ -864,8 +1455,16 @@
       "family": "pattern",
       "template_id": "breakout_basic_v1",
       "description": "Strong rejection candle (pin bar) at key level — reversal signal",
-      "entry_factors": ["pin_bar_ratio", "BollingerWidth", "rel_volume_20"],
-      "preferred_regimes": ["uptrend", "downtrend", "range_chop"],
+      "entry_factors": [
+        "pin_bar_ratio",
+        "BollingerWidth",
+        "rel_volume_20"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "range_chop"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 2,
@@ -886,8 +1485,15 @@
       "family": "breakout",
       "template_id": "breakout_basic_v1",
       "description": "Inside bar compression followed by breakout of parent bar range",
-      "entry_factors": ["inside_bar", "BollingerWidth", "rel_volume_20"],
-      "preferred_regimes": ["uptrend", "downtrend"],
+      "entry_factors": [
+        "inside_bar",
+        "BollingerWidth",
+        "rel_volume_20"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 2,
@@ -908,9 +1514,18 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "4-5 consecutive directional bars — exhaustion reversion setup",
-      "entry_factors": ["consecutive_up_bars", "consecutive_down_bars", "rsi_14"],
-      "preferred_regimes": ["uptrend", "downtrend"],
-      "avoid_regimes": ["high_volatility"],
+      "entry_factors": [
+        "consecutive_up_bars",
+        "consecutive_down_bars",
+        "rsi_14"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "direction": "both",
       "min_bars": 5,
       "trigger_definition": "consecutive_up_bars >= 4 or consecutive_down_bars >= 4",
@@ -930,8 +1545,16 @@
       "family": "cross_asset",
       "template_id": "cross_asset_beta_v1",
       "description": "ETH or SOL lagging BTC strong move — catch-up trade",
-      "entry_factors": ["btc_ret_1", "market_correlation_20", "ema_spread_8_21"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "btc_ret_1",
+        "market_correlation_20",
+        "ema_spread_8_21"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 20,
@@ -952,8 +1575,17 @@
       "family": "order_flow",
       "template_id": "perp_funding_v1",
       "description": "Funding rate at extreme — contrarian fade as squeezed side forced to close",
-      "entry_factors": ["funding_rate_hourly", "rsi_14", "trade_flow_imbalance_20"],
-      "preferred_regimes": ["range_chop", "transition_ambiguous", "uptrend", "downtrend"],
+      "entry_factors": [
+        "funding_rate_hourly",
+        "rsi_14",
+        "trade_flow_imbalance_20"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "transition_ambiguous",
+        "uptrend",
+        "downtrend"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 5,
@@ -973,8 +1605,16 @@
       "family": "order_flow",
       "template_id": "flow_imbalance_entry_v1",
       "description": "Open interest rising while price falling — short accumulation precedes short squeeze",
-      "entry_factors": ["open_interest_usd", "rsi_14", "price_vs_sma20", "trade_flow_imbalance_20"],
-      "preferred_regimes": ["downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "open_interest_usd",
+        "rsi_14",
+        "price_vs_sma20",
+        "trade_flow_imbalance_20"
+      ],
+      "preferred_regimes": [
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "long",
       "min_bars": 10,
@@ -994,8 +1634,16 @@
       "family": "order_flow",
       "template_id": "flow_imbalance_entry_v1",
       "description": "Open interest rising while price rising — long accumulation precedes long liquidation cascade",
-      "entry_factors": ["open_interest_usd", "rsi_14", "price_vs_sma20", "trade_flow_imbalance_20"],
-      "preferred_regimes": ["uptrend", "transition_ambiguous"],
+      "entry_factors": [
+        "open_interest_usd",
+        "rsi_14",
+        "price_vs_sma20",
+        "trade_flow_imbalance_20"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "short",
       "min_bars": 10,
@@ -1015,8 +1663,17 @@
       "family": "mean_reversion",
       "template_id": "liquidation_event_v1",
       "description": "Post-liquidation cascade overshoot — price snaps back after forced liquidations clear",
-      "entry_factors": ["atr_pct_14", "rsi_14", "trade_flow_imbalance_20", "rel_volume_20"],
-      "preferred_regimes": ["high_volatility", "downtrend", "uptrend"],
+      "entry_factors": [
+        "atr_pct_14",
+        "rsi_14",
+        "trade_flow_imbalance_20",
+        "rel_volume_20"
+      ],
+      "preferred_regimes": [
+        "high_volatility",
+        "downtrend",
+        "uptrend"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 3,
@@ -1036,9 +1693,18 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "Perpetual futures mark price premium/discount to index — statistical reversion trade",
-      "entry_factors": ["mark_vs_index_bps", "funding_rate_hourly", "rsi_14"],
-      "preferred_regimes": ["range_chop", "transition_ambiguous"],
-      "avoid_regimes": ["high_volatility"],
+      "entry_factors": [
+        "mark_vs_index_bps",
+        "funding_rate_hourly",
+        "rsi_14"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "transition_ambiguous"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "direction": "both",
       "min_bars": 5,
       "trigger_definition": "abs(mark_vs_index_bps) > 15",
@@ -1057,8 +1723,18 @@
       "family": "mean_reversion",
       "template_id": "vwap_anchor_v1",
       "description": "Price significantly deviating from VWAP — institutional reversion pressure",
-      "entry_factors": ["vwap_deviation_pct", "rsi_14", "rel_volume_20", "trade_flow_imbalance_20"],
-      "preferred_regimes": ["range_chop", "transition_ambiguous", "uptrend", "downtrend"],
+      "entry_factors": [
+        "vwap_deviation_pct",
+        "rsi_14",
+        "rel_volume_20",
+        "trade_flow_imbalance_20"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "transition_ambiguous",
+        "uptrend",
+        "downtrend"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 15,
@@ -1078,8 +1754,16 @@
       "family": "breakout",
       "template_id": "high_vol_burst_v1",
       "description": "High volatility momentum burst — ride the dominant force during volatility expansion",
-      "entry_factors": ["atr_pct_14", "trade_flow_imbalance_20", "rel_volume_20", "volatility_ratio_5_20"],
-      "preferred_regimes": ["high_volatility", "transition_ambiguous"],
+      "entry_factors": [
+        "atr_pct_14",
+        "trade_flow_imbalance_20",
+        "rel_volume_20",
+        "volatility_ratio_5_20"
+      ],
+      "preferred_regimes": [
+        "high_volatility",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 5,
@@ -1099,8 +1783,17 @@
       "family": "divergence",
       "template_id": "momentum_divergence_v1",
       "description": "RSI fractal divergence — price and RSI making opposite fractal highs/lows",
-      "entry_factors": ["rsi_divergence", "rsi_14", "MACD_hist", "rel_volume_20"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "rsi_divergence",
+        "rsi_14",
+        "MACD_hist",
+        "rel_volume_20"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 20,
@@ -1120,9 +1813,18 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_bb_v1",
       "description": "Session range extreme rejection — fade price at statistical range boundaries",
-      "entry_factors": ["bb_pct_b", "rsi_14", "williams_r_14", "trade_flow_imbalance_20"],
-      "preferred_regimes": ["range_chop"],
-      "avoid_regimes": ["high_volatility"],
+      "entry_factors": [
+        "bb_pct_b",
+        "rsi_14",
+        "williams_r_14",
+        "trade_flow_imbalance_20"
+      ],
+      "preferred_regimes": [
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "high_volatility"
+      ],
       "direction": "both",
       "min_bars": 20,
       "trigger_definition": "bb_pct_b >= 0.9 or bb_pct_b <= 0.1",
@@ -1141,8 +1843,17 @@
       "family": "order_flow",
       "template_id": "regime_transition_basic_v1",
       "description": "Micro-momentum scalp on tick return acceleration with flow confirmation",
-      "entry_factors": ["tick_ret_5", "trade_flow_imbalance_20", "micro_volatility_20", "large_trade_ratio"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "tick_ret_5",
+        "trade_flow_imbalance_20",
+        "micro_volatility_20",
+        "large_trade_ratio"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 1,
@@ -1162,8 +1873,17 @@
       "family": "continuation",
       "template_id": "continuation_basic_v1",
       "description": "EMA 8/21 crossover with volume expansion — clean trend initiation signal",
-      "entry_factors": ["ema_spread_8_21", "rel_volume_20", "rsi_14", "MACD_hist"],
-      "preferred_regimes": ["uptrend", "downtrend", "transition_ambiguous"],
+      "entry_factors": [
+        "ema_spread_8_21",
+        "rel_volume_20",
+        "rsi_14",
+        "MACD_hist"
+      ],
+      "preferred_regimes": [
+        "uptrend",
+        "downtrend",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 21,
@@ -1183,8 +1903,16 @@
       "family": "mean_reversion",
       "template_id": "mean_reversion_basic_v1",
       "description": "Volatility-adjusted z-score extreme — high confidence mean reversion entry",
-      "entry_factors": ["zscore_close_20", "atr_pct_14", "rsi_14", "trade_flow_imbalance_20"],
-      "preferred_regimes": ["range_chop", "transition_ambiguous"],
+      "entry_factors": [
+        "zscore_close_20",
+        "atr_pct_14",
+        "rsi_14",
+        "trade_flow_imbalance_20"
+      ],
+      "preferred_regimes": [
+        "range_chop",
+        "transition_ambiguous"
+      ],
       "avoid_regimes": [],
       "direction": "both",
       "min_bars": 20,
@@ -1204,10 +1932,49 @@
     "max_candidates_per_batch": 500,
     "max_factors_per_candidate": 4,
     "max_conjunction_depth": 3,
-    "default_threshold_grid": [-2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5],
-    "default_lag_grid": [1, 2, 3, 5, 8],
-    "default_percentile_grid": [0.05, 0.1, 0.2, 0.8, 0.9, 0.95],
-    "default_rsi_grid": [20, 25, 30, 35, 65, 70, 75, 80],
-    "default_volume_grid": [1.2, 1.5, 2.0, 3.0]
+    "default_threshold_grid": [
+      -2.5,
+      -2.0,
+      -1.5,
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0,
+      1.5,
+      2.0,
+      2.5
+    ],
+    "default_lag_grid": [
+      1,
+      2,
+      3,
+      5,
+      8
+    ],
+    "default_percentile_grid": [
+      0.05,
+      0.1,
+      0.2,
+      0.8,
+      0.9,
+      0.95
+    ],
+    "default_rsi_grid": [
+      20,
+      25,
+      30,
+      35,
+      65,
+      70,
+      75,
+      80
+    ],
+    "default_volume_grid": [
+      1.2,
+      1.5,
+      2.0,
+      3.0
+    ]
   }
 }
