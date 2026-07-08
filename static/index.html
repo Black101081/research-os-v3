@@ -814,9 +814,14 @@
 
       <!-- Feed Status Block -->
       <div class="sidebar-block">
-        <h3>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Feed Status
+        <h3 style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Feed Status
+          </span>
+          <button class="settings-gear-btn" onclick="openSystemSettingsModal()" title="Cấu hình hệ thống" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: color 0.2s;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: none;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
         </h3>
         <div class="wallet-sub">Network: <strong class="mono" style="color:#fff;">mainnet</strong></div>
         <div class="wallet-sub">Assets: <strong class="mono" id="sbAssets" style="color:#fff;">—</strong></div>
@@ -1099,6 +1104,7 @@
             <button class="tab-btn" data-tab="presets">Research Presets</button>
             <button class="tab-btn" data-tab="validator">Code Validator</button>
             <button class="tab-btn" data-tab="raw-state">Raw JSON Snapshot</button>
+            <button class="tab-btn" data-tab="settings">System Settings</button>
           </div>
 
           <!-- Tab Contents -->
@@ -1154,6 +1160,45 @@
 
           <div class="tab-panel" id="panel-raw-state">
             <pre id="stateView" class="json-code" style="max-height: 400px;"></pre>
+          </div>
+
+          <div class="tab-panel" id="panel-settings">
+            <div style="max-width: 600px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+              <h3 style="margin-top: 0; color: #fff; margin-bottom: 16px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                ⚙️ Chọn Tài Sản & Khung Giờ Hoạt Động
+              </h3>
+              
+              <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--primary);">1. Chọn Tài Sản (Assets):</label>
+                <div style="display: flex; gap: 16px; flex-wrap: wrap; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border);" id="settingsAssetCheckboxes">
+                  <!-- JS populated -->
+                </div>
+                <small style="color: var(--muted); font-size: 0.72rem; margin-top: 4px; display: block;">
+                  * Đánh dấu vào các đồng coin bạn muốn hệ thống thu thập dữ liệu và phân tích.
+                </small>
+              </div>
+
+              <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--primary);">2. Chọn Khung Giờ (Timeframe):</label>
+                <select id="settingsIntervalSelect" class="filter-select" style="width: 100%; max-width: 200px; padding: 6px 12px; font-size: 0.85rem;">
+                  <option value="1m">1m (1 Phút)</option>
+                  <option value="5m">5m (5 Phút)</option>
+                  <option value="15m">15m (15 Phút)</option>
+                  <option value="1h">1h (1 Giờ)</option>
+                </select>
+                <small style="color: var(--muted); font-size: 0.72rem; margin-top: 4px; display: block;">
+                  * Khung giờ chính dùng để chạy nến cơ sở cho realtime engine.
+                </small>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 16px;">
+                <button class="btn btn-primary" onclick="submitSystemConfig()" style="font-weight: 600; padding: 8px 16px; font-size: 0.82rem; border-radius: 6px;">
+                  💾 Lưu & Áp Dụng (Hot Reload)
+                </button>
+              </div>
+              
+              <div id="settingsConfigStatus" style="margin-top: 12px; font-size: 0.8rem; text-align: center; display: none;"></div>
+            </div>
           </div>
         </div>
       </section>
@@ -1338,9 +1383,9 @@
       }
     } catch (e) {
       console.error(`Error loading signal detail for ${cacheKey}:`, e);
-      const loadingEl = document.getElementById(`row-loading-${symbol}-${signalId}`);
+      const loadingEl = document.getElementById(`row-loading-${symbol}-${signalId}`) || document.getElementById(`card-loading-${symbol}-${signalId}`);
       if (loadingEl) {
-        loadingEl.innerHTML = `<td colspan="12" style="padding:20px; text-align:center; color:var(--error); font-size:0.8rem;">Failed to load details.</td>`;
+        loadingEl.innerHTML = `<div style="padding:10px; text-align:center; color:var(--error); font-size:0.75rem;">Failed to load details.</div>`;
       }
     }
   }
@@ -1372,6 +1417,8 @@
         if (targetPanel) targetPanel.classList.add('active');
         if (btn.dataset.tab === 'presets') {
           loadResearchPresets();
+        } else if (btn.dataset.tab === 'settings') {
+          loadSystemSettings();
         }
       };
     });
@@ -1389,12 +1436,100 @@
     });
   }
 
+  async function loadSystemSettings() {
+    try {
+      const config = await fetch('/api/config').then(r => r.json());
+      const activeSymbols = config.symbols || [];
+      const activeInterval = config.candle_interval || '1m';
+      
+      const container = document.getElementById('settingsAssetCheckboxes');
+      if (container) {
+        const allAvailableCoins = ['BTC', 'ETH', 'SOL', 'AVAX', 'SUI', 'NEAR', 'ADA', 'XRP', 'LINK', 'LTC'];
+        container.innerHTML = allAvailableCoins.map(coin => {
+          const checked = activeSymbols.includes(coin) ? 'checked' : '';
+          return `
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; color: #fff;">
+              <input type="checkbox" name="settingsAssets" value="${coin}" ${checked}> ${coin}
+            </label>
+          `;
+        }).join('');
+      }
+      
+      const select = document.getElementById('settingsIntervalSelect');
+      if (select) {
+        select.value = activeInterval;
+      }
+    } catch (e) {
+      console.error("Failed to load settings config:", e);
+    }
+  }
+
+  async function submitSystemConfig() {
+    const statusEl = document.getElementById('settingsConfigStatus');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--primary)';
+      statusEl.textContent = '⏳ Đang lưu cấu hình và khởi động lại pipeline...';
+    }
+
+    const checkboxes = document.querySelectorAll('input[name="settingsAssets"]:checked');
+    const symbols = Array.from(checkboxes).map(cb => cb.value);
+    
+    const intervalSelect = document.getElementById('settingsIntervalSelect');
+    const candle_interval = intervalSelect ? intervalSelect.value : '1m';
+
+    if (symbols.length === 0) {
+      if (statusEl) {
+        statusEl.style.color = 'var(--error)';
+        statusEl.textContent = '❌ Vui lòng chọn ít nhất một tài sản!';
+      }
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/config/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols, candle_interval })
+      }).then(r => r.json());
+
+      if (response.status === 'ok') {
+        if (statusEl) {
+          statusEl.style.color = 'var(--success)';
+          statusEl.textContent = '✅ Đã lưu cấu hình và cập nhật dữ liệu thành công!';
+        }
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        if (statusEl) {
+          statusEl.style.color = 'var(--error)';
+          statusEl.textContent = '❌ Lỗi: ' + response.message;
+        }
+      }
+    } catch (e) {
+      if (statusEl) {
+        statusEl.style.color = 'var(--error)';
+        statusEl.textContent = '❌ Lỗi kết nối đến máy chủ!';
+      }
+    }
+  }
+
   // RENDER SECTIONS
 
   // SECTION A: Symbol Overview Cards
+  let lastSymbolOverviewFingerprint = '';
+
   function renderSymbolOverview(symbols) {
     const section = document.getElementById('sectionA-symbols');
     if (!section) return;
+
+    const fingerprint = symbols.map(sym => 
+      sym.symbol + '_' + sym.last_trade + '_' + sym.mid + '_' + sym.regime + '_' + sym.regime_confidence + '_' + sym.tradable + '_' + sym.bars_loaded + '_' + (sym.updated_at || '') + '_' + sym.signal_summary.triggered + '_' + sym.signal_summary.confirmed + '_' + sym.signal_summary.active + '_' + (sym.top_signals ? sym.top_signals.join(',') : '')
+    ).join('|');
+
+    if (fingerprint === lastSymbolOverviewFingerprint) return;
+    lastSymbolOverviewFingerprint = fingerprint;
 
     section.innerHTML = symbols.map(sym => {
       let badgeClass = 'badge-primary';
@@ -1560,9 +1695,8 @@
         if (isExpanded) {
           const cacheKey = `${sig.symbol}:${sig.signal_id}`;
           const cacheEntry = signalDetailCache[cacheKey];
-          const now = Date.now();
           
-          if (cacheEntry && (now - cacheEntry.ts < 3000)) {
+          if (cacheEntry) {
             const detail = cacheEntry.data;
             let whyNot = '';
             if (!detail.active) {
@@ -1674,17 +1808,50 @@
   }
 
   // SECTION C: Paper Verification Panel
+  let lastPaperBrokerFingerprint = '';
+
   function renderPaperBroker(paper) {
-    // Top Overview Info
-    document.getElementById('sbBalance').textContent = fmtCurrency(paper.balance);
-    document.getElementById('sbEquity').innerHTML = `Equity: <span class="${paper.equity >= paper.balance ? 'text-success' : 'text-error'}">${fmtCurrency(paper.equity)}</span>`;
-    document.getElementById('sbOpenCount').textContent = paper.positions.length;
+    // 1. Direct and conditional updates for top text fields
+    const balanceText = fmtCurrency(paper.balance);
+    const balanceEl = document.getElementById('sbBalance');
+    if (balanceEl && balanceEl.textContent !== balanceText) {
+      balanceEl.textContent = balanceText;
+    }
+
+    const equityHtml = `Equity: <span class="${paper.equity >= paper.balance ? 'text-success' : 'text-error'}">${fmtCurrency(paper.equity)}</span>`;
+    const equityEl = document.getElementById('sbEquity');
+    if (equityEl && equityEl.innerHTML !== equityHtml) {
+      equityEl.innerHTML = equityHtml;
+    }
+
+    const openCountText = String(paper.positions.length);
+    const openCountEl = document.getElementById('sbOpenCount');
+    if (openCountEl && openCountEl.textContent !== openCountText) {
+      openCountEl.textContent = openCountText;
+    }
     
     // Calculate total PnL
     const totalPnl = paper.positions.reduce((acc, pos) => acc + (pos.unrealized_pnl || 0), 0.0);
+    const pnlText = (totalPnl >= 0 ? '+' : '') + fmtCurrency(totalPnl);
+    const pnlClass = totalPnl >= 0 ? 'text-success' : 'text-error';
     const pnlEl = document.getElementById('sbTotalPnl');
-    pnlEl.textContent = (totalPnl >= 0 ? '+' : '') + fmtCurrency(totalPnl);
-    pnlEl.className = totalPnl >= 0 ? 'text-success' : 'text-error';
+    if (pnlEl) {
+      if (pnlEl.textContent !== pnlText) pnlEl.textContent = pnlText;
+      if (pnlEl.className !== pnlClass) pnlEl.className = pnlClass;
+    }
+
+    // 2. Fingerprint for tables
+    const positionsFingerprint = paper.positions.map(p => 
+      p.symbol + '_' + p.signal_source + '_' + p.direction + '_' + p.quantity + '_' + p.entry_price + '_' + p.current_price + '_' + p.unrealized_pnl + '_' + (p.stop_loss || '') + '_' + (p.take_profit || '') + '_' + p.status
+    ).join('|');
+
+    const historyFingerprint = paper.history.map(h => 
+      h.symbol + '_' + h.signal_source + '_' + h.direction + '_' + h.quantity + '_' + h.entry_price + '_' + h.exit_price + '_' + h.pnl + '_' + h.status + '_' + h.reason
+    ).join('|');
+
+    const combinedFingerprint = positionsFingerprint + '||' + historyFingerprint;
+    if (combinedFingerprint === lastPaperBrokerFingerprint) return;
+    lastPaperBrokerFingerprint = combinedFingerprint;
 
     // Active Positions Table
     const posTable = document.getElementById('sectionC-activePositionsTable');
@@ -1803,6 +1970,8 @@
   }
 
   // RENDER BOARD (Lifecycle lanes)
+  let lastBoardFingerprint = '';
+
   function renderBoard(specs, validator, backtests) {
     const lanes = ['pending_review', 'qualify', 'revise', 'reject', 'promote'];
     let packets = (specs.playbook_packets || []).slice();
@@ -1834,6 +2003,14 @@
       );
     }
 
+    // Fingerprint check
+    const fingerprint = (search || '') + '||' + packets.map(p => 
+      p.symbol + '_' + p.signal_name + '_' + p.current_stage + '_' + (p.research_status || 'pending_review')
+    ).join('|');
+
+    if (fingerprint === lastBoardFingerprint) return;
+    lastBoardFingerprint = fingerprint;
+
     document.getElementById('lifecycleBoard').innerHTML = lanes.map(lane => {
       const items = packets.filter(x => (x.research_status || 'pending_review') === lane);
       let badgeClass = 'badge-primary';
@@ -1860,151 +2037,6 @@
         </div>
       `;
     }).join('');
-  }
-
-  // TICK & POLL LOOP
-  async function tick() {
-    try {
-      const dashboard = await loadDashboard();
-      lastDashboardCache = dashboard;
-      
-      const ov = dashboard.overview;
-
-      if (!lastSnapshotCache) {
-        lastSnapshotCache = {
-          config: { symbols: ov.symbols, candle_interval: ov.candle_interval },
-          snap: {},
-          validation: {},
-          specs: {},
-          replay: {},
-          validator: {},
-          backtests: {},
-          broker: {},
-          telemetry: {},
-          ranking: {}
-        };
-        slowTick();
-      }
-
-      // Re-create snapshot structure to keep compatibility with other scripts
-      lastSnapshotCache.broker = {
-        balance: dashboard.paper_positions.balance,
-        equity: dashboard.paper_positions.equity,
-        active_positions_count: dashboard.overview.open_positions_count,
-        positions: dashboard.paper_positions.positions,
-        trade_history: dashboard.paper_positions.history
-      };
-      lastSnapshotCache.telemetry = dashboard.telemetry;
-      
-      dashboard.symbols.forEach(curr => {
-        if (!lastSnapshotCache.snap[curr.symbol]) {
-          lastSnapshotCache.snap[curr.symbol] = {
-            last_trade: curr.last_trade,
-            mid: curr.mid,
-            updated_at: curr.updated_at,
-            regime_state: { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable },
-            bars: Array(curr.bars_loaded).fill({}),
-            factors: {},
-            indicators: {},
-            signals: {},
-            strategies: {}
-          };
-        } else {
-          const s = lastSnapshotCache.snap[curr.symbol];
-          s.last_trade = curr.last_trade;
-          s.mid = curr.mid;
-          s.updated_at = curr.updated_at;
-          s.regime_state = { regime: curr.regime, confidence: curr.regime_confidence, tradable: curr.tradable };
-        }
-      });
-
-      // 1. RENDER TOP BAR & TELEMETRY
-      const topMode = document.getElementById('topModeBadge');
-      if (topMode) {
-        topMode.textContent = ov.mode.toUpperCase();
-        topMode.className = 'badge ' + (ov.mode === 'live' ? 'badge-error' : 'badge-success');
-      }
-
-      const topLat = document.getElementById('topLatencyVal');
-      if (topLat) {
-        topLat.textContent = ov.latency_ms.toFixed(2) + ' ms';
-        topLat.style.color = ov.latency_ms < 10.0 ? 'var(--success)' : (ov.latency_ms < 50.0 ? 'var(--warn)' : 'var(--error)');
-      }
-      
-      const topErr = document.getElementById('topErrorRate');
-      if (topErr) {
-        topErr.textContent = ov.error_rate.toFixed(2) + '%';
-        topErr.style.color = ov.error_rate > 0.0 ? 'var(--error)' : 'var(--muted)';
-      }
-
-      const topUp = document.getElementById('topUptime');
-      if (topUp) {
-        const uptimeSec = ov.uptime_seconds;
-        const h = Math.floor(uptimeSec / 3600).toString().padStart(2, '0');
-        const m = Math.floor((uptimeSec % 3600) / 60).toString().padStart(2, '0');
-        topUp.textContent = `${h}h ${m}m`;
-      }
-
-      const killBtn = document.getElementById('topKillSwitch');
-      const resetBtn = document.getElementById('topResetKillSwitch');
-      if (killBtn) {
-        if (ov.kill_switch_active) {
-          killBtn.textContent = '🚨 EMERGENCY STATE ACTIVE';
-          killBtn.style.background = '#991b1b';
-          if (resetBtn) resetBtn.style.display = 'inline-flex';
-        } else {
-          killBtn.textContent = '🚨 KILL SWITCH';
-          killBtn.style.background = 'var(--error)';
-          if (resetBtn) resetBtn.style.display = 'none';
-        }
-      }
-
-      // 2. RENDER FEED DETAILS (Sidebar)
-      const feedMeta = document.getElementById('sbAssets');
-      if (feedMeta) feedMeta.textContent = ov.symbols.join(', ');
-      
-      const sbInt = document.getElementById('sbInterval');
-      if (sbInt) sbInt.textContent = ov.candle_interval;
-
-      // 3. RENDER TELEMETRY Details (Sidebar)
-      const sbThru = document.getElementById('sbThroughput');
-      if (sbThru) sbThru.textContent = dashboard.telemetry.msg_rate_fps.toFixed(1) + ' msg/s';
-      
-      const sbLat = document.getElementById('sbLatency');
-      if (sbLat) sbLat.textContent = dashboard.telemetry.avg_latency_ms.toFixed(2) + ' ms';
-      
-      const sbErr = document.getElementById('sbErrors');
-      if (sbErr) sbErr.textContent = dashboard.telemetry.error_rate_pct.toFixed(2) + '%';
-      
-      const sbAct = document.getElementById('sbActiveSpecs');
-      if (sbAct) sbAct.textContent = ov.execution_ready_count + ' ready';
-
-      // 4. RENDER REDESIGNED SECTION A
-      renderSymbolOverview(dashboard.symbols);
-
-      // 6. RENDER REDESIGNED SECTION C
-      renderPaperBroker(dashboard.paper_positions);
-
-      // Update selected tab raw code view
-      const selectVal = document.getElementById('symbolSelect');
-      if (selectVal) {
-        const sym = selectVal.value || lastSnapshotCache.config.symbols[0];
-        const s = lastSnapshotCache.snap[sym] || {};
-        document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
-      }
-
-      // Reset auto-refresh indicator to success status
-      document.getElementById('topRefreshLabel').textContent = 'Auto-refreshing';
-      document.getElementById('topRefreshPulse').className = 'pulse-dot pulse-green';
-      document.getElementById('topRefreshPulse').style.backgroundColor = '';
-
-    } catch (e) {
-      console.error("Dashboard presenter poller error:", e);
-      document.getElementById('topRefreshLabel').textContent = 'Disconnected';
-      document.getElementById('topRefreshPulse').className = 'pulse-dot';
-      document.getElementById('topRefreshPulse').style.backgroundColor = 'var(--error)';
-      document.getElementById('topRefreshPulse').style.boxShadow = '0 0 0 4px var(--error-glow)';
-    }
   }
 
   // FAST LOOP (every 2 seconds)
@@ -2438,7 +2470,166 @@
     setInterval(metadataTick, 15000);
     setInterval(refreshStorageStatus, 30000);
   })();
+
+  window.openSystemSettingsModal = async function() {
+    const modal = document.getElementById('systemSettingsModal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+    
+    const statusEl = document.getElementById('modalConfigStatus');
+    if (statusEl) statusEl.style.display = 'none';
+
+    try {
+      const config = await fetch('/api/config').then(r => r.json());
+      const activeSymbols = config.symbols || [];
+      const activeInterval = config.candle_interval || '1m';
+      
+      const container = document.getElementById('modalAssetCheckboxes');
+      if (container) {
+        const allAvailableCoins = ['BTC', 'ETH', 'SOL', 'AVAX', 'SUI', 'NEAR', 'ADA', 'XRP', 'LINK', 'LTC'];
+        container.innerHTML = allAvailableCoins.map(coin => {
+          const checked = activeSymbols.includes(coin) ? 'checked' : '';
+          return `
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; color: #fff; user-select: none;">
+              <input type="checkbox" name="modalAssets" value="${coin}" ${checked} style="accent-color: var(--primary); cursor: pointer;"> ${coin}
+            </label>
+          `;
+        }).join('');
+      }
+      
+      const select = document.getElementById('modalIntervalSelect');
+      if (select) {
+        select.value = activeInterval;
+      }
+    } catch (e) {
+      console.error("Failed to load settings config:", e);
+    }
+  };
+
+  window.closeSystemSettingsModal = function() {
+    const modal = document.getElementById('systemSettingsModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  };
+
+  window.submitModalSystemConfig = async function() {
+    const statusEl = document.getElementById('modalConfigStatus');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--primary)';
+      statusEl.textContent = '⏳ Đang lưu cấu hình và khởi động lại pipeline...';
+    }
+
+    const checkboxes = document.querySelectorAll('input[name="modalAssets"]:checked');
+    const symbols = Array.from(checkboxes).map(cb => cb.value);
+    
+    const intervalSelect = document.getElementById('modalIntervalSelect');
+    const candle_interval = intervalSelect ? intervalSelect.value : '1m';
+
+    if (symbols.length === 0) {
+      if (statusEl) {
+        statusEl.style.color = 'var(--error)';
+        statusEl.textContent = '❌ Vui lòng chọn ít nhất một tài sản!';
+      }
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/config/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols, candle_interval })
+      }).then(r => r.json());
+
+      if (response.status === 'ok') {
+        if (statusEl) {
+          statusEl.style.color = 'var(--success)';
+          statusEl.textContent = '✅ Đã lưu cấu hình và cập nhật dữ liệu thành công!';
+        }
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        if (statusEl) {
+          statusEl.style.color = 'var(--error)';
+          statusEl.textContent = '❌ Lỗi: ' + response.message;
+        }
+      }
+    } catch (e) {
+      if (statusEl) {
+        statusEl.style.color = 'var(--error)';
+        statusEl.textContent = '❌ Lỗi kết nối đến máy chủ!';
+      }
+    }
+  };
 </script>
+
+<!-- System Settings Modal Overlay -->
+<div id="systemSettingsModal" style="display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+  <div style="width: 100%; max-width: 480px; background: #0f1216; border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    
+    <!-- Modal Header -->
+    <h3 style="margin-top: 0; color: #fff; margin-bottom: 18px; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
+      <span style="display: flex; align-items: center; gap: 8px;">
+        ⚙️ Cấu Hình Tài Sản & Khung Giờ
+      </span>
+      <button onclick="closeSystemSettingsModal()" style="background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; line-height: 1;">&times;</button>
+    </h3>
+    
+    <!-- Modal Body -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--primary);">1. Chọn Tài Sản Giao Dịch (Symbols):</label>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 12px; background: rgba(0,0,0,0.25); border-radius: 8px; border: 1px solid var(--border);" id="modalAssetCheckboxes">
+        <!-- JS Dynamic Content -->
+      </div>
+      <small style="color: var(--muted); font-size: 0.72rem; margin-top: 6px; display: block; line-height: 1.3;">
+        * Tích chọn tài sản bạn muốn hệ thống thu thập dữ liệu thời gian thực.
+      </small>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--primary);">2. Chọn Khung Giờ Nến (Interval):</label>
+      <select id="modalIntervalSelect" class="filter-select" style="width: 100%; padding: 8px 12px; font-size: 0.85rem; border-radius: 6px; background: #161a22; border: 1px solid var(--border); color: #fff; cursor: pointer;">
+        <option value="1m">1m (1 Phút)</option>
+        <option value="5m">5m (5 Phút)</option>
+        <option value="15m">15m (15 Phút)</option>
+        <option value="1h">1h (1 Giờ)</option>
+      </select>
+      <small style="color: var(--muted); font-size: 0.72rem; margin-top: 6px; display: block; line-height: 1.3;">
+        * Khung thời gian chạy mô hình tính toán tín hiệu (Realtime Engine).
+      </small>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+      <button onclick="closeSystemSettingsModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; padding: 8px 16px; font-size: 0.82rem; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
+        Đóng
+      </button>
+      <button class="btn btn-primary" onclick="submitModalSystemConfig()" style="font-weight: 600; padding: 8px 16px; font-size: 0.82rem; border-radius: 6px; cursor: pointer;">
+        💾 Lưu & Áp Dụng
+      </button>
+    </div>
+    
+    <div id="modalConfigStatus" style="margin-top: 14px; font-size: 0.8rem; text-align: center; display: none;"></div>
+  </div>
+</div>
+
+<style>
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .settings-gear-btn:hover {
+    color: var(--primary) !important;
+    transform: rotate(45deg);
+  }
+  .settings-gear-btn {
+    transition: transform 0.3s ease, color 0.2s ease;
+  }
+</style>
+
 <script src="/static/js/tour.js"></script>
 <script src="/static/js/presets.js"></script>
 <script src="/static/js/playbook.js"></script>

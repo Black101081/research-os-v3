@@ -110,7 +110,7 @@ class TestRegimeMatrix18Strategies(unittest.TestCase):
         batch = evaluate_all_signals(sym_state, "15m", "anchor")
         self.assertEqual(batch.symbol, "BTC")
         self.assertEqual(batch.interval, "15m")
-        self.assertEqual(len(batch.results), 18)
+        self.assertEqual(len(batch.results), 19)
         
         # Test specific signals
         macd_sig = next(r for r in batch.results if r.family == "macd_trend_continuation")

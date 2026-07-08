@@ -102,3 +102,82 @@ class TestProfitOptimization(unittest.TestCase):
         broker.process_tick("BTC", 60050.0, "2026-07-08T08:00:00Z")
         self.assertEqual(len(broker.pending_orders), 0)
         self.assertEqual(len(broker.positions), 1)
+
+    def test_bb_percentile(self):
+        from factor_math import calc_bb_percentile
+        bb_widths = [1.0, 1.2, 1.5, 1.8, 2.0, 2.2, 2.5]
+        pct = calc_bb_percentile(bb_widths, window=5)
+        # 2.5 is the highest in the last 5 values (1.5, 1.8, 2.0, 2.2, 2.5) -> should be 100.0
+        self.assertEqual(pct, 100.0)
+
+    def test_cvd_divergence(self):
+        from factor_math import compute_divergence
+        # Bullish divergence: price printing lower lows, but indicator printing higher lows
+        closes = [10.0, 9.5, 9.2, 9.0, 9.5, 9.2, 9.0, 8.8, 8.5, 9.0, 9.2, 9.5]
+        cvd    = [110.0, 105.0, 102.0, 100.0, 105.0, 108.0, 110.0, 108.0, 105.0, 110.0, 112.0, 115.0]
+        score = compute_divergence(closes, cvd, fractal_window=1, max_lookback=10)
+        self.assertLess(score, 0.0)
+
+    def test_paper_broker_trailing_stops(self):
+        broker = PaperBroker(initial_balance=10000.0)
+        broker.clear_all_positions()
+        
+        sig = SignalResult(
+            signal_id="test_trail_123",
+            symbol="BTC",
+            family="macd_trend_continuation",
+            interval="15m",
+            asset_role="anchor",
+            fired=True,
+            direction="long",
+            entry_price=60000.0,
+            stop_loss=58000.0,
+            take_profit=66000.0,
+            take_profit_2=68000.0,
+            confidence_score=0.8,
+            confluence_votes=3,
+            confluence_total=4,
+            risk_reward_ratio=3.0,
+            atr_at_signal=100.0,
+            invalidation_price=58000.0,
+            notes=["test_trail"],
+            indicators_snapshot={}
+        )
+        qualified = QualifiedSignal(
+            signal=sig,
+            position_size_pct=5.0,
+            position_size_usd=500.0,
+            risk_amount_usd=10.0,
+            expected_value_r=0.5,
+            market_regime="bullish_trend",
+            btc_structure="bullish",
+            session_name="london",
+            cooldown_key="BTC_macd_trend_continuation",
+            qualified_at="2026-07-08T08:00:00Z"
+        )
+        
+        # Submit
+        broker.on_qualified_signal(qualified)
+        
+        # Fill immediately at entry_price
+        broker.process_tick("BTC", 60000.0, "2026-07-08T08:00:00Z")
+        self.assertEqual(len(broker.positions), 1)
+        
+        pos_key = "BTC_macd_trend_continuation"
+        pos = broker.positions[pos_key]
+        self.assertEqual(pos["stop_loss"], 58000.0)
+        self.assertEqual(pos["breakeven_triggered"], False)
+        
+        # Price moves up by 1.0R (62000.0) -> triggers breakeven and trails up to 60200.0
+        broker.process_tick("BTC", 62000.0, "2026-07-08T08:00:05Z", {"atr_pct_14": 2.0})
+        pos = broker.positions[pos_key]
+        self.assertEqual(pos["stop_loss"], 60200.0)
+        self.assertTrue(pos["breakeven_triggered"])
+        
+        # Price moves up further to 65000.0 -> trails stop-loss
+        # ATR trail distance = 1.5 * 2% * 60000 = 1800
+        # stop_loss = 65000 - 1800 = 63200
+        broker.process_tick("BTC", 65000.0, "2026-07-08T08:00:10Z", {"atr_pct_14": 2.0})
+        pos = broker.positions[pos_key]
+        self.assertEqual(pos["stop_loss"], 63200.0)
+

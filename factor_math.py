@@ -1213,3 +1213,20 @@ def calc_decayed_flow_imbalance(sizes: List[float], sides: List[str], window: in
     total_weighted = np.sum(sz * weights)
     
     return float(np.sum(weighted_delta) / total_weighted) if total_weighted else 0.0
+
+
+def calc_bb_percentile(bb_widths: List[float], window: int = 30) -> float:
+    """
+    Maps the current Bollinger Band width to its rolling percentile (0-100) over the last window intervals.
+    """
+    if len(bb_widths) < 2:
+        return 50.0
+    current = bb_widths[-1]
+    lookback = bb_widths[-window:]
+    arr = np.asarray(lookback, dtype=np.float64)
+    min_val = np.min(arr)
+    max_val = np.max(arr)
+    if max_val == min_val:
+        return 50.0
+    return float(np.sum(arr <= current) / len(arr) * 100.0)
+

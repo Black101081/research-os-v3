@@ -36,7 +36,7 @@ class PaperBroker:
             f"{len(self.trade_history)} trades from DB"
         )
 
-    def process_tick(self, symbol: str, current_price: float, current_time: str):
+    def process_tick(self, symbol: str, current_price: float, current_time: str, indicators: dict | None = None):
         # ── 1. Update pending limit orders (Post-Only + Chasing simulation) ──
         still_pending = []
         for order in getattr(self, "pending_orders", []):
@@ -94,12 +94,77 @@ class PaperBroker:
             pos["current_price"]   = current_price
             pos["unrealized_pnl"]  = round(unrealized, 4)
 
+            # ── 2b. Breakeven and Trailing Stop-Loss logic ──
+            initial_sl = pos.get("initial_sl")
+            if initial_sl is None:
+                initial_sl = pos.get("stop_loss")
+                pos["initial_sl"] = initial_sl
+
+            if initial_sl and initial_sl > 0:
+                risk_per_unit = abs(entry_price - initial_sl)
+            else:
+                risk_per_unit = 0.02 * entry_price
+
+            breakeven_triggered = bool(pos.get("breakeven_triggered", False))
+            max_fav = pos.get("max_favorable_price", entry_price)
+            if max_fav is None:
+                max_fav = entry_price
+
+            if direction == "long" or direction == "buy":
+                max_fav = max(max_fav, current_price)
+                pos["max_favorable_price"] = max_fav
+                
+                # Check for breakeven trigger
+                if not breakeven_triggered and current_price - entry_price >= risk_per_unit:
+                    pos["breakeven_triggered"] = True
+                    pos["stop_loss"] = entry_price
+                    logger.info(f"[PaperBroker] BREAKEVEN TRIGGERED for Long {symbol} at {current_price} (SL moved to {entry_price})")
+                    breakeven_triggered = True
+                    
+                # Trailing stop
+                if breakeven_triggered:
+                    atr_pct = 0.02
+                    if indicators:
+                        atr_val = indicators.get("atr_14_pct") or indicators.get("natr") or indicators.get("atr_pct_14")
+                        if atr_val is not None:
+                            atr_pct = atr_val / 100.0
+                    
+                    trail_dist = 1.5 * atr_pct * entry_price
+                    new_sl = round(max_fav - trail_dist, 6)
+                    if pos["stop_loss"] is None or new_sl > pos["stop_loss"]:
+                        pos["stop_loss"] = new_sl
+                        logger.info(f"[PaperBroker] TRAILING SL MOVED UP for Long {symbol} to {new_sl} (max_fav={max_fav})")
+            else:
+                max_fav = min(max_fav, current_price)
+                pos["max_favorable_price"] = max_fav
+                
+                # Check for breakeven trigger
+                if not breakeven_triggered and entry_price - current_price >= risk_per_unit:
+                    pos["breakeven_triggered"] = True
+                    pos["stop_loss"] = entry_price
+                    logger.info(f"[PaperBroker] BREAKEVEN TRIGGERED for Short {symbol} at {current_price} (SL moved to {entry_price})")
+                    breakeven_triggered = True
+                    
+                # Trailing stop
+                if breakeven_triggered:
+                    atr_pct = 0.02
+                    if indicators:
+                        atr_val = indicators.get("atr_14_pct") or indicators.get("natr") or indicators.get("atr_pct_14")
+                        if atr_val is not None:
+                            atr_pct = atr_val / 100.0
+                            
+                    trail_dist = 1.5 * atr_pct * entry_price
+                    new_sl = round(max_fav + trail_dist, 6)
+                    if pos["stop_loss"] is None or new_sl < pos["stop_loss"]:
+                        pos["stop_loss"] = new_sl
+                        logger.info(f"[PaperBroker] TRAILING SL MOVED DOWN for Short {symbol} to {new_sl} (max_fav={max_fav})")
+
             sl_price = pos.get("stop_loss")
             tp_price = pos.get("take_profit")
             trigger_close = False
             close_reason  = ""
 
-            if direction == "long":
+            if direction == "long" or direction == "buy":
                 if sl_price and current_price <= sl_price:
                     trigger_close = True
                     close_reason  = "Stop Loss"
@@ -184,6 +249,9 @@ class PaperBroker:
             "entry_fee":     round(entry_fee, 4),
             "signal_source": signal_source,
             "signal_id":     None,  # default placeholder
+            "breakeven_triggered": False,
+            "initial_sl":    stop_loss,
+            "max_favorable_price": price,
         }
         if extra:
             pos.update(extra)
@@ -302,6 +370,9 @@ class PaperBroker:
             "family":             sig.family,
             "interval":           getattr(sig, "interval", "unknown"),
             "cooldown_key":       qualified.cooldown_key,
+            "breakeven_triggered": False,
+            "initial_sl":        order["stop_loss"],
+            "max_favorable_price": fill_price,
         }
         self.positions[pos_key] = pos
         self._qualified_signals.append(qualified)

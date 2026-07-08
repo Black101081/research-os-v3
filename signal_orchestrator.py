@@ -57,16 +57,26 @@ bridge = PromotedSignalBridge()
 
 SUPPORTED = ['bollinger_squeeze_breakout', 'zscore_recenter', 'macd_trend_continuation']
 
+_compiled_expr_cache: Dict[str, Any] = {}
+
 def safe_eval_expression(expr: str, context: Dict[str, float]) -> bool:
-    safe_dict = {k: float(v) for k, v in context.items() if isinstance(v, (int, float))}
+    code_obj = _compiled_expr_cache.get(expr)
+    if code_obj is None:
+        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.<>=!+-*/() \t")
+        if not all(c in allowed_chars for c in expr):
+            return False
+        try:
+            code_obj = compile(expr, '<string>', 'eval')
+            _compiled_expr_cache[expr] = code_obj
+        except Exception:
+            return False
+
+    safe_dict = dict(context)
     safe_dict['True'] = True
     safe_dict['False'] = False
     safe_dict['abs'] = abs
-    allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.<>=!+-*/() \t")
-    if not all(c in allowed_chars for c in expr):
-        return False
     try:
-        return bool(eval(expr, {"__builtins__": None}, safe_dict))
+        return bool(eval(code_obj, {"__builtins__": None}, safe_dict))
     except Exception:
         return False
 

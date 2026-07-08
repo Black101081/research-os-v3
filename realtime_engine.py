@@ -509,7 +509,7 @@ class ResearchEngine:
             return
 
         # ── FIX 1: Always call process_tick so PnL updates in real-time ──
-        self._paper_broker.process_tick(state.symbol, last_price, state.updated_at)
+        self._paper_broker.process_tick(state.symbol, last_price, state.updated_at, state.indicators)
 
         # Track closed trades to notify Quality Gate
         recent_trades = self._paper_broker.trade_history[-3:] if self._paper_broker.trade_history else []

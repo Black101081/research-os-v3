@@ -16,41 +16,65 @@ logger = logging.getLogger(__name__)
 DB_PATH = "/data/research.db" if os.path.isdir("/data") else "./research.db"
 
 
+class CachedConnection:
+    def __init__(self, conn: sqlite3.Connection):
+        self._conn = conn
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+    def close(self):
+        # Keep connection open for reuse
+        pass
+
+    def __enter__(self):
+        return self._conn.__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self._conn.__exit__(exc_type, exc_val, exc_tb)
+
+
+_shared_conn = None
+
+
 def get_connection() -> sqlite3.Connection:
-    try:
-        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA foreign_keys=ON")
-        return conn
-    except sqlite3.DatabaseError as e:
-        if "malformed" in str(e).lower():
-            import time
-            import shutil
-            ts = int(time.time())
-            logger.error(f"Database at {DB_PATH} is malformed: {e}. Attempting self-healing by backing up and recreating.")
-            for suffix in ["", "-wal", "-shm"]:
-                path = DB_PATH + suffix
-                if os.path.exists(path):
-                    try:
-                        bak_path = f"{path}.corrupt_{ts}"
-                        shutil.move(path, bak_path)
-                        logger.info(f"Backed up malformed database file to: {bak_path}")
-                    except Exception as backup_err:
-                        logger.error(f"Failed to backup {path}: {backup_err}")
-                        try:
-                            os.remove(path)
-                            logger.info(f"Deleted malformed database file as fallback: {path}")
-                        except Exception as rm_err:
-                            logger.error(f"Failed to delete {path}: {rm_err}")
-            # Retry connection once
+    global _shared_conn
+    if _shared_conn is None:
+        try:
             conn = sqlite3.connect(DB_PATH, check_same_thread=False)
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA foreign_keys=ON")
-            return conn
-        else:
-            raise
+            _shared_conn = conn
+        except sqlite3.DatabaseError as e:
+            if "malformed" in str(e).lower():
+                import time
+                import shutil
+                ts = int(time.time())
+                logger.error(f"Database at {DB_PATH} is malformed: {e}. Attempting self-healing by backing up and recreating.")
+                for suffix in ["", "-wal", "-shm"]:
+                    path = DB_PATH + suffix
+                    if os.path.exists(path):
+                        try:
+                            bak_path = f"{path}.corrupt_{ts}"
+                            shutil.move(path, bak_path)
+                            logger.info(f"Backed up malformed database file to: {bak_path}")
+                        except Exception as backup_err:
+                            logger.error(f"Failed to backup {path}: {backup_err}")
+                            try:
+                                os.remove(path)
+                                logger.info(f"Deleted malformed database file as fallback: {path}")
+                            except Exception as rm_err:
+                                logger.error(f"Failed to delete {path}: {rm_err}")
+                # Retry connection once
+                conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+                conn.row_factory = sqlite3.Row
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA foreign_keys=ON")
+                _shared_conn = conn
+            else:
+                raise
+    return CachedConnection(_shared_conn)
 
 
 def migrate_schema(conn):
@@ -136,6 +160,9 @@ def migrate_schema(conn):
         "ALTER TABLE paper_positions ADD COLUMN interval           TEXT DEFAULT 'unknown'",
         "ALTER TABLE paper_positions ADD COLUMN cooldown_key       TEXT DEFAULT ''",
         "ALTER TABLE paper_positions ADD COLUMN signal_id          TEXT DEFAULT ''",
+        "ALTER TABLE paper_positions ADD COLUMN breakeven_triggered INTEGER DEFAULT 0",
+        "ALTER TABLE paper_positions ADD COLUMN initial_sl          REAL",
+        "ALTER TABLE paper_positions ADD COLUMN max_favorable_price REAL",
     ]
     for sql in migrations:
         try:
@@ -182,6 +209,9 @@ def init_db():
             interval           TEXT DEFAULT 'unknown',
             cooldown_key       TEXT DEFAULT '',
             signal_id          TEXT DEFAULT '',
+            breakeven_triggered INTEGER DEFAULT 0,
+            initial_sl          REAL,
+            max_favorable_price REAL,
             PRIMARY KEY (symbol, signal_source)
         );
 
@@ -355,8 +385,9 @@ def save_position(pos: Dict[str, Any]):
                  unrealized_pnl, signal_source,
                  position_size_pct, position_size_usd, risk_amount_usd, expected_value_r,
                  market_regime, btc_structure, session_name, confidence_score,
-                 risk_reward_ratio, family, interval, cooldown_key, signal_id)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                 risk_reward_ratio, family, interval, cooldown_key, signal_id,
+                 breakeven_triggered, initial_sl, max_favorable_price)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(symbol, signal_source) DO UPDATE SET
                 direction=excluded.direction,
                 quantity=excluded.quantity,
@@ -379,7 +410,10 @@ def save_position(pos: Dict[str, Any]):
                 family=excluded.family,
                 interval=excluded.interval,
                 cooldown_key=excluded.cooldown_key,
-                signal_id=excluded.signal_id
+                signal_id=excluded.signal_id,
+                breakeven_triggered=excluded.breakeven_triggered,
+                initial_sl=excluded.initial_sl,
+                max_favorable_price=excluded.max_favorable_price
         """, (
             pos["symbol"], pos["direction"], pos["quantity"],
             pos["entry_price"], pos["current_price"],
@@ -392,7 +426,8 @@ def save_position(pos: Dict[str, Any]):
             pos.get("session_name", "unknown"), pos.get("confidence_score", 0.0),
             pos.get("risk_reward_ratio", 0.0), pos.get("family", "unknown"),
             pos.get("interval", "unknown"), pos.get("cooldown_key", ""),
-            pos.get("signal_id", "")
+            pos.get("signal_id", ""),
+            int(pos.get("breakeven_triggered", False)), pos.get("initial_sl"), pos.get("max_favorable_price")
         ))
     conn.close()
 

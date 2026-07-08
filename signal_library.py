@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
@@ -905,7 +907,7 @@ def evaluate_all_signals(
     interval: str,
     asset_role: str,
 ) -> SignalBatch:
-    """Evaluate all 18 signals for a given symbol, timeframe, and role."""
+    """Evaluate all 19 signals for a given symbol, timeframe, and role."""
     results = [
         # Group A
         signal_macd_continuation(sym_state, interval, asset_role),
@@ -931,7 +933,41 @@ def evaluate_all_signals(
         signal_mean_reversion_squeeze(sym_state, interval, asset_role),
         signal_funding_reversion(sym_state, interval, asset_role),
         signal_oi_reversal(sym_state, interval, asset_role),
+        
+        # Divergence Family
+        signal_cvd_divergence(sym_state, interval, asset_role),
     ]
+
+    # Apply Multi-Timeframe Trend Gating
+    htf = None
+    if interval == "1m":
+        htf = sym_state.get_tf("15m")
+    elif interval == "5m":
+        htf = sym_state.get_tf("15m") or sym_state.get_tf("1h")
+    elif interval == "15m":
+        htf = sym_state.get_tf("1h")
+        
+    htf_trend = None
+    if htf is not None:
+        ema_spread = htf.indicators.get("ema_spread_8_21")
+        if ema_spread is not None:
+            if ema_spread > 0.0:
+                htf_trend = DIRECTION_LONG
+            elif ema_spread < 0.0:
+                htf_trend = DIRECTION_SHORT
+
+    if htf_trend is not None:
+        for r in results:
+            if r.fired:
+                if r.direction == DIRECTION_BOTH:
+                    r.direction = htf_trend
+                    r.notes.append(f"direction_gated_to_{htf_trend}")
+                elif r.direction != htf_trend:
+                    # Block signal
+                    r.fired = False
+                    r.invalidation_reason = f"mtf_trend_conflict_{htf_trend}"
+                    r.notes.append(f"blocked_by_mtf_trend_{htf_trend}")
+
     return SignalBatch(
         symbol=sym_state.symbol,
         interval=interval,
@@ -1107,6 +1143,38 @@ def signal_bb_squeeze_breakout(
     )
 
 
+_OPTUNA_PARAMS_CACHE = None
+
+def _get_optuna_params(symbol: str, interval: str) -> dict:
+    global _OPTUNA_PARAMS_CACHE
+    if _OPTUNA_PARAMS_CACHE is None:
+        path = Path("runtime/optuna_parameter_matrix.json")
+        if path.exists():
+            try:
+                _OPTUNA_PARAMS_CACHE = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                _OPTUNA_PARAMS_CACHE = {}
+        else:
+            _OPTUNA_PARAMS_CACHE = {}
+            
+    defaults = {
+        "adx_threshold": 28.0,
+        "atr_multiplier": 2.0,
+        "rsi_period": 14,
+        "rsi_lower": 35.0,
+        "rsi_upper": 65.0
+    }
+    
+    sym_data = _OPTUNA_PARAMS_CACHE.get(symbol, {})
+    tf_data = sym_data.get(interval, {})
+    return {
+        "adx_threshold": tf_data.get("adx_threshold", defaults["adx_threshold"]),
+        "atr_multiplier": tf_data.get("atr_multiplier", defaults["atr_multiplier"]),
+        "rsi_period": int(tf_data.get("rsi_period", defaults["rsi_period"])),
+        "rsi_lower": tf_data.get("rsi_lower", defaults["rsi_lower"]),
+        "rsi_upper": tf_data.get("rsi_upper", defaults["rsi_upper"])
+    }
+
 def signal_mean_reversion(
     sym_state: MultiTFSymbolState,
     interval: str,
@@ -1120,27 +1188,45 @@ def signal_mean_reversion(
     if not is_fitness_ok(FAMILY_MEAN_REVERSION, asset_role, interval, n):
         return _no_signal(sym_state.symbol, FAMILY_MEAN_REVERSION, interval, asset_role, "fitness_blocked")
 
+    # Load dynamic parameters
+    params = _get_optuna_params(sym_state.symbol, interval)
+    adx_threshold = params["adx_threshold"]
+    atr_multiplier = params["atr_multiplier"]
+    rsi_period = params["rsi_period"]
+    rsi_lower = params["rsi_lower"]
+    rsi_upper = params["rsi_upper"]
+
     ind = _get_ind(tf)
-    rsi       = ind.get("rsi_14", 50.0)
-    stoch_k   = ind.get("stoch_rsi_k", 50.0)
-    stoch_d   = ind.get("stoch_rsi_d", 50.0)
+    
+    # Recalculate RSI dynamically if rsi_period is different from 14 and we have enough non-flat bars
+    if rsi_period == 14 or len(tf.bars) < rsi_period + 1:
+        rsi = ind.get("rsi_14", 50.0)
+    else:
+        closes = [b.close for b in tf.bars]
+        if max(closes) == min(closes):
+            rsi = ind.get("rsi_14", 50.0)
+        else:
+            import factor_math as fm
+            rsi = fm.calc_rsi(closes, period=rsi_period)
+
     bb_pct    = ind.get("bb_pct_20", 0.5)
     adx       = ind.get("adx_14", 0.0)
     vwap_dev  = ind.get("vwap_deviation_pct", 0.0)
     atr       = ind.get("atr_14", 0.0)
     close     = tf.bars[-1].close if tf.bars else 0.0
 
-    if adx > 28.0:
-        return _no_signal(sym_state.symbol, FAMILY_MEAN_REVERSION, interval, asset_role, "trending_market")
+    if adx > adx_threshold:
+        return _no_signal(sym_state.symbol, FAMILY_MEAN_REVERSION, interval, asset_role, f"trending_market_adx={adx:.1f}_gt_{adx_threshold:.1f}")
 
-    long_extreme  = bb_pct < 0.10 and rsi < 35 and vwap_dev < -1.0
-    short_extreme = bb_pct > 0.90 and rsi > 65 and vwap_dev > 1.0
+    long_extreme  = bb_pct < 0.10 and rsi < rsi_lower and vwap_dev < -1.0
+    short_extreme = bb_pct > 0.90 and rsi > rsi_upper and vwap_dev > 1.0
 
     if not long_extreme and not short_extreme:
         return _no_signal(sym_state.symbol, FAMILY_MEAN_REVERSION, interval, asset_role, "no_extreme")
 
     direction = DIRECTION_LONG if long_extreme else DIRECTION_SHORT
-    sl, tp, tp2, rr, inv = _calc_levels(close, atr, direction, sl_mult=1.0, tp_mult=1.5)
+    # Apply optimized atr_multiplier to stop loss calculation
+    sl, tp, tp2, rr, inv = _calc_levels(close, atr, direction, sl_mult=atr_multiplier, tp_mult=1.5)
 
     return SignalResult(
         signal_id=_make_signal_id(sym_state.symbol, FAMILY_MEAN_REVERSION, interval),
@@ -1229,3 +1315,77 @@ def signal_volatility_event(
         indicators_snapshot=_snapshot(ind, ["volume_ratio", "vwap_deviation_pct", "atr_14"]),
         notes=[f"vol_ratio={vol_ratio:.2f}"],
     )
+
+
+def _calc_bar_cvd(tf: TFState) -> List[float]:
+    cvd = 0.0
+    cvd_vals = []
+    for bar in tf.bars:
+        diff = bar.close - bar.open
+        if diff > 0:
+            delta = bar.volume
+        elif diff < 0:
+            delta = -bar.volume
+        else:
+            delta = 0.0
+        cvd += delta
+        cvd_vals.append(cvd)
+    return cvd_vals
+
+
+def signal_cvd_divergence(
+    sym_state: MultiTFSymbolState,
+    interval: str,
+    asset_role: str,
+) -> SignalResult:
+    tf = sym_state.get_tf(interval)
+    if tf is None:
+        return _no_signal(sym_state.symbol, FAMILY_DIVERGENCE, interval, asset_role, "no TFState")
+        
+    closes = tf.closes()
+    if len(closes) < 15:
+        return _no_signal(sym_state.symbol, FAMILY_DIVERGENCE, interval, asset_role, "insufficient_data")
+        
+    cvd_vals = _calc_bar_cvd(tf)
+    import factor_math as fm
+    div_score = fm.compute_divergence(closes, cvd_vals, fractal_window=2, max_lookback=20)
+    
+    atr = tf.indicators.get("atr_14", 0.0)
+    close = closes[-1]
+    
+    if div_score < -0.3:
+        direction = DIRECTION_LONG
+        sl, tp, tp2, rr, inv = _calc_levels(close, atr, direction, sl_mult=2.0, tp_mult=2.5)
+        return SignalResult(
+            signal_id=_make_signal_id(sym_state.symbol, FAMILY_DIVERGENCE, interval),
+            symbol=sym_state.symbol, family=FAMILY_DIVERGENCE,
+            interval=interval, asset_role=asset_role,
+            fired=True, direction=direction,
+            entry_price=close, stop_loss=sl,
+            take_profit=tp, take_profit_2=tp2,
+            confidence_score=abs(div_score),
+            confluence_votes=3, confluence_total=5,
+            risk_reward_ratio=rr, atr_at_signal=atr,
+            invalidation_price=inv,
+            indicators_snapshot=_snapshot(tf.indicators, ["atr_14"]),
+            notes=[f"bullish_div={div_score:.3f}"],
+        )
+    elif div_score > 0.3:
+        direction = DIRECTION_SHORT
+        sl, tp, tp2, rr, inv = _calc_levels(close, atr, direction, sl_mult=2.0, tp_mult=2.5)
+        return SignalResult(
+            signal_id=_make_signal_id(sym_state.symbol, FAMILY_DIVERGENCE, interval),
+            symbol=sym_state.symbol, family=FAMILY_DIVERGENCE,
+            interval=interval, asset_role=asset_role,
+            fired=True, direction=direction,
+            entry_price=close, stop_loss=sl,
+            take_profit=tp, take_profit_2=tp2,
+            confidence_score=abs(div_score),
+            confluence_votes=3, confluence_total=5,
+            risk_reward_ratio=rr, atr_at_signal=atr,
+            invalidation_price=inv,
+            indicators_snapshot=_snapshot(tf.indicators, ["atr_14"]),
+            notes=[f"bearish_div={div_score:.3f}"],
+        )
+        
+    return _no_signal(sym_state.symbol, FAMILY_DIVERGENCE, interval, asset_role, "no_divergence")

@@ -105,10 +105,17 @@ def compute_tf_indicators(
     if n >= 15:
         ind["atr_14"]     = fm.calc_atr(highs, lows, closes, period=14)
         ind["atr_14_pct"] = fm.calc_atr_pct(highs, lows, closes, period=14)
+        ind["natr"]       = float(ind["atr_14"] / closes[-1] * 100) if closes[-1] > 0 else 0.0
 
     if n >= MIN_BARS["bb"]:
         ind["bb_width_20"]  = fm.calc_bb_width(closes, period=20)
         ind["bb_pct_20"]    = fm.calc_bb_pct(closes, period=20)
+        
+        # Calculate rolling list of BB widths to compute the percentile
+        bb_widths = []
+        for i in range(max(20, n - 30), n + 1):
+            bb_widths.append(fm.calc_bb_width(closes[:i], period=20))
+        ind["bb_percentile_20"] = fm.calc_bb_percentile(bb_widths, window=30)
 
     if n >= MIN_BARS["parkinson_vol"]:
         ind["parkinson_volatility_20"] = fm.calc_parkinson_volatility(highs, lows, period=20)
