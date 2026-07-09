@@ -96,8 +96,8 @@ class RegimeConfig:
     # BTC structure bias: if BTC is in bear structure,
     # block ALL new long signals on correlated assets
     enable_btc_structure_bias: bool = True
-    btc_bear_ema_threshold: float = -0.5   # ema_spread_8_21 < threshold = bear
-    btc_bull_ema_threshold: float = 0.5    # ema_spread_8_21 > threshold = bull
+    btc_bear_ema_threshold: float = -0.005   # ema_spread_8_21 < threshold = bear
+    btc_bull_ema_threshold: float = 0.005    # ema_spread_8_21 > threshold = bull
 
 
 # ─────────────────────────────────────────────────────────────────────

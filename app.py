@@ -549,6 +549,8 @@ def get_ranking() -> Dict[str, Any]:
             metrics = backtest_data.get(name, {})
             net_pnl = metrics.get('net_pnl', 0.0)
             win_rate = metrics.get('win_rate', 0.5)
+            if win_rate > 1.0:
+                win_rate = win_rate / 100.0
             
             pnl_norm = min(1.0, max(0.0, net_pnl / 100.0)) if net_pnl > 0 else 0.0
             perf_score = 0.5 * pnl_norm + 0.5 * win_rate

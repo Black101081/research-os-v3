@@ -91,7 +91,7 @@ def compute_position_size(
                 rr = float(risk_config.get('rr_ratio', 2.0))
                 
                 # Kelly formula: f* = (p * R - q) / R
-                kelly_f = (win_rate * rr - (1.0 - win_rate)) / rr
+                kelly_f = ((win_rate * rr - (1.0 - win_rate)) / rr) if rr > 0.0 else 0.0
                 
                 # Scale by regime confidence and Kelly fraction
                 fractional_kelly = kelly_f * kelly_fraction * regime_confidence
@@ -164,10 +164,10 @@ def compute_position_size(
                             target_quantity = risk_amount_usd / stop_distance_usd
                             notes = f"Kelly fallback to ATR (trades: {trade_count} < {min_trades_for_kelly}). Risk amount: {risk_amount_usd:.2f}, Stop distance: {stop_distance_usd:.4f}"
                 else:
-                    if avg_win_pct <= 0:
+                    if avg_win_pct <= 0.0:
                         kelly_f = 0.0
                     else:
-                        kelly_f = (win_rate * avg_win_pct - (1.0 - win_rate) * avg_loss_pct) / avg_win_pct
+                        kelly_f = ((win_rate * avg_win_pct - (1.0 - win_rate) * avg_loss_pct) / avg_win_pct) if avg_win_pct > 0.0 else 0.0
                     
                     fractional_kelly = kelly_f * kelly_fraction
                     kelly_risk_fraction = max(0.0, min(fractional_kelly, max_kelly_pct))

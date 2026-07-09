@@ -30,9 +30,11 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
         vol_state = 'high_vol'
 
     # 2. Trend classification (using ema_spread and ADX trend strength)
-    if ema_spread > 0.002:
+    if 0.0 < adx < 20.0:
+        trend_state = 'sideways'
+    elif ema_spread >= 0.005:
         trend_state = 'bull'
-    elif ema_spread < -0.002:
+    elif ema_spread <= -0.005:
         trend_state = 'bear'
     else:
         trend_state = 'sideways'
@@ -79,7 +81,9 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
             allowed_families = ['mean_reversion', 'funding_reversion', 'oi_reversal']
 
     # Keep backward compatibility: check if the regime is tradable
-    tradable = True
+    tradable = not (regime == 'sideways_high_vol' and confidence < 0.70)
+    if confidence < 0.50:
+        tradable = False
     trade_tier = 'full' if vol_state == 'normal_vol' else 'selective' if vol_state == 'high_vol' else 'cautious'
 
     return {

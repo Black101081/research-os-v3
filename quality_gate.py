@@ -112,11 +112,16 @@ def _layer_session(signal: SignalResult,
     in_any_session = False
     for (s_start, s_end) in cfg.session.sessions:
         if _hour_in_window(hour, s_start, s_end):
-            # Check: not in last N minutes of session
-            if s_end - hour <= 1:    # last hour of session
-                mins_remaining = (s_end - hour) * 60 - minute
-                if mins_remaining < cfg.session.block_near_session_end_minutes:
-                    continue   # skip this session (too close to end)
+            if s_start < s_end:
+                mins_remaining = s_end * 60 - (hour * 60 + minute)
+            else:
+                if hour >= s_start:
+                    mins_remaining = (s_end + 24) * 60 - (hour * 60 + minute)
+                else:
+                    mins_remaining = s_end * 60 - (hour * 60 + minute)
+            
+            if mins_remaining < cfg.session.block_near_session_end_minutes:
+                continue   # skip this session (too close to end)
             in_any_session = True
             break
 

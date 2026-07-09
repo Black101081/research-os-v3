@@ -18,7 +18,7 @@ class TestRegimeMatrix18Strategies(unittest.TestCase):
         # 1. Bull Low-Normal Vol (Group A)
         r = classify_regime(
             {'volatility_20': 0.008, 'ema_spread_8_21': 0.005},
-            {'adx_14': 18.0}
+            {'adx_14': 25.0}
         )
         self.assertEqual(r['regime'], 'bull_low_normal_vol')
         self.assertEqual(r['group'], 'Group A')
@@ -53,7 +53,7 @@ class TestRegimeMatrix18Strategies(unittest.TestCase):
 
         # 5. Bear Low-Normal Vol (Group E)
         r = classify_regime(
-            {'volatility_20': 0.010, 'ema_spread_8_21': -0.004},
+            {'volatility_20': 0.010, 'ema_spread_8_21': -0.006},
             {'adx_14': 20.0}
         )
         self.assertEqual(r['regime'], 'bear_low_normal_vol')

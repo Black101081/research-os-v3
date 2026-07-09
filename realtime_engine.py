@@ -352,10 +352,9 @@ class ResearchEngine:
         # After bar has been appended to both, compute all tf indicators
         sym_state = self._mtf.get(symbol) if symbol else None
         if sym_state:
-            # Extract best bid/ask from BBO if available
             bbo_state = self.states.get(symbol)
-            best_bid = getattr(bbo_state, "best_bid", 0.0) if bbo_state else 0.0
-            best_ask = getattr(bbo_state, "best_ask", 0.0) if bbo_state else 0.0
+            best_bid = (getattr(bbo_state, "bid", 0.0) or 0.0) if bbo_state else 0.0
+            best_ask = (getattr(bbo_state, "ask", 0.0) or 0.0) if bbo_state else 0.0
 
             compute_all_tf_indicators(
                 sym_state=sym_state,
@@ -758,7 +757,20 @@ class ResearchEngine:
                 state.factors['live_ret_from_last_close'] = (latest_close / prev_close) - 1
 
     def _compute_regime(self, state: SymbolState):
-        state.regime_state = classify_regime(state.factors, state.indicators)
+        factors = dict(state.factors)
+        indicators = dict(state.indicators)
+        
+        if hasattr(self, '_mtf') and self._mtf:
+            btc_state = self._mtf.get("BTC")
+            if btc_state:
+                tf_state = btc_state.get_tf("15m")
+                if tf_state and tf_state.indicators:
+                    if "ema_spread_8_21" in tf_state.indicators:
+                        factors["ema_spread_8_21"] = tf_state.indicators["ema_spread_8_21"]
+                    if "adx_14" in tf_state.indicators:
+                        indicators["adx_14"] = tf_state.indicators["adx_14"]
+                        
+        state.regime_state = classify_regime(factors, indicators)
 
     def _compute_signals(self, state: SymbolState):
         last_close = state.latest_close()
@@ -895,9 +907,21 @@ class ResearchEngine:
 
             trade_tier = state.regime_state.get('trade_tier', 'blocked')
             regime_allowed = state.regime_state.get('allowed_signal_families', [])
+            
+            # Map specific upgraded family to parent family category
+            parent_family = signal_family
+            if signal_family in ("macd_trend_continuation", "ema_pullback_buy", "bearish_trend_continuation", "ema_pullback_sell"):
+                parent_family = "continuation"
+            elif signal_family in ("obv_accumulation_breakout", "high_vol_breakout", "momentum_chasing", "high_vol_breakdown", "short_momentum_chase", "obv_distribution_breakdown", "breakout"):
+                parent_family = "breakout"
+            elif signal_family in ("vwap_reversion_fade", "range_boundary_fade", "liquidity_sweep_hunt", "oversold_bounce", "mean_reversion_squeeze", "mean_reversion"):
+                parent_family = "mean_reversion"
+            elif signal_family in ("hft_order_flow_momentum", "order_flow"):
+                parent_family = "order_flow"
+                
             family_allowed = (
                 trade_tier == 'full'
-                or signal_family in regime_allowed
+                or parent_family in regime_allowed
             )
 
             logic_ready = bool(

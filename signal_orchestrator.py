@@ -388,22 +388,34 @@ def evaluate_supported_signals(
         allowed_families = regime_state.get('allowed_signal_families', [])
         for signal_name, signal_result in out.items():
             family = signal_result.get('template_family', '')
-            if not family or family == 'unknown':
+            
+            # Map specific upgraded families to generic parent families
+            parent_family = family
+            if family in ("macd_trend_continuation", "ema_pullback_buy", "bearish_trend_continuation", "ema_pullback_sell"):
+                parent_family = "continuation"
+            elif family in ("obv_accumulation_breakout", "high_vol_breakout", "momentum_chasing", "high_vol_breakdown", "short_momentum_chase", "obv_distribution_breakdown", "breakout"):
+                parent_family = "breakout"
+            elif family in ("vwap_reversion_fade", "range_boundary_fade", "liquidity_sweep_hunt", "oversold_bounce", "mean_reversion_squeeze", "mean_reversion"):
+                parent_family = "mean_reversion"
+            elif family in ("hft_order_flow_momentum", "order_flow"):
+                parent_family = "order_flow"
+            
+            if not parent_family or parent_family == 'unknown':
                 if 'mean_reversion' in signal_name or 'zscore' in signal_name:
-                    family = 'mean_reversion'
+                    parent_family = 'mean_reversion'
                 elif 'divergence' in signal_name:
-                    family = 'divergence'
+                    parent_family = 'divergence'
                 elif 'macd' in signal_name or 'continuation' in signal_name:
-                    family = 'continuation'
+                    parent_family = 'continuation'
                 elif 'flow' in signal_name or 'imbalance' in signal_name:
-                    family = 'order_flow'
+                    parent_family = 'order_flow'
                 elif 'breakout' in signal_name:
-                    family = 'breakout'
+                    parent_family = 'breakout'
                 else:
-                    family = 'continuation'
-                signal_result['template_family'] = family
+                    parent_family = 'continuation'
+                signal_result['template_family'] = parent_family
 
-            if allowed_families and family not in allowed_families:
+            if allowed_families and parent_family not in allowed_families:
                 signal_result['active'] = False
                 signal_result['invalidated'] = True
                 signal_result['invalidation_reason'] = f'regime_family_blocked:{regime_state.get("regime","unknown")}'
