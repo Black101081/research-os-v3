@@ -99,6 +99,20 @@ def _layer_session(signal: SignalResult,
     hour = now.hour
     minute = now.minute
 
+    # Check strategy-specific allowed sessions override (e.g. ["asian", "london"])
+    from globals import CONFIG
+    strategy_config = CONFIG.get('strategy_gate_configs', {}).get(signal.family, {})
+    allowed_sessions = strategy_config.get('allowed_sessions')
+    if allowed_sessions is not None:
+        session_name = _classify_session(hour)
+        if session_name not in allowed_sessions:
+            return LayerResult(
+                "session", GATE_BLOCK, BLOCK_REASON_SESSION,
+                {"reason": "session_blocked_for_strategy",
+                 "session_name": session_name,
+                 "allowed_sessions": allowed_sessions},
+            )
+
     # Dead zone check (hard block)
     for (dz_start, dz_end) in cfg.session.dead_zones:
         if _hour_in_window(hour, dz_start, dz_end):
@@ -191,7 +205,21 @@ def _layer_regime(signal: SignalResult,
 
     # Check family regime compatibility
     family = signal.family
-    allowed_regime = cfg.regime.family_regime_map.get(family, "any")
+    
+    # Map specific upgraded families to generic parent families for default lookup
+    parent_family = family
+    if parent_family in ("macd_trend_continuation", "ema_pullback_buy", "bearish_trend_continuation", "ema_pullback_sell"):
+        parent_family = "continuation"
+    elif parent_family in ("obv_accumulation_breakout", "high_vol_breakout", "momentum_chasing", "high_vol_breakdown", "short_momentum_chase", "obv_distribution_breakdown", "breakout"):
+        parent_family = "breakout"
+    elif parent_family in ("vwap_reversion_fade", "range_boundary_fade", "liquidity_sweep_hunt", "oversold_bounce", "mean_reversion_squeeze", "mean_reversion"):
+        parent_family = "mean_reversion"
+    elif parent_family in ("hft_order_flow_momentum", "order_flow"):
+        parent_family = "order_flow"
+        
+    from globals import CONFIG
+    strategy_config = CONFIG.get('strategy_gate_configs', {}).get(family, {})
+    allowed_regime = strategy_config.get('allowed_regime', cfg.regime.family_regime_map.get(parent_family, "any"))
 
     if allowed_regime == "trend_only" and regime == "choppy":
         return LayerResult(
@@ -257,17 +285,21 @@ def _layer_portfolio(signal: SignalResult,
     pcfg = cfg.portfolio
 
     # 1. Cooldown check
+    from globals import CONFIG
+    strategy_config = CONFIG.get('strategy_gate_configs', {}).get(signal.family, {})
+    cooldown_seconds = int(strategy_config.get('cooldown_seconds', pcfg.cooldown_seconds))
+
     cooldown_key = f"{signal.symbol}_{signal.family}_{signal.direction}"
     last_fire = cooldown_registry.get(cooldown_key, 0.0)
     now_ts = time.time()
     elapsed = now_ts - last_fire
-    if elapsed < pcfg.cooldown_seconds:
-        remaining = pcfg.cooldown_seconds - elapsed
+    if elapsed < cooldown_seconds:
+        remaining = cooldown_seconds - elapsed
         return LayerResult(
             "portfolio", GATE_BLOCK, BLOCK_REASON_COOLDOWN,
             {"cooldown_key": cooldown_key,
              "cooldown_remaining_seconds": round(remaining, 1),
-             "cooldown_total_seconds": pcfg.cooldown_seconds},
+             "cooldown_total_seconds": cooldown_seconds},
         )
 
     # 2. Max concurrent signals
@@ -326,23 +358,31 @@ def _layer_statistical(signal: SignalResult,
                             "statistical_filter_disabled"), 0.0)
 
     scfg = cfg.statistical
+    
+    from globals import CONFIG
+    strategy_config = CONFIG.get('strategy_gate_configs', {}).get(signal.family, {})
+
+    # Strategy-specific overrides
+    min_confidence = float(strategy_config.get('min_confidence', scfg.min_confidence))
+    min_rr_ratio = float(strategy_config.get('min_rr_ratio', scfg.min_rr_ratio))
+    min_ev_r = float(strategy_config.get('min_ev_r', scfg.min_ev_r))
 
     # Minimum confidence
-    if signal.confidence_score < scfg.min_confidence:
+    if signal.confidence_score < min_confidence:
         return (LayerResult(
             "statistical", GATE_BLOCK, BLOCK_REASON_STATISTICAL,
             {"reason": "confidence_below_minimum",
              "confidence": signal.confidence_score,
-             "min_confidence": scfg.min_confidence},
+             "min_confidence": min_confidence},
         ), 0.0)
 
     # Minimum RR
-    if signal.risk_reward_ratio < scfg.min_rr_ratio:
+    if signal.risk_reward_ratio < min_rr_ratio:
         return (LayerResult(
             "statistical", GATE_BLOCK, BLOCK_REASON_STATISTICAL,
             {"reason": "rr_below_minimum",
              "rr": signal.risk_reward_ratio,
-             "min_rr": scfg.min_rr_ratio},
+             "min_rr": min_rr_ratio},
         ), 0.0)
 
     # EV check
@@ -357,19 +397,19 @@ def _layer_statistical(signal: SignalResult,
     elif parent_family in ("hft_order_flow_momentum", "order_flow"):
         parent_family = "order_flow"
 
-    win_rate = scfg.family_win_rates.get(parent_family, 0.50)
+    win_rate = float(strategy_config.get('win_rate', scfg.family_win_rates.get(parent_family, 0.50)))
     # Adjust win_rate slightly based on confidence
     confidence_bonus = (signal.confidence_score - 0.50) * 0.1
     adjusted_win_rate = min(0.80, win_rate + confidence_bonus)
     
     ev = _calc_ev(adjusted_win_rate, signal.risk_reward_ratio)
 
-    if ev < scfg.min_ev_r:
+    if ev < min_ev_r:
         return (LayerResult(
             "statistical", GATE_BLOCK, BLOCK_REASON_STATISTICAL,
             {"reason": "ev_below_minimum",
              "ev_r": round(ev, 4),
-             "min_ev_r": scfg.min_ev_r,
+             "min_ev_r": min_ev_r,
              "win_rate": adjusted_win_rate,
              "rr": signal.risk_reward_ratio},
         ), ev)
