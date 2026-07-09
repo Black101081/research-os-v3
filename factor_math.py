@@ -855,14 +855,26 @@ def calc_oi_momentum(oi_history: list, period: int = 5) -> float:
 def calc_bid_ask_imbalance(bid_levels: list, ask_levels: list,
                            top_n: int = 10) -> float:
     """
-    Orderbook imbalance from top N price levels.
+    Orderbook imbalance from top N price levels with exponential depth decay.
     bid_levels / ask_levels: list of (price, size) tuples.
     Returns: -1.0 (pure ask) to +1.0 (pure bid).
     """
-    bid_sz = sum(sz for _, sz in bid_levels[:top_n])
-    ask_sz = sum(sz for _, sz in ask_levels[:top_n])
-    total = bid_sz + ask_sz
-    return float((bid_sz - ask_sz) / total) if total else 0.0
+    import math
+    sub_bids = bid_levels[:top_n]
+    sub_asks = ask_levels[:top_n]
+    
+    bid_decayed = 0.0
+    for i, (_, sz) in enumerate(sub_bids):
+        w = math.exp(-0.5 * i)
+        bid_decayed += w * float(sz)
+        
+    ask_decayed = 0.0
+    for i, (_, sz) in enumerate(sub_asks):
+        w = math.exp(-0.5 * i)
+        ask_decayed += w * float(sz)
+        
+    total = bid_decayed + ask_decayed
+    return float((bid_decayed - ask_decayed) / total) if total else 0.0
 
 
 def calc_price_vs_prev_day(close: float, prev_day_px: float) -> float:
