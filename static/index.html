@@ -1409,19 +1409,36 @@
     }
   };
 
+  window.currentActiveTab = 'dashboard';
+
+  window.updateRawStateView = function() {
+    const selectVal = document.getElementById('symbolSelect');
+    if (selectVal && lastSnapshotCache && lastSnapshotCache.config) {
+      const sym = selectVal.value || lastSnapshotCache.config.symbols[0];
+      const s = lastSnapshotCache.snap[sym] || {};
+      document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
+    }
+  };
+
   function bindTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.onclick = () => {
         if (!btn.dataset.tab) return;
+        window.currentActiveTab = btn.dataset.tab;
         document.querySelectorAll('.tab-btn').forEach(x => { if (x.dataset.tab) x.classList.remove('active'); });
         document.querySelectorAll('.tab-panel').forEach(x => x.classList.remove('active'));
         btn.classList.add('active');
         const targetPanel = document.getElementById('panel-' + btn.dataset.tab);
         if (targetPanel) targetPanel.classList.add('active');
+        
         if (btn.dataset.tab === 'presets') {
           loadResearchPresets();
         } else if (btn.dataset.tab === 'settings') {
           loadSystemSettings();
+        } else if (btn.dataset.tab === 'raw-state') {
+          window.updateRawStateView();
+        } else if (['validator', 'specs', 'validation'].includes(btn.dataset.tab)) {
+          metadataTick();
         }
       };
     });
@@ -2164,12 +2181,9 @@
       // 6. RENDER REDESIGNED SECTION C
       renderPaperBroker(dashboard.paper_positions);
 
-      // Update selected tab raw code view
-      const selectVal = document.getElementById('symbolSelect');
-      if (selectVal) {
-        const sym = selectVal.value || lastSnapshotCache.config.symbols[0];
-        const s = lastSnapshotCache.snap[sym] || {};
-        document.getElementById('stateView').textContent = JSON.stringify(s, null, 2);
+      // Update selected tab raw code view (only if active)
+      if (window.currentActiveTab === 'raw-state') {
+        window.updateRawStateView();
       }
 
       // Reset auto-refresh indicator to success status
@@ -2197,9 +2211,13 @@
     }
   }
 
-  // Metadata polling (every 15 seconds)
-  async function metadataTick() {
+  let initialMetadataLoaded = false;
+  // Metadata polling (every 60 seconds)
+  async function metadataTick(force = false) {
+    const isAdvancedTab = ['validator', 'specs', 'validation', 'presets', 'settings', 'raw-state'].includes(window.currentActiveTab);
+    if (!isAdvancedTab && !force && initialMetadataLoaded) return;
     try {
+      initialMetadataLoaded = true;
       const [config, validation, specs, replay, validator, backtests, ranking] = await Promise.all([
         loadConfig(),
         loadValidation(),
@@ -2470,7 +2488,7 @@
     await refreshStorageStatus();
     setInterval(fastTick, 2000);
     setInterval(slowTick, 5000);
-    setInterval(metadataTick, 15000);
+    setInterval(metadataTick, 60000);
     setInterval(refreshStorageStatus, 30000);
   })();
 

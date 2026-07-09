@@ -169,7 +169,9 @@ async def lifespan(app: FastAPI):
         logger.info('Research OS stopped')
 
 
+from fastapi.middleware.gzip import GZipMiddleware
 app = FastAPI(title='Research OS V3', lifespan=lifespan)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.mount('/static', StaticFiles(directory=str(BASE / 'static')), name='static')
 
 app.include_router(presets.router)
