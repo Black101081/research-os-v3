@@ -318,6 +318,7 @@ async def update_system_config(data: Dict[str, Any]) -> Dict[str, Any]:
         sys_cfg['execution_mode'] = data.get('execution_mode', 'maker')
         sys_cfg['adaptive_rr'] = bool(data.get('adaptive_rr', False))
         sys_cfg['pairs_trading'] = bool(data.get('pairs_trading', False))
+        sys_cfg['disabled_strategies'] = data.get('disabled_strategies', [])
 
         config_path = BASE / 'config.json'
         config_path.write_text(json.dumps(CONFIG, indent=2), encoding='utf-8')
@@ -342,6 +343,64 @@ def get_dashboard_overview() -> JSONResponse:
 @app.get('/api/dashboard/signals')
 def get_dashboard_signals() -> JSONResponse:
     return JSONResponse(get_signals_payload())
+
+
+@app.get('/api/dashboard/strategy-stats')
+def get_strategy_stats() -> JSONResponse:
+    import os, sqlite3
+    mounted = os.path.isdir("/data")
+    db_path = "/data/research.db" if mounted else "./research.db"
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT signal_source, pnl FROM trade_history")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        stats = {}
+        for source, pnl in rows:
+            if not source:
+                source = "unknown"
+            if source not in stats:
+                stats[source] = {
+                    "strategy_name": source,
+                    "total_trades": 0,
+                    "wins": 0,
+                    "losses": 0,
+                    "net_pnl": 0.0,
+                    "gross_profit": 0.0,
+                    "gross_loss": 0.0,
+                    "max_win": 0.0,
+                    "max_loss": 0.0,
+                }
+            s = stats[source]
+            s["total_trades"] += 1
+            s["net_pnl"] += pnl
+            if pnl > 0:
+                s["wins"] += 1
+                s["gross_profit"] += pnl
+                s["max_win"] = max(s["max_win"], pnl)
+            else:
+                s["losses"] += 1
+                s["gross_loss"] += abs(pnl)
+                s["max_loss"] = min(s["max_loss"], pnl)
+                
+        result = []
+        for s in stats.values():
+            total = s["total_trades"]
+            s["win_rate"] = round(s["wins"] / total * 100, 2) if total > 0 else 0.0
+            s["profit_factor"] = round(s["gross_profit"] / s["gross_loss"], 2) if s["gross_loss"] > 0 else (round(s["gross_profit"], 2) if s["gross_profit"] > 0 else 1.0)
+            s["net_pnl"] = round(s["net_pnl"], 4)
+            s["avg_pnl"] = round(s["net_pnl"] / total, 4) if total > 0 else 0.0
+            s["max_win"] = round(s["max_win"], 4)
+            s["max_loss"] = round(s["max_loss"], 4)
+            result.append(s)
+            
+        result.sort(key=lambda x: x["net_pnl"], reverse=True)
+        return JSONResponse({"status": "ok", "stats": result})
+    except Exception as e:
+        logger.error(f"Failed to load strategy stats: {e}")
+        return JSONResponse({"status": "error", "message": str(e), "stats": []})
 
 
 @app.get('/api/signal/{symbol}/{signal_id}')

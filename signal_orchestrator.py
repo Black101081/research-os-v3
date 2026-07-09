@@ -158,6 +158,9 @@ def evaluate_supported_signals(
 ) -> Dict[str, Dict[str, Any]]:
 
     # 1. Load promoted alphas or catalog signals (legacy fallback)
+    from globals import CONFIG
+    disabled_strategies = CONFIG.get('system_config', {}).get('disabled_strategies', [])
+    
     promoted = bridge.load_promoted_alphas()
     out: Dict[str, Dict[str, Any]] = {}
     context = {**factors, **indicators}
@@ -166,6 +169,8 @@ def evaluate_supported_signals(
     if promoted:
         for alpha in promoted:
             name = alpha.get('alpha_name', alpha['alpha_id'])
+            if name in disabled_strategies:
+                continue
             # Early family check
             _family_early = alpha.get('signal_template_family', 'unknown')
             _allowed_early = regime_state.get('allowed_signal_families', [])
@@ -218,6 +223,8 @@ def evaluate_supported_signals(
         # Fallback to catalog signals
         for sig in catalog:
             name = sig['signal_id']
+            if name in disabled_strategies:
+                continue
             family = sig.get('family', 'unknown')
             # Early family check
             _allowed_early = regime_state.get('allowed_signal_families', [])
@@ -334,6 +341,8 @@ def evaluate_supported_signals(
         # Group families by their best available TF first
         tf_to_families: dict = {}
         for family, sig_name in families_mapping.items():
+            if sig_name in disabled_strategies:
+                continue
             tf_to_use = "1m"
             for t in BEST_TFS.get(family, ["1m"]):
                 if t in sym_state.tf_states:
@@ -349,6 +358,8 @@ def evaluate_supported_signals(
             tf_batch_cache[tf_to_use] = results_by_family
 
         for family, sig_name in families_mapping.items():
+            if sig_name in disabled_strategies:
+                continue
             tf_to_use = "1m"
             for t in BEST_TFS.get(family, ["1m"]):
                 if t in sym_state.tf_states:

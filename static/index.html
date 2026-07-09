@@ -1107,6 +1107,7 @@
             <button class="tab-btn" data-tab="presets">Research Presets</button>
             <button class="tab-btn" data-tab="validator">Code Validator</button>
             <button class="tab-btn" data-tab="raw-state">Raw JSON Snapshot</button>
+            <button class="tab-btn" data-tab="strategies">🧩 Strategy Manager</button>
             <button class="tab-btn" data-tab="settings">System Settings</button>
           </div>
 
@@ -1163,6 +1164,37 @@
 
           <div class="tab-panel" id="panel-raw-state">
             <pre id="stateView" class="json-code" style="max-height: 400px;"></pre>
+          </div>
+
+          <div class="tab-panel" id="panel-strategies">
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+              <h3 style="margin-top: 0; color: #fff; margin-bottom: 8px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                🧩 Strategy Manager & Performance
+              </h3>
+              <p style="font-size: 0.8rem; color: var(--muted); margin-bottom: 20px;">
+                Bảng thống kê hiệu suất thực tế của các chiến lược và cấu hình bật/tắt từng chiến lược trong thời gian thực.
+              </p>
+              
+              <div style="overflow-x: auto;">
+                <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                  <thead>
+                    <tr style="border-bottom: 1px solid var(--border);">
+                      <th style="padding: 10px; width: 60px;">Status</th>
+                      <th style="padding: 10px;">Strategy ID</th>
+                      <th style="padding: 10px;">Total Trades</th>
+                      <th style="padding: 10px;">Win Rate</th>
+                      <th style="padding: 10px;">Net PnL</th>
+                      <th style="padding: 10px;">Profit Factor</th>
+                      <th style="padding: 10px; color: var(--success);">Max Win</th>
+                      <th style="padding: 10px; color: var(--error);">Max Loss</th>
+                    </tr>
+                  </thead>
+                  <tbody id="strategyStatsTable">
+                    <!-- Dynamic rendering -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           <div class="tab-panel" id="panel-settings">
@@ -1437,7 +1469,9 @@
           loadSystemSettings();
         } else if (btn.dataset.tab === 'raw-state') {
           window.updateRawStateView();
-        } else if (['validator', 'specs', 'validation'].includes(btn.dataset.tab)) {
+        } else if (btn.dataset.tab === 'strategies') {
+          loadStrategyManager();
+        } else if (['validator', 'specs', 'validation', 'strategies'].includes(btn.dataset.tab)) {
           metadataTick();
         }
       };
@@ -2667,6 +2701,136 @@
         statusEl.style.color = 'var(--error)';
         statusEl.textContent = '❌ Lỗi kết nối đến máy chủ!';
       }
+    }
+  };
+
+  async function loadStrategyManager() {
+    try {
+      const statsRes = await fetch('/api/dashboard/strategy-stats').then(r => r.json());
+      const config = await fetch('/api/config').then(r => r.json());
+      
+      const disabledList = config.system_config?.disabled_strategies || [];
+      const stats = statsRes.stats || [];
+      
+      const allStrategies = [
+        { id: "bollinger_squeeze_breakout", type: "Catalog" },
+        { id: "zscore_recenter", type: "Catalog" },
+        { id: "macd_trend_continuation", type: "Catalog" },
+        { id: "asian_range_mean_reversion", type: "Catalog" },
+        { id: "cvd_absorption_short", type: "Catalog" },
+        { id: "decayed_flow_momentum", type: "Catalog" },
+        { id: "signal_macd_continuation", type: "HFT Library" },
+        { id: "signal_ema_pullback_buy", type: "HFT Library" },
+        { id: "signal_obv_accumulation_breakout", type: "HFT Library" },
+        { id: "signal_high_vol_breakout", type: "HFT Library" },
+        { id: "signal_momentum_chasing", type: "HFT Library" },
+        { id: "signal_vwap_reversion_fade", type: "HFT Library" },
+        { id: "signal_range_boundary_fade", type: "HFT Library" },
+        { id: "signal_liquidity_sweep_hunt", type: "HFT Library" },
+        { id: "signal_hft_order_flow_momentum", type: "HFT Library" },
+        { id: "signal_high_vol_breakdown", type: "HFT Library" },
+        { id: "signal_short_momentum_chase", type: "HFT Library" },
+        { id: "signal_oversold_bounce", type: "HFT Library" },
+        { id: "signal_bearish_trend_continuation", type: "HFT Library" },
+        { id: "signal_ema_pullback_sell", type: "HFT Library" },
+        { id: "signal_obv_distribution_breakdown", type: "HFT Library" },
+        { id: "signal_mean_reversion_squeeze", type: "HFT Library" },
+        { id: "signal_funding_reversion", type: "HFT Library" },
+        { id: "signal_oi_reversal", type: "HFT Library" }
+      ];
+
+      const rows = allStrategies.map(strat => {
+        const s = stats.find(x => x.strategy_name === strat.id) || {
+          total_trades: 0,
+          win_rate: 0.0,
+          net_pnl: 0.0,
+          profit_factor: 1.0,
+          max_win: 0.0,
+          max_loss: 0.0
+        };
+        return {
+          id: strat.id,
+          type: strat.type,
+          enabled: !disabledList.includes(strat.id),
+          ...s
+        };
+      });
+
+      rows.sort((a, b) => {
+        if (a.total_trades !== b.total_trades) {
+          return b.total_trades - a.total_trades;
+        }
+        return a.id.localeCompare(b.id);
+      });
+
+      const container = document.getElementById('strategyStatsTable');
+      if (container) {
+        container.innerHTML = rows.map(r => {
+          const checked = r.enabled ? 'checked' : '';
+          const pnlColor = r.net_pnl > 0 ? 'var(--success)' : (r.net_pnl < 0 ? 'var(--error)' : 'var(--muted)');
+          const pnlSign = r.net_pnl > 0 ? '+' : '';
+          return `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+              <td style="padding: 10px;">
+                <input type="checkbox" 
+                       style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--success);"
+                       ${checked} 
+                       onchange="toggleStrategyState('${r.id}', this.checked)">
+              </td>
+              <td style="padding: 10px;">
+                <span class="mono" style="font-weight: 700; color: #fff;">${r.id}</span>
+                <span style="font-size: 0.65rem; color: var(--muted); margin-left: 6px; background: rgba(255,255,255,0.05); padding: 2px 4px; border-radius: 4px;">${r.type}</span>
+              </td>
+              <td class="mono" style="padding: 10px;">${r.total_trades}</td>
+              <td class="mono" style="padding: 10px; font-weight: 700;">${r.win_rate.toFixed(1)}%</td>
+              <td class="mono" style="padding: 10px; font-weight: 700; color: ${pnlColor};">${pnlSign}${r.net_pnl.toFixed(4)}</td>
+              <td class="mono" style="padding: 10px;">${r.profit_factor.toFixed(2)}</td>
+              <td class="mono" style="padding: 10px; color: var(--success);">${r.max_win.toFixed(4)}</td>
+              <td class="mono" style="padding: 10px; color: var(--error);">${r.max_loss.toFixed(4)}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    } catch (e) {
+      console.error("Failed to load strategy manager:", e);
+    }
+  }
+
+  window.toggleStrategyState = async function(stratId, isEnabled) {
+    try {
+      const config = await fetch('/api/config').then(r => r.json());
+      const sys_cfg = config.system_config || {};
+      let disabledList = sys_cfg.disabled_strategies || [];
+      
+      if (isEnabled) {
+        disabledList = disabledList.filter(id => id !== stratId);
+      } else {
+        if (!disabledList.includes(stratId)) {
+          disabledList.push(stratId);
+        }
+      }
+      
+      const payload = {
+        execution_mode: sys_cfg.execution_mode || 'maker',
+        adaptive_rr: sys_cfg.adaptive_rr || false,
+        pairs_trading: sys_cfg.pairs_trading || false,
+        disabled_strategies: disabledList
+      };
+
+      const response = await fetch('/api/config/system_update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(r => r.json());
+      
+      if (response.status === 'ok') {
+        console.log(`Successfully updated ${stratId} state to enabled=${isEnabled}`);
+        loadStrategyManager();
+      } else {
+        alert("Failed to update strategy configuration: " + response.message);
+      }
+    } catch (e) {
+      console.error("Error toggling strategy state:", e);
     }
   };
 </script>
