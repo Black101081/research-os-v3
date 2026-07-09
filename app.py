@@ -308,6 +308,25 @@ async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
         return {'status': 'error', 'message': str(e)}
 
 
+@app.post('/api/config/system_update')
+async def update_system_config(data: Dict[str, Any]) -> Dict[str, Any]:
+    global CONFIG
+    try:
+        sys_cfg = CONFIG.setdefault('system_config', {})
+        sys_cfg['execution_mode'] = data.get('execution_mode', 'maker')
+        sys_cfg['adaptive_rr'] = bool(data.get('adaptive_rr', False))
+        sys_cfg['pairs_trading'] = bool(data.get('pairs_trading', False))
+
+        config_path = BASE / 'config.json'
+        config_path.write_text(json.dumps(CONFIG, indent=2), encoding='utf-8')
+        
+        logger.info(f"System configuration updated successfully: {sys_cfg}")
+        return {'status': 'ok', 'message': 'System configuration updated successfully!'}
+    except Exception as e:
+        logger.error(f"Failed to update system config: {e}")
+        return {'status': 'error', 'message': str(e)}
+
+
 @app.get('/api/dashboard')
 def get_dashboard() -> JSONResponse:
     return JSONResponse(get_dashboard_payload())

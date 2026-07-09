@@ -860,6 +860,9 @@
 
       <!-- Utility controls -->
       <div style="margin-top:auto; display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-secondary" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="openProfitConfigModal()">
+          ⚙️ System Config
+        </button>
         <button class="btn btn-secondary" style="width:100%; justify-content:center; font-size:0.75rem;" onclick="toggleTradingMode()">
           🔄 Toggle Live/Paper Mode
         </button>
@@ -2564,6 +2567,90 @@
       }
     }
   };
+
+  window.openProfitConfigModal = async function() {
+    const modal = document.getElementById('profitConfigModal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+    const statusEl = document.getElementById('profitConfigStatus');
+    if (statusEl) statusEl.style.display = 'none';
+
+    try {
+      const config = await fetch('/api/config').then(r => r.json());
+      const sysConfig = config.system_config || { execution_mode: 'taker', adaptive_rr: false, pairs_trading: false };
+      
+      const executionSelect = document.getElementById('profitExecutionMode');
+      if (executionSelect) {
+        executionSelect.value = sysConfig.execution_mode || 'taker';
+      }
+      
+      const rrCheckbox = document.getElementById('profitAdaptiveRR');
+      if (rrCheckbox) {
+        rrCheckbox.checked = !!sysConfig.adaptive_rr;
+      }
+      
+      const pairsCheckbox = document.getElementById('profitPairsTrading');
+      if (pairsCheckbox) {
+        pairsCheckbox.checked = !!sysConfig.pairs_trading;
+      }
+    } catch (e) {
+      console.error("Failed to load profit config:", e);
+    }
+  };
+
+  window.closeProfitConfigModal = function() {
+    const modal = document.getElementById('profitConfigModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  };
+
+  window.submitProfitConfig = async function() {
+    const statusEl = document.getElementById('profitConfigStatus');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--primary)';
+      statusEl.textContent = '⏳ Đang lưu cấu hình hệ thống...';
+    }
+
+    const executionSelect = document.getElementById('profitExecutionMode');
+    const execution_mode = executionSelect ? executionSelect.value : 'taker';
+    
+    const rrCheckbox = document.getElementById('profitAdaptiveRR');
+    const adaptive_rr = rrCheckbox ? rrCheckbox.checked : false;
+    
+    const pairsCheckbox = document.getElementById('profitPairsTrading');
+    const pairs_trading = pairsCheckbox ? pairsCheckbox.checked : false;
+
+    try {
+      const response = await fetch('/api/config/system_update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ execution_mode, adaptive_rr, pairs_trading })
+      }).then(r => r.json());
+
+      if (response.status === 'ok') {
+        if (statusEl) {
+          statusEl.style.color = 'var(--success)';
+          statusEl.textContent = '✅ Đã lưu cấu hình hệ thống thành công!';
+        }
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        if (statusEl) {
+          statusEl.style.color = 'var(--error)';
+          statusEl.textContent = '❌ Lỗi: ' + response.message;
+        }
+      }
+    } catch (e) {
+      if (statusEl) {
+        statusEl.style.color = 'var(--error)';
+        statusEl.textContent = '❌ Lỗi kết nối đến máy chủ!';
+      }
+    }
+  };
 </script>
 
 <!-- System Settings Modal Overlay -->
@@ -2613,6 +2700,64 @@
     </div>
     
     <div id="modalConfigStatus" style="margin-top: 14px; font-size: 0.8rem; text-align: center; display: none;"></div>
+  </div>
+</div>
+
+<!-- System Config Modal Overlay -->
+<div id="profitConfigModal" style="display: none; position: fixed; z-index: 10000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center;">
+  <div style="width: 100%; max-width: 480px; background: #0f1216; border: 1px solid var(--border); border-radius: 12px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); position: relative; animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+    
+    <!-- Modal Header -->
+    <h3 style="margin-top: 0; color: #fff; margin-bottom: 18px; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 12px;">
+      <span style="display: flex; align-items: center; gap: 8px;">
+        ⚙️ Cấu Hình Hệ Thống (System Config)
+      </span>
+      <button onclick="closeProfitConfigModal()" style="background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; line-height: 1;">&times;</button>
+    </h3>
+    
+    <!-- Modal Body -->
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 8px; color: var(--primary);">1. Phương thức thực thi (Execution Mode):</label>
+      <select id="profitExecutionMode" class="filter-select" style="width: 100%; padding: 8px 12px; font-size: 0.85rem; border-radius: 6px; background: #161a22; border: 1px solid var(--border); color: #fff; cursor: pointer;">
+        <option value="maker">Maker (Limit Post-Only + Pegged Chase)</option>
+        <option value="taker">Taker (Market Order)</option>
+      </select>
+      <small style="color: var(--muted); font-size: 0.72rem; margin-top: 6px; display: block; line-height: 1.3;">
+        * Maker giúp giảm tối đa phí giao dịch và trượt giá; Taker khớp lệnh tức thời.
+      </small>
+    </div>
+
+    <div style="margin-bottom: 20px; display: flex; align-items: flex-start; gap: 10px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+      <input type="checkbox" id="profitAdaptiveRR" style="margin-top: 4px; accent-color: var(--primary); cursor: pointer; transform: scale(1.15);">
+      <div>
+        <label for="profitAdaptiveRR" style="font-weight: 600; font-size: 0.85rem; color: var(--primary); cursor: pointer; user-select: none;">2. Tỷ lệ R:R thích ứng (Adaptive R:R)</label>
+        <p style="margin: 4px 0 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.3;">
+          Tự động nới TP khi trend cực mạnh (ADX > 30) lên 3.0R và siết TP khi thị trường đi ngang (ADX < 18) xuống 1.2R.
+        </p>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 24px; display: flex; align-items: flex-start; gap: 10px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);">
+      <input type="checkbox" id="profitPairsTrading" style="margin-top: 4px; accent-color: var(--primary); cursor: pointer; transform: scale(1.15);">
+      <div>
+        <label for="profitPairsTrading" style="font-weight: 600; font-size: 0.85rem; color: var(--primary); cursor: pointer; user-select: none;">3. Giao dịch Cặp (Pairs Trading / Stat-Arb)</label>
+        <p style="margin: 4px 0 0 0; color: var(--muted); font-size: 0.72rem; line-height: 1.3;">
+          Kích hoạt thuật toán Cointegration chênh lệch giá trị ETH/BTC để Long/Short đối ứng khi Z-score lệch > 2.0.
+        </p>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
+      <button onclick="closeProfitConfigModal()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; padding: 8px 16px; font-size: 0.82rem; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
+        Đóng
+      </button>
+      <button class="btn btn-primary" onclick="submitProfitConfig()" style="font-weight: 600; padding: 8px 16px; font-size: 0.82rem; border-radius: 6px; cursor: pointer;">
+        💾 Lưu & Áp Dụng
+      </button>
+    </div>
+    
+    <div id="profitConfigStatus" style="margin-top: 14px; font-size: 0.8rem; text-align: center; display: none;"></div>
   </div>
 </div>
 

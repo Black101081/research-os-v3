@@ -736,6 +736,76 @@ class ResearchEngine:
             sym_state=sym_state
         )
 
+        # Check system_config pairs_trading
+        from globals import CONFIG
+        system_config = CONFIG.get('system_config', {})
+        if system_config.get('pairs_trading', False) and state.symbol != 'BTC':
+            btc_state = self.states.get('BTC')
+            if btc_state:
+                btc_price = btc_state.latest_close()
+                eth_price = last_close
+                if btc_price and eth_price:
+                    eth_closes = state.closes()
+                    btc_closes = btc_state.closes()
+                    if len(eth_closes) >= 50 and len(btc_closes) >= 50:
+                        n = min(len(eth_closes), len(btc_closes))
+                        eth_c = eth_closes[-n:]
+                        btc_c = btc_closes[-n:]
+                        avg_eth = sum(eth_c) / n
+                        avg_btc = sum(btc_c) / n
+                        beta = avg_eth / avg_btc if avg_btc > 0 else 0.0
+                        if beta > 0:
+                            spreads = [eth_c[i] - beta * btc_c[i] for i in range(n)]
+                            mean_spread = sum(spreads) / n
+                            var_spread = sum((s - mean_spread) ** 2 for s in spreads) / n
+                            std_spread = var_spread ** 0.5
+                            
+                            current_spread = eth_price - beta * btc_price
+                            zscore = (current_spread - mean_spread) / std_spread if std_spread > 0 else 0.0
+                            
+                            triggered_pairs = False
+                            pairs_dir = None
+                            if zscore > 2.0:
+                                triggered_pairs = True
+                                pairs_dir = 'short'
+                            elif zscore < -2.0:
+                                triggered_pairs = True
+                                pairs_dir = 'long'
+                                
+                            if triggered_pairs:
+                                sl_dist = eth_price * 0.015
+                                sl = eth_price * 1.015 if pairs_dir == 'short' else eth_price * 0.985
+                                tp = eth_price - (2.0 * sl_dist) if pairs_dir == 'short' else eth_price + (2.0 * sl_dist)
+                                
+                                from signal_models import SignalResult
+                                pairs_sig = SignalResult(
+                                    signal_id=f"{state.symbol}_pairs_arbitrage_spec",
+                                    symbol=state.symbol,
+                                    family="mean_reversion",
+                                    direction=pairs_dir,
+                                    entry_price=eth_price,
+                                    stop_loss=sl,
+                                    take_profit=tp,
+                                    confidence_score=0.85,
+                                    risk_reward_ratio=2.0,
+                                    time_str=now_iso(),
+                                    metadata={
+                                        'strategy_name': 'pairs_arbitrage',
+                                        'asset_role': 'alt',
+                                        'interval': '1m',
+                                        'last_price': eth_price,
+                                        'triggered': True,
+                                        'confirmed': True,
+                                        'invalidated': False,
+                                        'zscore': zscore,
+                                        'beta': beta
+                                    }
+                                )
+                                self._emit_signal(pairs_sig)
+                                logging.getLogger(__name__).info(
+                                    f"[PAIRS_TRADING] Cointegrated spread trade triggered for {state.symbol} ({pairs_dir}) at zscore={zscore:.2f}"
+                                )
+
     def _compute_strategies(self, state: SymbolState):
         strategies = {}
         close_count = len(state.closes(include_current=True))

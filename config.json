@@ -1,11 +1,23 @@
 {
   "network": "mainnet",
-  "symbols": ["BTC", "ETH", "SOL"],
+  "symbols": [
+    "BTC",
+    "ETH",
+    "SOL",
+    "AVAX",
+    "SUI",
+    "LINK"
+  ],
   "candle_interval": "1m",
   "ws_url": "wss://api.hyperliquid.xyz/ws",
   "asset_config": {
     "BTC": {
-      "candle_intervals": ["1m", "5m", "15m", "1h"],
+      "candle_intervals": [
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
       "subscribe_l2book": true,
       "subscribe_active_asset_ctx": true,
       "role": "anchor",
@@ -14,7 +26,12 @@
       "notes": "Highest liquidity. Scalp + trend viable. m1 order flow meaningful."
     },
     "ETH": {
-      "candle_intervals": ["1m", "5m", "15m", "1h"],
+      "candle_intervals": [
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
       "subscribe_l2book": true,
       "subscribe_active_asset_ctx": true,
       "role": "major",
@@ -23,23 +40,76 @@
       "notes": "Mid liquidity. m5/m15 preferred. m1 noisier than BTC."
     },
     "SOL": {
-      "candle_intervals": ["5m", "15m", "1h"],
+      "candle_intervals": [
+        "5m",
+        "15m",
+        "1h"
+      ],
       "subscribe_l2book": false,
       "subscribe_active_asset_ctx": true,
       "role": "alt",
       "min_spread_bps": 2.0,
       "max_spread_bps": 10.0,
       "notes": "Lower liquidity. m15/1h for quality signals. No m1 candle."
+    },
+    "AVAX": {
+      "candle_intervals": [
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
+      "subscribe_l2book": true,
+      "subscribe_active_asset_ctx": true,
+      "role": "alt",
+      "min_spread_bps": 2.0,
+      "max_spread_bps": 15.0,
+      "notes": "Auto-configured on boot."
+    },
+    "SUI": {
+      "candle_intervals": [
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
+      "subscribe_l2book": true,
+      "subscribe_active_asset_ctx": true,
+      "role": "alt",
+      "min_spread_bps": 2.0,
+      "max_spread_bps": 15.0,
+      "notes": "Auto-configured on boot."
+    },
+    "LINK": {
+      "candle_intervals": [
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
+      "subscribe_l2book": true,
+      "subscribe_active_asset_ctx": true,
+      "role": "alt",
+      "min_spread_bps": 2.0,
+      "max_spread_bps": 15.0,
+      "notes": "Auto-configured on boot."
     }
   },
-  "subscriptions": ["trades", "candle", "bbo", "allMids", "l2Book", "activeAssetCtx"],
+  "subscriptions": [
+    "trades",
+    "candle",
+    "bbo",
+    "allMids",
+    "l2Book",
+    "activeAssetCtx"
+  ],
   "runtime": {
     "reconnect_seconds": 5,
     "max_bars_per_tf": {
-      "1m":  500,
-      "5m":  300,
+      "1m": 500,
+      "5m": 300,
       "15m": 200,
-      "1h":  100
+      "1h": 100
     },
     "warmup_bars": 50,
     "write_every_seconds": 5,
@@ -60,14 +130,14 @@
       "rr_ratio": 2.5,
       "min_quantity": 0.001,
       "max_quantity": 0.5,
-      "max_position_pct": 0.10,
+      "max_position_pct": 0.1,
       "kelly_fraction": 0.25,
       "max_kelly_pct": 0.05,
       "min_trades_for_kelly": 20,
       "fixed_quantity": 0.01,
       "max_concurrent_candidates": 2,
       "max_symbol_notional_fraction": 0.15,
-      "max_portfolio_gross_fraction": 0.40,
+      "max_portfolio_gross_fraction": 0.4,
       "per_trade_risk_fraction": 0.01,
       "session_loss_limit_fraction": 0.05,
       "spread_bps_limits": {
@@ -100,5 +170,10 @@
     "slippage_bps": 3,
     "sizing_mode": "fixed_fraction",
     "max_fraction_per_trade": 0.02
+  },
+  "system_config": {
+    "execution_mode": "maker",
+    "adaptive_rr": false,
+    "pairs_trading": false
   }
 }

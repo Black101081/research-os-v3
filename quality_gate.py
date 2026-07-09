@@ -495,6 +495,31 @@ class QualityGate:
                 block_reason=BLOCK_REASON_DISABLED,
             )
 
+        # Check system_config adaptive_rr
+        from globals import CONFIG
+        system_config = CONFIG.get('system_config', {})
+        if system_config.get('adaptive_rr', False):
+            sym_state = self._mtf.get(signal.symbol)
+            if sym_state:
+                interval = getattr(signal, 'interval', '1m')
+                tf_state = sym_state.get_tf(interval)
+                if tf_state and tf_state.indicators:
+                    adx = tf_state.indicators.get("adx_14", 0.0)
+                    if adx > 0 and signal.stop_loss and signal.stop_loss > 0:
+                        sl_dist = abs(signal.entry_price - signal.stop_loss)
+                        if adx > 30:  # Strong Trend: 3.0R
+                            if signal.direction == 'long':
+                                signal.take_profit = signal.entry_price + (3.0 * sl_dist)
+                            else:
+                                signal.take_profit = signal.entry_price - (3.0 * sl_dist)
+                            log.info(f"[ADAPTIVE_RR] Strong Trend (ADX={adx:.1f}) scaled TP to 3.0R ({signal.take_profit:.4f}) for {signal.symbol}")
+                        elif adx < 18:  # Choppy Range: 1.2R
+                            if signal.direction == 'long':
+                                signal.take_profit = signal.entry_price + (1.2 * sl_dist)
+                            else:
+                                signal.take_profit = signal.entry_price - (1.2 * sl_dist)
+                            log.info(f"[ADAPTIVE_RR] Choppy Range (ADX={adx:.1f}) scaled TP to 1.2R ({signal.take_profit:.4f}) for {signal.symbol}")
+
         layer_results: List[LayerResult] = []
 
         # ── Layer 1: Session ──────────────────────────────────────

@@ -57,10 +57,12 @@ if 'asset_config' in CONFIG:
     if 'candle_interval' not in CONFIG:
         first_asset = list(CONFIG['asset_config'].values())[0]
         CONFIG['candle_interval'] = first_asset.get('candle_intervals', ['1m'])[0]
-    if 'runtime' in CONFIG:
-        if 'max_bars' not in CONFIG['runtime']:
-            max_bars_per_tf = CONFIG['runtime'].get('max_bars_per_tf', {})
-            CONFIG['runtime']['max_bars'] = max_bars_per_tf.get('1m', 500)
+    if 'system_config' not in CONFIG:
+        CONFIG['system_config'] = {
+            'execution_mode': 'maker',
+            'adaptive_rr': False,
+            'pairs_trading': False
+        }
 
 engine = ResearchEngine(
     symbols=CONFIG['symbols'],

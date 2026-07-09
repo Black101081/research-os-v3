@@ -307,6 +307,45 @@ class PaperBroker:
             )
             return False
 
+        # Check system_config execution_mode
+        from globals import CONFIG
+        system_config = CONFIG.get('system_config', {})
+        execution_mode = system_config.get('execution_mode', 'maker')
+
+        if execution_mode == 'taker':
+            # Direct taker execution: fill immediately with fee and slippage
+            taker_fee_pct = 0.0005
+            total_slippage = 0.0003
+            if sig.direction == "long" or sig.direction == "buy":
+                fill_price = entry_price * (1 + total_slippage)
+            else:
+                fill_price = entry_price * (1 - total_slippage)
+                
+            fake_order = {
+                "symbol": sig.symbol,
+                "direction": sig.direction,
+                "qty": qty,
+                "limit_price": entry_price,
+                "stop_loss": sig.stop_loss,
+                "take_profit": sig.take_profit,
+                "family": sig.family,
+                "signal_id": sig.signal_id or f"{sig.symbol}_{sig.family}_{getattr(sig, 'interval', 'unknown')}",
+                "signal_res": sig,
+                "qualified": qualified,
+                "chase_count": 0,
+                "ticks_waiting": 0,
+                "extra": {
+                    "execution_style": "market_taker"
+                }
+            }
+            fill_time = datetime.now(UTC).isoformat()
+            self._fill_pending_order(fake_order, fill_price, taker_fee_pct, fill_time)
+            logger.info(
+                f"[PaperBroker] QUALIFIED TAKER FILLED {sig.direction.upper()} {sig.symbol} "
+                f"qty={qty} @ {fill_price} | size=${qualified.position_size_usd:.0f}"
+            )
+            return True
+
         # --- Limit Post-Only Execution Simulation ---
         pending_order = {
             "symbol": sig.symbol,
