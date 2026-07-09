@@ -445,6 +445,11 @@ def compute_indicators_np(closes: List[float], factors: Dict[str, float]) -> Dic
     indicators["LiveReturnFromClose"] = factors.get("live_ret_from_last_close", 0.0)
     indicators["HMA_Close_20"]    = hma_np(closes, 20)
     indicators["RSI_HMA_14"]      = rsi_hma_np(closes, 14)
+    
+    from datetime import datetime, timezone
+    utc_hour = datetime.now(timezone.utc).hour
+    indicators["utc_hour"] = float(utc_hour)
+    indicators["is_asia_session"] = 1.0 if 1 <= utc_hour < 9 else 0.0
     return indicators
 
 

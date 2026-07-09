@@ -55,7 +55,7 @@ def _load_catalog():
 # Initialize bridge
 bridge = PromotedSignalBridge()
 
-SUPPORTED = ['bollinger_squeeze_breakout', 'zscore_recenter', 'macd_trend_continuation']
+SUPPORTED = ['bollinger_squeeze_breakout', 'zscore_recenter', 'macd_trend_continuation', 'cvd_absorption_short', 'decayed_flow_momentum', 'asian_range_mean_reversion']
 
 _compiled_expr_cache: Dict[str, Any] = {}
 

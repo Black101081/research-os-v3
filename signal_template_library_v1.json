@@ -1926,6 +1926,37 @@
       "quality_tier": "A",
       "min_confirmation_score": 0.55,
       "min_invalidation_score": 0.5
+    },
+    {
+      "signal_id": "asian_range_mean_reversion",
+      "family": "mean_reversion",
+      "template_id": "mean_reversion_basic_v1",
+      "description": "Fade Bollinger outer bands during quiet Asian session",
+      "entry_factors": [
+        "is_asia_session",
+        "BollingerWidth_ZScore",
+        "RSI_HMA_14"
+      ],
+      "preferred_regimes": [
+        "sideways_low_normal_vol",
+        "range_chop"
+      ],
+      "avoid_regimes": [
+        "bull_high_vol",
+        "bear_high_vol"
+      ],
+      "direction": "both",
+      "min_bars": 20,
+      "trigger_definition": "is_asia_session == 1.0 and BollingerWidth_ZScore < -0.5",
+      "confirmation_definition": "RSI_HMA_14 <= 30.0 or RSI_HMA_14 >= 70.0",
+      "invalidation_definition": "BollingerWidth_ZScore > 0.5",
+      "thesis_summary": "Exploit low volatility in Asian session by fading extremes using lag-less RSI HMA.",
+      "entry_logic_summary": "Active during Asian hours with Bollinger Band compression",
+      "confirmation_summary": "Confirmed when HMA-smoothed RSI hits oversold/overbought thresholds",
+      "invalidation_summary": "Invalidated if volatility expands (Bollinger Z-score rises)",
+      "quality_tier": "S",
+      "min_confirmation_score": 0.6,
+      "min_invalidation_score": 0.5
     }
   ],
   "generation_defaults": {
