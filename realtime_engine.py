@@ -761,6 +761,15 @@ class ResearchEngine:
         indicators = dict(state.indicators)
         
         if hasattr(self, '_mtf') and self._mtf:
+            # 1. Retrieve current symbol's 15m TF indicators
+            sym_mtf = self._mtf.get(state.symbol)
+            if sym_mtf:
+                tf_state_current = sym_mtf.get_tf("15m")
+                if tf_state_current and tf_state_current.indicators:
+                    if "oi_momentum_5" in tf_state_current.indicators:
+                        indicators["oi_momentum_5"] = tf_state_current.indicators["oi_momentum_5"]
+            
+            # 2. Retrieve BTC anchor 15m TF indicators
             btc_state = self._mtf.get("BTC")
             if btc_state:
                 tf_state = btc_state.get_tf("15m")
@@ -769,6 +778,9 @@ class ResearchEngine:
                         factors["ema_spread_8_21"] = tf_state.indicators["ema_spread_8_21"]
                     if "adx_14" in tf_state.indicators:
                         indicators["adx_14"] = tf_state.indicators["adx_14"]
+                    # Fallback to BTC OI momentum if current symbol's is not set
+                    if "oi_momentum_5" not in indicators and "oi_momentum_5" in tf_state.indicators:
+                        indicators["oi_momentum_5"] = tf_state.indicators["oi_momentum_5"]
                         
         state.regime_state = classify_regime(factors, indicators)
 

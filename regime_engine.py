@@ -80,6 +80,15 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
             allowed_strategies = ['mean_reversion_squeeze', 'funding_reversion', 'oi_reversal']
             allowed_families = ['mean_reversion', 'funding_reversion', 'oi_reversal']
 
+    # 4. Open Interest Trend Confirmation Filter
+    oi_momentum = indicators.get('oi_momentum_5')
+    oi_confirmed = True
+    if oi_momentum is not None and trend_state in ('bull', 'bear'):
+        # If trend is active but Open Interest is flat/declining (< 0.5%), it's a weak trend/fake breakout
+        if oi_momentum < 0.5:
+            oi_confirmed = False
+            confidence = float(confidence * 0.6)  # Downgrade confidence below 0.50 to block entries
+
     # Keep backward compatibility: check if the regime is tradable
     tradable = not (regime == 'sideways_high_vol' and confidence < 0.70)
     if confidence < 0.50:
@@ -96,10 +105,12 @@ def classify_regime(factors: Dict[str, float], indicators: Dict[str, float]) -> 
         'trade_tier': trade_tier,
         'allowed_signal_families': allowed_families,
         'allowed_strategies': allowed_strategies,
+        'oi_confirmed': oi_confirmed,
         'why': {
             'volatility_20': vol_20,
             'ema_spread_8_21': ema_spread,
             'adx_14': adx,
+            'oi_momentum_5': oi_momentum,
         },
     }
 
