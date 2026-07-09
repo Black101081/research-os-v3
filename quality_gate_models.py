@@ -278,6 +278,7 @@ class QualifiedSignal:
     market_regime: str = "unknown"    # "trending" | "choppy" | "unknown"
     btc_structure: str = "neutral"    # "bullish" | "bearish" | "neutral"
     session_name: str = "unknown"     # "asia" | "london" | "new_york" | "overlap"
+    thesis: str = ""
 
     # EV calculation
     expected_value_r: float = 0.0     # in R units
@@ -303,6 +304,7 @@ class QualifiedSignal:
             "position_size_pct": round(self.position_size_pct, 4),
             "position_size_usd": round(self.position_size_usd, 2),
             "risk_amount_usd": round(self.risk_amount_usd, 2),
+            "thesis": self.thesis,
             "market_regime": self.market_regime,
             "btc_structure": self.btc_structure,
             "session_name": self.session_name,

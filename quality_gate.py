@@ -534,6 +534,36 @@ class QualityGate:
             return self._reject(signal, l1, layer_results)
         self._last_session = l1.metadata.get("session_name", "unknown")
 
+        # ── Layer 1.5: Multi-Timeframe Confluence ──────────────────
+        sym_state = self._mtf.get(signal.symbol)
+        if sym_state:
+            tf_1h = sym_state.get_tf("1h")
+            if tf_1h and tf_1h.indicators:
+                close_1h = getattr(tf_1h, 'last_close', getattr(tf_1h, 'close', signal.entry_price))
+                ema_1h = tf_1h.indicators.get("EMA_20") or tf_1h.indicators.get("BBANDS_mid") or close_1h
+                
+                is_continuation = signal.family in ["macd_trend_continuation", "ema_pullback_buy", "ema_pullback_sell", "momentum_chasing"]
+                if is_continuation:
+                    if signal.direction == 'long' and close_1h < ema_1h:
+                        l15 = LayerResult(
+                            layer_name="mtf_confluence",
+                            verdict=GATE_BLOCK,
+                            reason=f"Blocked by MTF: Long trend continuation signal fired while 1h close ({close_1h:.2f}) is below 1h EMA_20 ({ema_1h:.2f})"
+                        )
+                        layer_results.append(l15)
+                        return self._reject(signal, l15, layer_results)
+                    elif signal.direction == 'short' and close_1h > ema_1h:
+                        l15 = LayerResult(
+                            layer_name="mtf_confluence",
+                            verdict=GATE_BLOCK,
+                            reason=f"Blocked by MTF: Short trend continuation signal fired while 1h close ({close_1h:.2f}) is above 1h EMA_20 ({ema_1h:.2f})"
+                        )
+                        layer_results.append(l15)
+                        return self._reject(signal, l15, layer_results)
+        
+        l15_pass = LayerResult(layer_name="mtf_confluence", verdict=GATE_PASS)
+        layer_results.append(l15_pass)
+
         # ── Layer 2: Regime ───────────────────────────────────────
         l2 = _layer_regime(signal, self._mtf, self._cfg)
         layer_results.append(l2)
@@ -590,6 +620,35 @@ class QualityGate:
             expected_value_r=ev_r,
             cooldown_key=cooldown_key,
         )
+        
+        # Generate Dynamic Trade Thesis
+        thesis_parts = []
+        thesis_parts.append(f"Execute {signal.direction.upper()} on {signal.symbol} ({signal.interval}) at entry ${signal.entry_price:.2f}.")
+        thesis_parts.append(f"Regime: {qs.market_regime.upper()} ({qs.btc_structure.upper()} BTC structure) during {qs.session_name.upper()} session.")
+        
+        sym_state = self._mtf.get(signal.symbol)
+        if sym_state:
+            tf_state = sym_state.get_tf(signal.interval)
+            if tf_state and tf_state.indicators:
+                inds = tf_state.indicators
+                rsi = inds.get("rsi_14") or inds.get("RSI_HMA_14") or 50.0
+                adx = inds.get("adx_14") or 20.0
+                obi = inds.get("book_imbalance_5") or 0.0
+                cvd = inds.get("cvd_slope_20") or 0.0
+                bb_z = inds.get("BollingerWidth_ZScore") or 0.0
+                
+                thesis_parts.append(f"Microstructure context:")
+                thesis_parts.append(f"- Trend Strength: ADX={adx:.1f}")
+                thesis_parts.append(f"- Momentum: RSI={rsi:.1f}")
+                thesis_parts.append(f"- Order Book Imbalance: D-OBI={obi*100.0:+.1f}%")
+                if abs(cvd) > 0.0:
+                    thesis_parts.append(f"- CVD Slope: {cvd:.4f}")
+                if bb_z > 1.5:
+                    thesis_parts.append(f"- Volatility Expansion: Bollinger Z-Score={bb_z:.2f} (Target scaled by 1.3x)")
+                elif bb_z < -1.5:
+                    thesis_parts.append(f"- Volatility Squeeze: Bollinger Z-Score={bb_z:.2f}")
+                    
+        qs.thesis = " ".join(thesis_parts)
 
         # Register in state tracking
         self._register_signal(signal, cooldown_key, risk_usd, pos_pct)

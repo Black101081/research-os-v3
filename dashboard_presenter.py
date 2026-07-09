@@ -251,7 +251,7 @@ def get_signals_payload() -> Dict[str, Any]:
                 "regime_fit":           bool(sig.get("why", {}).get("regime_ok")),
                 "entry_side":           state.get("strategies", {}).get(name, {}).get("entry_side")
                                         if sig.get("active") else None,
-                "thesis":               sig.get("thesis"),
+                "thesis":               qs.get("thesis", sig.get("thesis")),
                 "entry_logic_summary":  sig.get("entry_logic_summary"),
                 "confirmation_summary": sig.get("confirmation_summary"),
                 "invalidation_summary": sig.get("invalidation_summary"),
@@ -317,7 +317,7 @@ def get_signal_detail(symbol: str, signal_id: str) -> Optional[Dict[str, Any]]:
         "regime_fit":           bool(sig.get("why", {}).get("regime_ok")),
         "entry_side":           state.get("strategies", {}).get(signal_id, {}).get("entry_side")
                                 if sig.get("active") else None,
-        "thesis":               sig.get("thesis"),
+        "thesis":               qs.get("thesis", sig.get("thesis")),
         "entry_logic_summary":  sig.get("entry_logic_summary"),
         "confirmation_summary": sig.get("confirmation_summary"),
         "invalidation_summary": sig.get("invalidation_summary"),

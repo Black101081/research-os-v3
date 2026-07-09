@@ -51,6 +51,37 @@ except ImportError:
         return (np.array(result),)
 
 
+def wma_np(values: List[float] | np.ndarray, period: int) -> float:
+    """Weighted Moving Average."""
+    arr = np.asarray(values, dtype=np.float64)
+    if arr.size < period:
+        return float(arr[-1]) if arr.size > 0 else 0.0
+    weights = np.arange(1, period + 1, dtype=np.float64)
+    sub = arr[-period:]
+    return float(np.dot(sub, weights) / weights.sum())
+
+
+def hma_np(values: List[float] | np.ndarray, period: int) -> float:
+    """Hull Moving Average - Lag-less moving average."""
+    arr = np.asarray(values, dtype=np.float64)
+    if arr.size < period:
+        return float(arr[-1]) if arr.size > 0 else 0.0
+    
+    half_period = int(period / 2)
+    sqrt_period = int(np.sqrt(period))
+    if sqrt_period < 1:
+        sqrt_period = 1
+        
+    raw_hma_series = []
+    for i in range(arr.size - sqrt_period, arr.size):
+        sub_arr = arr[:i+1]
+        wma_half = wma_np(sub_arr, half_period)
+        wma_full = wma_np(sub_arr, period)
+        raw_hma_series.append(2.0 * wma_half - wma_full)
+        
+    return wma_np(raw_hma_series, sqrt_period)
+
+
 def ema_np(values: List[float] | np.ndarray, period: int) -> Optional[float]:
     """Exponential moving average via numpy/scipy — normalized and vectorized."""
     arr = np.asarray(values, dtype=np.float64)
@@ -165,6 +196,24 @@ def rsi_np(closes: List[float], period: int = 14) -> float:
     if avg_l[-1] == 0.0:
         return 50.0 if avg_g[-1] == 0.0 else 100.0
     return float(100.0 - 100.0 / (1.0 + rs))
+
+
+def rsi_hma_np(closes: List[float], period: int = 14) -> float:
+    """Relative Strength Index smoothed using Hull Moving Average for lag-less response."""
+    arr = np.asarray(closes, dtype=np.float64)
+    if arr.size <= period:
+        return 50.0
+    diff = np.diff(arr)
+    gains = np.where(diff > 0, diff, 0.0)
+    losses = np.where(diff < 0, -diff, 0.0)
+    
+    avg_g = hma_np(gains, period)
+    avg_l = hma_np(losses, period)
+    
+    if avg_l == 0.0:
+        return 100.0 if avg_g > 0.0 else 50.0
+    rs = avg_g / avg_l
+    return float(100.0 - (100.0 / (1.0 + rs)))
 
 
 # ── ATR ───────────────────────────────────────────────────────────
@@ -394,6 +443,8 @@ def compute_indicators_np(closes: List[float], factors: Dict[str, float]) -> Dic
     indicators["MicroVolatility"] = factors.get("micro_volatility_20", 0.0)
     indicators["SpreadBps"]       = factors.get("spread_bps", 0.0)
     indicators["LiveReturnFromClose"] = factors.get("live_ret_from_last_close", 0.0)
+    indicators["HMA_Close_20"]    = hma_np(closes, 20)
+    indicators["RSI_HMA_14"]      = rsi_hma_np(closes, 14)
     return indicators
 
 
