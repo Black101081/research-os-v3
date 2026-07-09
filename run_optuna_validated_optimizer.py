@@ -150,9 +150,20 @@ def run_monte_carlo(actual_returns: List[float], real_sharpe: float, interval: s
         return 1.0
     better_runs = 0
     for _ in range(n_iterations):
-        shuffled = list(actual_returns)
-        random.shuffle(shuffled)
-        fake_sharpe = calculate_sharpe(shuffled, interval)
+        # 1. Non-fill rate (simulate 15% missed limit orders by keeping 85% of trades)
+        n_keep = int(len(actual_returns) * 0.85)
+        if n_keep == 0:
+            shuffled = []
+        else:
+            shuffled = random.sample(actual_returns, n_keep)
+            
+        # 2. Random slippage (subtract between 0.0 and 1.5 bps from each trade return)
+        stressed = []
+        for r in shuffled:
+            slippage = random.uniform(0.0, 0.00015)
+            stressed.append(r - slippage)
+            
+        fake_sharpe = calculate_sharpe(stressed, interval)
         if fake_sharpe >= real_sharpe:
             better_runs += 1
     return better_runs / n_iterations
@@ -165,6 +176,10 @@ def compute_suitability_score(
     n_trades: int
 ) -> Tuple[float, str]:
     if n_trades == 0:
+        return 0.0, "UNSUITABLE"
+        
+    # Hard gate: WFE must be at least 60% to avoid overfitted parameter sets
+    if wfe_pct < 60.0:
         return 0.0, "UNSUITABLE"
         
     # Scale Sharpe contribution (OOS Sharpe of 2.0 = 0.40 score)

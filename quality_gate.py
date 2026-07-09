@@ -505,20 +505,25 @@ class QualityGate:
                 tf_state = sym_state.get_tf(interval)
                 if tf_state and tf_state.indicators:
                     adx = tf_state.indicators.get("adx_14", 0.0)
+                    bb_zscore = tf_state.indicators.get("BollingerWidth_ZScore", 0.0)
                     if adx > 0 and signal.stop_loss and signal.stop_loss > 0:
                         sl_dist = abs(signal.entry_price - signal.stop_loss)
+                        mult = 1.3 if bb_zscore > 1.5 else 1.0
+                        if bb_zscore > 1.5:
+                            log.info(f"[VOLATILITY_EXPANSION] bb_zscore={bb_zscore:.2f} applying 1.3x multiplier to TP distance")
+                        
                         if adx > 30:  # Strong Trend: 3.0R
                             if signal.direction == 'long':
-                                signal.take_profit = signal.entry_price + (3.0 * sl_dist)
+                                signal.take_profit = signal.entry_price + (3.0 * mult * sl_dist)
                             else:
-                                signal.take_profit = signal.entry_price - (3.0 * sl_dist)
-                            log.info(f"[ADAPTIVE_RR] Strong Trend (ADX={adx:.1f}) scaled TP to 3.0R ({signal.take_profit:.4f}) for {signal.symbol}")
+                                signal.take_profit = signal.entry_price - (3.0 * mult * sl_dist)
+                            log.info(f"[ADAPTIVE_RR] Strong Trend (ADX={adx:.1f}) scaled TP to {3.0*mult:.2f}R ({signal.take_profit:.4f}) for {signal.symbol}")
                         elif adx < 18:  # Choppy Range: 1.2R
                             if signal.direction == 'long':
-                                signal.take_profit = signal.entry_price + (1.2 * sl_dist)
+                                signal.take_profit = signal.entry_price + (1.2 * mult * sl_dist)
                             else:
-                                signal.take_profit = signal.entry_price - (1.2 * sl_dist)
-                            log.info(f"[ADAPTIVE_RR] Choppy Range (ADX={adx:.1f}) scaled TP to 1.2R ({signal.take_profit:.4f}) for {signal.symbol}")
+                                signal.take_profit = signal.entry_price - (1.2 * mult * sl_dist)
+                            log.info(f"[ADAPTIVE_RR] Choppy Range (ADX={adx:.1f}) scaled TP to {1.2*mult:.2f}R ({signal.take_profit:.4f}) for {signal.symbol}")
 
         layer_results: List[LayerResult] = []
 

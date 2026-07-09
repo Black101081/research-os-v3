@@ -35,12 +35,22 @@ def now_iso() -> str:
 
 
 def calc_book_imbalance(bids: list, asks: list, depth: int) -> float:
+    import math
     sub_bids = bids[:depth]
     sub_asks = asks[:depth]
-    bid_sz = sum(sz for _, sz in sub_bids)
-    ask_sz = sum(sz for _, sz in sub_asks)
-    total = bid_sz + ask_sz
-    return (bid_sz - ask_sz) / total if total > 0.0 else 0.0
+    
+    bid_decayed = 0.0
+    for i, (_, sz) in enumerate(sub_bids):
+        w = math.exp(-0.5 * i)
+        bid_decayed += w * float(sz)
+        
+    ask_decayed = 0.0
+    for i, (_, sz) in enumerate(sub_asks):
+        w = math.exp(-0.5 * i)
+        ask_decayed += w * float(sz)
+        
+    total = bid_decayed + ask_decayed
+    return (bid_decayed - ask_decayed) / total if total > 0.0 else 0.0
 
 
 def ema(values: List[float], period: int) -> Optional[float]:
@@ -425,6 +435,27 @@ class ResearchEngine:
         base_indicators = compute_indicators_np(closes, state.factors)
         state.indicators.update(base_indicators)
         
+        # Compute rolling Z-score of Bollinger Width (Volatility Shift Detection)
+        if len(closes) >= 40:
+            widths = []
+            for j in range(len(closes) - 20, len(closes) + 1):
+                sub_arr = np.asarray(closes[j-20:j], dtype=np.float64)
+                if sub_arr.size > 1:
+                    sma = float(sub_arr.mean())
+                    std = float(sub_arr.std(ddof=0))
+                    width = (4.0 * std) / sma if sma else 0.0
+                    widths.append(width)
+            if widths:
+                arr_w = np.array(widths, dtype=np.float64)
+                mu_w = float(arr_w.mean())
+                std_w = float(arr_w.std(ddof=0))
+                zscore_w = float((widths[-1] - mu_w) / std_w) if std_w > 0.0 else 0.0
+                state.indicators['BollingerWidth_ZScore'] = zscore_w
+            else:
+                state.indicators['BollingerWidth_ZScore'] = 0.0
+        else:
+            state.indicators['BollingerWidth_ZScore'] = 0.0
+        
         sizes = list(state.trade_sizes)
         sides = list(state.trade_sides)
         pxs = list(state.trade_prices)
@@ -615,6 +646,12 @@ class ResearchEngine:
                 else:
                     bb_width = tf_indicators.get('BollingerWidth', 0.03)
                 tp_pct = max(0.01, bb_width)
+                
+                # Check for Volatility Shift Expansion (Z-score > 1.5 -> scale TP by 1.3)
+                bb_zscore = tf_indicators.get('BollingerWidth_ZScore', 0.0)
+                if bb_zscore > 1.5:
+                    tp_pct *= 1.3
+                    
                 take_profit = last_price * (1 + tp_pct) if direction == 'long' else last_price * (1 - tp_pct)
 
             # Cooldown gate
