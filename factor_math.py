@@ -308,7 +308,7 @@ def rsi_history_np(closes: List[float], period: int = 14) -> np.ndarray:
     zi_l = lfilter_zi(b, a) * losses[0]
     avg_l, _ = lfilter(b, a, losses, zi=zi_l)
 
-    rs = np.where(avg_l != 0.0, avg_g / avg_l, 0.0)
+    rs = np.divide(avg_g, avg_l, out=np.zeros_like(avg_g), where=avg_l != 0.0)
     rsi_vals = np.where(avg_l == 0.0, np.where(avg_g == 0.0, 50.0, 100.0), 100.0 - 100.0 / (1.0 + rs))
 
     out[1:] = rsi_vals
@@ -808,9 +808,8 @@ def calc_cmf(highs: list, lows: list, closes: list,
     c = np.array(closes[-period:], dtype=float)
     v = np.array(volumes[-period:], dtype=float)
     hl_range = h - l
-    mfv = np.where(hl_range > 0,
-                   ((c - l) - (h - c)) / hl_range * v,
-                   0.0)
+    numerator = ((c - l) - (h - c)) * v
+    mfv = np.divide(numerator, hl_range, out=np.zeros_like(numerator), where=hl_range > 0)
     total_v = v.sum()
     return float(mfv.sum() / total_v) if total_v else 0.0
 
@@ -1159,8 +1158,10 @@ def calc_ease_of_movement(highs: list, lows: list, volumes: list, period: int = 
     
     hl2 = (h + l) / 2
     dm = hl2[1:] - hl2[:-1]
-    box_ratio = (v[1:] / 100000000.0) / (h[1:] - l[1:])
-    emv_raw = np.where(h[1:] - l[1:] > 0, dm / box_ratio, 0.0)
+    v_scaled = v[1:] / 100000000.0
+    hl_diff = h[1:] - l[1:]
+    box_ratio = np.divide(v_scaled, hl_diff, out=np.zeros_like(v_scaled), where=hl_diff > 0)
+    emv_raw = np.divide(dm, box_ratio, out=np.zeros_like(dm), where=box_ratio > 0)
     
     # Return smoothed EMV (SMA of raw EMV)
     if len(emv_raw) < period:
