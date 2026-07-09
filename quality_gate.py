@@ -346,11 +346,22 @@ def _layer_statistical(signal: SignalResult,
         ), 0.0)
 
     # EV check
-    win_rate = scfg.family_win_rates.get(signal.family, 0.50)
+    # Map specific upgraded families to generic parent families for win rate lookup
+    parent_family = signal.family
+    if parent_family in ("macd_trend_continuation", "ema_pullback_buy", "bearish_trend_continuation", "ema_pullback_sell"):
+        parent_family = "continuation"
+    elif parent_family in ("obv_accumulation_breakout", "high_vol_breakout", "momentum_chasing", "high_vol_breakdown", "short_momentum_chase", "obv_distribution_breakdown", "breakout"):
+        parent_family = "breakout"
+    elif parent_family in ("vwap_reversion_fade", "range_boundary_fade", "liquidity_sweep_hunt", "oversold_bounce", "mean_reversion_squeeze", "mean_reversion"):
+        parent_family = "mean_reversion"
+    elif parent_family in ("hft_order_flow_momentum", "order_flow"):
+        parent_family = "order_flow"
+
+    win_rate = scfg.family_win_rates.get(parent_family, 0.50)
     # Adjust win_rate slightly based on confidence
     confidence_bonus = (signal.confidence_score - 0.50) * 0.1
     adjusted_win_rate = min(0.80, win_rate + confidence_bonus)
-
+    
     ev = _calc_ev(adjusted_win_rate, signal.risk_reward_ratio)
 
     if ev < scfg.min_ev_r:
