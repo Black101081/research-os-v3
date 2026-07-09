@@ -173,7 +173,7 @@
   },
   "system_config": {
     "execution_mode": "maker",
-    "adaptive_rr": false,
+    "adaptive_rr": true,
     "pairs_trading": false
   }
 }
