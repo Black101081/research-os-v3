@@ -11,8 +11,10 @@ class PromotedSignalBridge:
         if store_base:
             self.store_bases = [Path(store_base)]
         else:
+            runtime_dir = self.workspace_root / 'runtime'
+            runtime_dir.mkdir(parents=True, exist_ok=True)
             self.store_bases = [
-                self.workspace_root / 'runtime',
+                runtime_dir,
                 self.workspace_root / 'sandbox_test_reports' / 'alpha_factory_demo_v1' / 'registry_store'
             ]
 
