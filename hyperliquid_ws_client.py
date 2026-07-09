@@ -1,5 +1,6 @@
 import asyncio
 import json
+import orjson
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
@@ -71,8 +72,8 @@ class HyperliquidWSClient:
                     
                     async for raw in ws:
                         try:
-                            message = json.loads(raw)
-                        except json.JSONDecodeError:
+                            message = orjson.loads(raw)
+                        except Exception:
                             logger.warning("Dropped non-json message: %s", raw)
                             continue
                         await self.on_message(message)
