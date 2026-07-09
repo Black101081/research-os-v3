@@ -53,18 +53,12 @@ registry_task = None
 def build_subscriptions() -> List[Dict[str, Any]]:
     subs = []
     asset_config = CONFIG.get("asset_config", {})
-
-    # Legacy fallback — single candle_interval
-    if not asset_config:
-        for symbol in CONFIG.get("symbols", []):
-            interval = CONFIG.get("candle_interval", "1m")
-            subs.append({"type": "candle", "coin": symbol, "interval": interval})
-            subs.append({"type": "trades", "coin": symbol})
-            subs.append({"type": "bbo",    "coin": symbol})
-        return subs
+    active_symbols = set(CONFIG.get("symbols", []))
 
     # Multi-TF subscription
     for symbol, cfg in asset_config.items():
+        if symbol not in active_symbols:
+            continue
         for interval in cfg.get("candle_intervals", ["1m"]):
             subs.append({"type": "candle", "coin": symbol, "interval": interval})
         subs.append({"type": "trades", "coin": symbol})
@@ -253,6 +247,21 @@ async def update_config(data: Dict[str, Any]) -> Dict[str, Any]:
         # 2. Update and save CONFIG
         CONFIG['symbols'] = new_symbols
         CONFIG['candle_interval'] = new_interval
+        
+        # Auto-configure missing symbols in asset_config
+        asset_config = CONFIG.setdefault('asset_config', {})
+        for s in new_symbols:
+            if s not in asset_config:
+                asset_config[s] = {
+                    "candle_intervals": ["1m", "5m", "15m", "1h"],
+                    "subscribe_l2book": True,
+                    "subscribe_active_asset_ctx": True,
+                    "role": "alt",
+                    "min_spread_bps": 2.0,
+                    "max_spread_bps": 15.0,
+                    "notes": "Auto-configured on UI addition."
+                }
+                
         config_path = BASE / 'config.json'
         config_path.write_text(json.dumps(CONFIG, indent=2), encoding='utf-8')
         

@@ -31,6 +31,27 @@ CONFIG = json.loads(config_path.read_text())
 
 # Synthesize legacy fields for backward compatibility
 if 'asset_config' in CONFIG:
+    # Auto-configure missing symbols in asset_config
+    asset_config = CONFIG['asset_config']
+    modified_config = False
+    for s in CONFIG.get('symbols', []):
+        if s not in asset_config:
+            asset_config[s] = {
+                "candle_intervals": ["1m", "5m", "15m", "1h"],
+                "subscribe_l2book": True,
+                "subscribe_active_asset_ctx": True,
+                "role": "alt",
+                "min_spread_bps": 2.0,
+                "max_spread_bps": 15.0,
+                "notes": "Auto-configured on boot."
+            }
+            modified_config = True
+    if modified_config:
+        try:
+            config_path.write_text(json.dumps(CONFIG, indent=2), encoding='utf-8')
+        except Exception:
+            pass
+            
     if 'symbols' not in CONFIG:
         CONFIG['symbols'] = list(CONFIG['asset_config'].keys())
     if 'candle_interval' not in CONFIG:
