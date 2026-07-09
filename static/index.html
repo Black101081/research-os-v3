@@ -2742,7 +2742,10 @@
         { id: "signal_oi_reversal", type: "HFT Library" }
       ];
 
-      const rows = allStrategies.map(strat => {
+      const rows = [];
+      const addedIds = new Set();
+      
+      allStrategies.forEach(strat => {
         const s = stats.find(x => x.strategy_name === strat.id) || {
           total_trades: 0,
           win_rate: 0.0,
@@ -2751,12 +2754,25 @@
           max_win: 0.0,
           max_loss: 0.0
         };
-        return {
+        rows.push({
           id: strat.id,
           type: strat.type,
           enabled: !disabledList.includes(strat.id),
           ...s
-        };
+        });
+        addedIds.add(strat.id);
+      });
+      
+      stats.forEach(s => {
+        if (!addedIds.has(s.strategy_name)) {
+          rows.push({
+            id: s.strategy_name,
+            type: s.strategy_name.startsWith('signal_') ? 'HFT Library' : 'Catalog',
+            enabled: !disabledList.includes(s.strategy_name),
+            ...s
+          });
+          addedIds.add(s.strategy_name);
+        }
       });
 
       rows.sort((a, b) => {
