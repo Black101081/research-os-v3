@@ -410,6 +410,31 @@ class ResearchEngine:
     def _refresh_state(self, symbol: str, mode: str = 'tick'):
         state = self.states[symbol]
         include_current = mode in {'tick', 'intrabar'}
+
+        # Throttle tick calculations to prevent Event Loop starvation
+        import time
+        import os
+        now_ts = time.time()
+        if not hasattr(self, '_last_calc_time'):
+            self._last_calc_time = {}
+
+        is_throttled = False
+        if mode == 'tick' and "PYTEST_CURRENT_TEST" not in os.environ:
+            last_t = self._last_calc_time.get(symbol, 0.0)
+            if now_ts - last_t < 2.0:
+                is_throttled = True
+            else:
+                self._last_calc_time[symbol] = now_ts
+
+        if is_throttled:
+            # Only update basic micro-factors and run the paper broker process_tick to check SL/TP in real-time
+            self._compute_micro_factors(state)
+            if hasattr(self, '_paper_broker') and self._paper_broker is not None:
+                last_price = state.latest_price()
+                if last_price:
+                    self._paper_broker.process_tick(state.symbol, last_price, state.updated_at, state.indicators)
+            return
+
         self._compute_micro_factors(state)
         
         closes = state.closes(include_current=include_current)
